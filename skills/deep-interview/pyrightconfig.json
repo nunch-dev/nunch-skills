@@ -1,0 +1,10 @@
+{
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["scripts"]
+    }
+  ],
+  "reportImplicitRelativeImport": false,
+  "typeCheckingMode": "standard"
+}

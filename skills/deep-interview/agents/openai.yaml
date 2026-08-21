@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deep Interview"
+  short_description: "모호한 요청을 인터뷰해 실행 가능한 스펙으로 정리"
+  default_prompt: "$deep-interview를 사용해 이 요청을 한 번에 한 질문씩 명확히 하고, 실행 전 승인 가능한 스펙으로 정리해 주세요."
