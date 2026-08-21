@@ -1,0 +1,12 @@
+{
+  "name": "nunch-skills",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bunx tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.0"
+  }
+}
