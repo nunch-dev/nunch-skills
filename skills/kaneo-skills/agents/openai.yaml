@@ -1,0 +1,9 @@
+interface:
+  display_name: "Kaneo Skills"
+  short_description: "자연어 작업을 Kaneo Todo 이슈로 정리해 등록"
+  default_prompt: "Use $kaneo-skills to turn this work item into the right Kaneo Todo issue."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "kaneo"
+      description: "Kaneo MCP server for workspace, project, task, and relation operations"
