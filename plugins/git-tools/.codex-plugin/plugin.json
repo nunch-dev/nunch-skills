@@ -1,0 +1,26 @@
+{
+  "name": "git-tools",
+  "version": "0.2.0",
+  "description": "Use Git porcelain safely with atomic Korean commits, evidence-led history, recovery, and risk-aware local and remote operations.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills",
+  "keywords": ["git", "commit", "rebase", "history", "korean"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Git Tools",
+    "shortDescription": "Safe Git porcelain and atomic Korean commits",
+    "longDescription": "Use Git as a primary porcelain toolkit: inspect history, split mixed work into atomic Korean commits, manage worktrees and branches, integrate or rewrite history, operate remotes with explicit approvals, and recover safely.",
+    "developerName": "Nunch Dev",
+    "category": "Developer Tools",
+    "capabilities": ["Instructions"],
+    "defaultPrompt": [
+      "변경사항을 작업 단위로 나눠 원자적으로 커밋해줘.",
+      "현재 브랜치를 main 위로 안전하게 rebase해줘.",
+      "Git 이력을 조사하고 필요한 복구 작업까지 진행해줘."
+    ]
+  }
+}

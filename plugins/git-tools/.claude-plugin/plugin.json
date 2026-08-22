@@ -1,0 +1,11 @@
+{
+  "name": "git-tools",
+  "version": "0.2.0",
+  "description": "Use Git porcelain safely with atomic Korean commits, evidence-led history, recovery, and risk-aware local and remote operations.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills"
+}
