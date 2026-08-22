@@ -1,0 +1,25 @@
+{
+  "name": "nunch-skills-manager",
+  "version": "0.2.0",
+  "description": "Automatically refresh installed nunch-skills plugins and help set up their runtime dependencies.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills",
+  "keywords": ["updates", "marketplace", "automation", "dependencies", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Nunch Skills Manager",
+    "shortDescription": "Update plugins and check their dependencies",
+    "longDescription": "Check the configured nunch-skills Git marketplace once per day, update only plugins the user already installed, and help diagnose and install their runtime dependencies.",
+    "developerName": "Nunch Dev",
+    "category": "Developer Tools",
+    "capabilities": ["Hooks", "Automatic Updates", "Dependency Checks"],
+    "defaultPrompt": [
+      "Check the nunch-skills update manager status.",
+      "Check and install missing nunch-skills dependencies."
+    ]
+  }
+}
