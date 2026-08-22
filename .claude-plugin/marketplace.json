@@ -1,0 +1,47 @@
+{
+  "name": "nunch-skills",
+  "owner": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "metadata": {
+    "description": "Cross-platform agent skills for Codex and Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "deep-interview",
+      "source": "./plugins/deep-interview",
+      "description": "Clarify ambiguous work through a structured interview.",
+      "version": "0.1.0",
+      "category": "productivity"
+    },
+    {
+      "name": "kaneo-skills",
+      "source": "./plugins/kaneo-skills",
+      "description": "Create well-scoped Korean Kaneo issues.",
+      "version": "0.1.0",
+      "category": "productivity"
+    },
+    {
+      "name": "humanize-korean",
+      "source": "./plugins/humanize-korean",
+      "description": "Make AI-written Korean sound natural while preserving meaning.",
+      "version": "2.3.2",
+      "category": "writing"
+    },
+    {
+      "name": "i-have-adhd",
+      "source": "./plugins/i-have-adhd",
+      "description": "Use action-first, ADHD-friendly response formatting.",
+      "version": "0.2.0",
+      "category": "productivity"
+    },
+    {
+      "name": "git-tools",
+      "source": "./plugins/git-tools",
+      "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
+      "version": "0.2.0",
+      "category": "development"
+    }
+  ]
+}

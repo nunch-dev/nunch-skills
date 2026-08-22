@@ -1,0 +1,11 @@
+{
+  "name": "kaneo-skills",
+  "version": "0.1.0",
+  "description": "Turn natural-language work items into well-scoped Korean Kaneo Todo issues.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills"
+}

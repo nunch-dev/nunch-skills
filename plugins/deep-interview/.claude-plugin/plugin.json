@@ -1,0 +1,11 @@
+{
+  "name": "deep-interview",
+  "version": "0.1.0",
+  "description": "Turn ambiguous requests into an approved, execution-ready specification through a structured interview.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills"
+}

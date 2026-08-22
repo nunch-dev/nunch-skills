@@ -1,6 +1,3 @@
-# dependencies
-node_modules/
-
 # logs
 *.log*
 
@@ -14,5 +11,5 @@ node_modules/
 .idea/
 
 .serena
-.skills-cache/
 __pycache__/
+.nunch
