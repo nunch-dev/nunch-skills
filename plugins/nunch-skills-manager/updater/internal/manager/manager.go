@@ -63,7 +63,15 @@ func (manager *Manager) Run(ctx context.Context) (Result, error) {
 	state.LastCheckedAt = now
 	state.LastStatus = StatusSuccess
 	state.LastError = ""
-	dependencies := CheckDependencies(ctx, before, manager.runner)
+	after, err := manager.listPlugins(ctx)
+	if err != nil {
+		return Result{}, manager.recordFailure(state, err)
+	}
+	dependencyReport, err := InspectDependencies(ctx, after, manager.runner)
+	if err != nil {
+		return Result{}, manager.recordFailure(state, fmt.Errorf("inspect dependencies: %w", err))
+	}
+	dependencies := dependencyReport.Missing
 	if len(updates) > 0 || len(dependencies) > 0 {
 		state.PendingNotice = &PendingNotice{
 			Updates: updates, Dependencies: dependencies, CompletedAt: now,
@@ -76,16 +84,7 @@ func (manager *Manager) Run(ctx context.Context) (Result, error) {
 }
 
 func (manager *Manager) listPlugins(ctx context.Context) (PluginList, error) {
-	raw, err := manager.runner.Run(ctx, manager.config.CodexCommand,
-		"plugin", "list", "--marketplace", manager.config.Marketplace, "--json", "--available")
-	if err != nil {
-		return PluginList{}, fmt.Errorf("list marketplace plugins: %w", err)
-	}
-	plugins, err := ParsePluginList(raw)
-	if err != nil {
-		return PluginList{}, err
-	}
-	return plugins, nil
+	return listMarketplacePlugins(ctx, manager.config, manager.runner)
 }
 
 func (manager *Manager) recordFailure(state State, cause error) error {

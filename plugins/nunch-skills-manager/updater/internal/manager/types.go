@@ -22,16 +22,37 @@ type Config struct {
 }
 
 type Plugin struct {
-	ID              string `json:"pluginId"`
-	Name            string `json:"name"`
-	MarketplaceName string `json:"marketplaceName"`
-	Version         string `json:"version"`
-	Installed       bool   `json:"installed"`
-	Enabled         bool   `json:"enabled"`
+	ID              string       `json:"pluginId"`
+	Name            string       `json:"name"`
+	MarketplaceName string       `json:"marketplaceName"`
+	Version         string       `json:"version"`
+	Installed       bool         `json:"installed"`
+	Enabled         bool         `json:"enabled"`
+	Source          PluginSource `json:"source"`
+}
+
+type PluginSource struct {
+	Path string `json:"path"`
 }
 
 type PluginList struct {
 	Installed []Plugin `json:"installed"`
+}
+
+type DependencyIssue struct {
+	Name        string   `json:"name"`
+	Requirement string   `json:"requirement"`
+	RequiredBy  []string `json:"requiredBy"`
+}
+
+type ManualDependency struct {
+	Name       string   `json:"name"`
+	RequiredBy []string `json:"requiredBy"`
+}
+
+type DependencyReport struct {
+	Missing []DependencyIssue  `json:"missing"`
+	Manual  []ManualDependency `json:"manual"`
 }
 
 type Update struct {
@@ -53,11 +74,12 @@ type PendingNotice struct {
 }
 
 type State struct {
-	LastCheckedAt   time.Time      `json:"lastCheckedAt,omitempty"`
-	LastAttemptedAt time.Time      `json:"lastAttemptedAt,omitempty"`
-	LastStatus      Status         `json:"lastStatus,omitempty"`
-	LastError       string         `json:"lastError,omitempty"`
-	PendingNotice   *PendingNotice `json:"pendingNotice,omitempty"`
+	LastCheckedAt       time.Time      `json:"lastCheckedAt,omitempty"`
+	LastAttemptedAt     time.Time      `json:"lastAttemptedAt,omitempty"`
+	LastStatus          Status         `json:"lastStatus,omitempty"`
+	LastError           string         `json:"lastError,omitempty"`
+	PendingNotice       *PendingNotice `json:"pendingNotice,omitempty"`
+	DependencySignature string         `json:"dependencySignature,omitempty"`
 }
 
 type Result struct {

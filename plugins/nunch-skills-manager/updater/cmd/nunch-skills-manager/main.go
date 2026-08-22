@@ -19,6 +19,10 @@ type hookOutput struct {
 	Output hookSpecificOutput `json:"hookSpecificOutput"`
 }
 
+type hookRunner interface {
+	Run(executable string, env []string) (manager.HookResult, error)
+}
+
 func main() {
 	os.Exit(run(os.Args))
 }
@@ -71,14 +75,48 @@ func runHook(config manager.RuntimeConfig) int {
 	}
 	store := manager.NewFileStore(config.StatePath)
 	controller := manager.NewHookController(config, store, manager.SystemClock{}, manager.DetachedLauncher{})
+	return runHookWith(config, executable, manager.ExecRunner{}, store, controller)
+}
+
+func runHookWith(
+	config manager.RuntimeConfig,
+	executable string,
+	runner manager.Runner,
+	store manager.Store,
+	controller hookRunner,
+) int {
+	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
+	defer cancel()
+	initializationNotice := ""
+	initialization, initializationErr := manager.InspectDependencyInitialization(ctx, config.Manager, runner, store)
+	if initializationErr != nil {
+		initializationNotice = hookFailureNotice(initializationErr)
+	} else if initialization.Changed {
+		initializationNotice = manager.FormatDependencyGuidance(initialization.Report)
+	}
 	result, err := controller.Run(executable, os.Environ())
 	if err != nil {
-		return emitHookFailure(err)
+		return emitHookNotice(joinNotices(initializationNotice, hookFailureNotice(err)))
 	}
-	if result.Notice != "" {
-		return emitHookNotice(result.Notice)
+	notice := joinNotices(initializationNotice, result.Notice)
+	if notice != "" {
+		return emitHookNotice(notice)
 	}
 	return 0
+}
+
+func joinNotices(notices ...string) string {
+	joined := ""
+	for _, notice := range notices {
+		if notice == "" {
+			continue
+		}
+		if joined != "" {
+			joined += " "
+		}
+		joined += notice
+	}
+	return joined
 }
 
 func runUpdate(config manager.RuntimeConfig) int {
@@ -118,10 +156,12 @@ func resolveRunLock(config manager.RuntimeConfig) (*manager.Lock, error) {
 }
 
 func emitHookFailure(err error) int {
-	return emitHookNotice(
-		"[nunch-skills] Automatic update manager failed safely; existing plugins were kept unchanged: " +
-			err.Error(),
-	)
+	return emitHookNotice(hookFailureNotice(err))
+}
+
+func hookFailureNotice(err error) string {
+	return "[nunch-skills] Automatic update manager failed safely; existing plugins were kept unchanged: " +
+		err.Error()
 }
 
 func emitHookNotice(message string) int {

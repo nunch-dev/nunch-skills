@@ -12,21 +12,21 @@
       "name": "deep-interview",
       "source": "./plugins/deep-interview",
       "description": "Clarify ambiguous work through a structured interview.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "productivity"
     },
     {
       "name": "kaneo-skills",
       "source": "./plugins/kaneo-skills",
       "description": "Create well-scoped Korean Kaneo issues.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "productivity"
     },
     {
       "name": "humanize-korean",
       "source": "./plugins/humanize-korean",
       "description": "Make AI-written Korean sound natural while preserving meaning.",
-      "version": "2.3.2",
+      "version": "2.3.2+nunch.dep1",
       "category": "writing"
     },
     {
@@ -40,7 +40,7 @@
       "name": "git-tools",
       "source": "./plugins/git-tools",
       "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "development"
     }
   ]

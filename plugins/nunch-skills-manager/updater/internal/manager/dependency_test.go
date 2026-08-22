@@ -3,104 +3,71 @@ package manager
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 )
 
-func Test_CheckDependencies_reports_missing_tools_for_installed_plugins(t *testing.T) {
+const pythonDependency = `{
+  "schemaVersion": 1,
+  "executables": [
+    {
+      "name":"python3",
+      "requirement":"Python 3.11+",
+      "candidates":["python3","python"],
+      "versionArgs":["--version"],
+      "versionPrefix":"Python ",
+      "minimumVersion":"3.11"
+    }
+  ]
+}`
+
+func Test_InspectDependencies_reports_version_belowMinimum(t *testing.T) {
 	// Given
-	plugins := PluginList{Installed: []Plugin{
-		{Name: "deep-interview", Installed: true},
-		{Name: "git-tools", Installed: true},
-	}}
-	runner := &fakeRunner{responses: []commandResponse{
-		{err: errors.New("python3 not found")},
-		{err: errors.New("python not found")},
-		{err: errors.New("uv not found")},
-		{output: []byte("git version 2.51.0")},
-	}}
-
-	// When
-	issues := CheckDependencies(context.Background(), plugins, runner)
-
-	// Then
-	want := []DependencyIssue{
-		{Name: "python3", Requirement: "Python 3.11+", RequiredBy: []string{"deep-interview"}},
-		{Name: "uv", Requirement: "uv", RequiredBy: []string{"deep-interview"}},
-	}
-	if !reflect.DeepEqual(issues, want) {
-		t.Fatalf("CheckDependencies() = %#v, want %#v", issues, want)
-	}
-}
-
-func Test_CheckDependencies_reports_python_when_version_is_too_old(t *testing.T) {
-	// Given
-	plugins := PluginList{Installed: []Plugin{{Name: "humanize-korean", Installed: true}}}
+	plugin := dependencyPlugin(t, "humanize-korean", pythonDependency)
 	runner := &fakeRunner{responses: []commandResponse{
 		{output: []byte("Python 3.10.14")},
 		{output: []byte("Python 3.10.14")},
 	}}
 
 	// When
-	issues := CheckDependencies(context.Background(), plugins, runner)
-
+	report, err := InspectDependencies(context.Background(), PluginList{Installed: []Plugin{plugin}}, runner)
 	// Then
-	want := []DependencyIssue{{
-		Name: "python3", Requirement: "Python 3.11+", RequiredBy: []string{"humanize-korean"},
-	}}
-	if !reflect.DeepEqual(issues, want) {
-		t.Fatalf("CheckDependencies() = %#v, want %#v", issues, want)
+	if err != nil {
+		t.Fatalf("InspectDependencies() error = %v", err)
+	}
+	want := []DependencyIssue{{Name: "python3", Requirement: "Python 3.11+", RequiredBy: []string{"humanize-korean"}}}
+	if !reflect.DeepEqual(report.Missing, want) {
+		t.Fatalf("missing = %#v, want %#v", report.Missing, want)
 	}
 }
 
-func Test_CheckDependencies_deduplicates_shared_tools(t *testing.T) {
+func Test_InspectDependencies_acceptsFallbackExecutable(t *testing.T) {
 	// Given
-	plugins := PluginList{Installed: []Plugin{
-		{Name: "humanize-korean", Installed: true},
-		{Name: "deep-interview", Installed: true},
-	}}
-	runner := &fakeRunner{responses: []commandResponse{
-		{err: errors.New("python3 not found")},
-		{err: errors.New("python not found")},
-		{output: []byte("uv 0.8.13")},
-	}}
-
-	// When
-	issues := CheckDependencies(context.Background(), plugins, runner)
-
-	// Then
-	want := []DependencyIssue{{
-		Name:        "python3",
-		Requirement: "Python 3.11+",
-		RequiredBy:  []string{"deep-interview", "humanize-korean"},
-	}}
-	if !reflect.DeepEqual(issues, want) {
-		t.Fatalf("CheckDependencies() = %#v, want %#v", issues, want)
-	}
-}
-
-func Test_CheckDependencies_accepts_python_command_when_python3_is_unavailable(t *testing.T) {
-	// Given
-	plugins := PluginList{Installed: []Plugin{{Name: "humanize-korean", Installed: true}}}
+	plugin := dependencyPlugin(t, "humanize-korean", pythonDependency)
 	runner := &fakeRunner{responses: []commandResponse{
 		{err: errors.New("python3 not found")},
 		{output: []byte("Python 3.12.10")},
 	}}
 
 	// When
-	issues := CheckDependencies(context.Background(), plugins, runner)
-
+	report, err := InspectDependencies(context.Background(), PluginList{Installed: []Plugin{plugin}}, runner)
 	// Then
-	if len(issues) != 0 {
-		t.Fatalf("CheckDependencies() = %#v, want no issues", issues)
+	if err != nil {
+		t.Fatalf("InspectDependencies() error = %v", err)
+	}
+	if len(report.Missing) != 0 {
+		t.Fatalf("missing = %#v, want none", report.Missing)
 	}
 }
 
-func Test_DiagnoseDependencies_reports_manual_kaneo_connection(t *testing.T) {
+func Test_DiagnoseDependencies_reportsManualDeclaration(t *testing.T) {
 	// Given
-	runner := &fakeRunner{responses: []commandResponse{{output: []byte(`{"installed":[{` +
-		`"pluginId":"kaneo-skills@nunch-skills","name":"kaneo-skills",` +
-		`"version":"0.1.0","installed":true}]}`)}}}
+	plugin := dependencyPlugin(t, "kaneo-skills", `{"schemaVersion":1,"manual":[{"name":"Kaneo MCP"}]}`)
+	pluginJSON := fmt.Sprintf(
+		`{"installed":[{"pluginId":%q,"name":%q,"version":%q,"installed":true,"source":{"path":%q}}]}`,
+		plugin.ID, plugin.Name, plugin.Version, plugin.Source.Path)
+	runner := &fakeRunner{responses: []commandResponse{{output: []byte(pluginJSON)}}}
 	config := Config{CodexCommand: "codex", Marketplace: "nunch-skills"}
 
 	// When
@@ -111,19 +78,36 @@ func Test_DiagnoseDependencies_reports_manual_kaneo_connection(t *testing.T) {
 	}
 	want := []ManualDependency{{Name: "Kaneo MCP", RequiredBy: []string{"kaneo-skills"}}}
 	if !reflect.DeepEqual(report.Manual, want) {
-		t.Fatalf("DiagnoseDependencies() manual = %#v, want %#v", report.Manual, want)
+		t.Fatalf("manual = %#v, want %#v", report.Manual, want)
 	}
 }
 
-func Test_supportsPython311_accepts_newer_minor_versions(t *testing.T) {
+func Test_InspectDependencies_rejectsUnknownManifestField(t *testing.T) {
 	// Given
-	version := []byte("Python 3.14.4\n")
+	plugin := dependencyPlugin(t, "invalid", `{"schemaVersion":1,"unexpected":true}`)
 
 	// When
-	supported := supportsPython311(version)
+	_, err := InspectDependencies(context.Background(), PluginList{Installed: []Plugin{plugin}}, &fakeRunner{})
+
+	// Then
+	var manifestError *DependencyManifestError
+	if !errors.As(err, &manifestError) {
+		t.Fatalf("InspectDependencies() error = %v, want DependencyManifestError", err)
+	}
+}
+
+func Test_VersionMeetsMinimum_acceptsNewerMinor(t *testing.T) {
+	// Given
+	minimum, err := parseToolVersion("3.11")
+	if err != nil {
+		t.Fatalf("parseToolVersion() error = %v", err)
+	}
+
+	// When
+	supported := versionMeetsMinimum([]byte("Python 3.14.4\n"), "Python ", minimum)
 
 	// Then
 	if !supported {
-		t.Fatal("supportsPython311() = false, want true")
+		t.Fatal("versionMeetsMinimum() = false, want true")
 	}
 }

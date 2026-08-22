@@ -2,142 +2,126 @@ package manager
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strings"
 )
 
-type DependencyIssue struct {
-	Name        string   `json:"name"`
-	Requirement string   `json:"requirement"`
-	RequiredBy  []string `json:"requiredBy"`
+type DependencyInitialization struct {
+	Changed bool
+	Report  DependencyReport
 }
 
-type ManualDependency struct {
-	Name       string   `json:"name"`
-	RequiredBy []string `json:"requiredBy"`
-}
-
-type DependencyReport struct {
-	Missing []DependencyIssue  `json:"missing"`
-	Manual  []ManualDependency `json:"manual"`
-}
-
-type dependencySpec struct {
-	name        string
-	requirement string
-	plugins     []string
-	commands    []dependencyCommand
-	check       func([]byte) bool
-}
-
-type dependencyCommand struct {
-	name string
-	args []string
-}
-
-var dependencySpecs = []dependencySpec{
-	{
-		name:        "python3",
-		requirement: "Python 3.11+",
-		plugins:     []string{"deep-interview", "humanize-korean"},
-		commands: []dependencyCommand{
-			{name: "python3", args: []string{"--version"}},
-			{name: "python", args: []string{"--version"}},
-		},
-		check: supportsPython311,
-	},
-	{
-		name:        "uv",
-		requirement: "uv",
-		plugins:     []string{"deep-interview"},
-		commands:    []dependencyCommand{{name: "uv", args: []string{"--version"}}},
-		check:       acceptsAnyVersion,
-	},
-	{
-		name:        "git",
-		requirement: "Git",
-		plugins:     []string{"git-tools"},
-		commands:    []dependencyCommand{{name: "git", args: []string{"--version"}}},
-		check:       acceptsAnyVersion,
-	},
-}
-
-func CheckDependencies(ctx context.Context, plugins PluginList, runner Runner) []DependencyIssue {
-	installed := make(map[string]bool, len(plugins.Installed))
-	for _, plugin := range plugins.Installed {
-		if plugin.Installed {
-			installed[plugin.Name] = true
-		}
+func InspectDependencies(ctx context.Context, plugins PluginList, runner Runner) (DependencyReport, error) {
+	specs, manual, err := loadDependencyDeclarations(plugins)
+	if err != nil {
+		return DependencyReport{}, err
 	}
-
-	issues := make([]DependencyIssue, 0)
-	for _, spec := range dependencySpecs {
-		requiredBy := make([]string, 0, len(spec.plugins))
-		for _, plugin := range spec.plugins {
-			if installed[plugin] {
-				requiredBy = append(requiredBy, plugin)
-			}
-		}
-		if len(requiredBy) == 0 {
-			continue
-		}
-		sort.Strings(requiredBy)
+	missing := make([]DependencyIssue, 0, len(specs))
+	for _, spec := range specs {
 		if dependencyAvailable(ctx, spec, runner) {
 			continue
 		}
-		issues = append(issues, DependencyIssue{
-			Name:        spec.name,
-			Requirement: spec.requirement,
-			RequiredBy:  requiredBy,
+		missing = append(missing, DependencyIssue{
+			Name: spec.declaration.Name, Requirement: spec.declaration.Requirement, RequiredBy: spec.requiredBy,
 		})
 	}
-	return issues
+	return DependencyReport{Missing: missing, Manual: manual}, nil
+}
+
+func InspectDependencyInitialization(
+	ctx context.Context,
+	config Config,
+	runner Runner,
+	store Store,
+) (DependencyInitialization, error) {
+	plugins, err := listMarketplacePlugins(ctx, config, runner)
+	if err != nil {
+		return DependencyInitialization{}, err
+	}
+	signature := dependencySignature(plugins)
+	state, err := store.Load()
+	if err != nil {
+		return DependencyInitialization{}, fmt.Errorf("load dependency initialization state: %w", err)
+	}
+	if state.DependencySignature == signature {
+		return DependencyInitialization{}, nil
+	}
+	report, err := InspectDependencies(ctx, plugins, runner)
+	if err != nil {
+		return DependencyInitialization{}, err
+	}
+	state.DependencySignature = signature
+	if err := store.Save(state); err != nil {
+		return DependencyInitialization{}, fmt.Errorf("save dependency initialization state: %w", err)
+	}
+	return DependencyInitialization{Changed: true, Report: report}, nil
+}
+
+func DiagnoseDependencies(ctx context.Context, config Config, runner Runner) (DependencyReport, error) {
+	plugins, err := listMarketplacePlugins(ctx, config, runner)
+	if err != nil {
+		return DependencyReport{}, err
+	}
+	return InspectDependencies(ctx, plugins, runner)
+}
+
+func FormatDependencyGuidance(report DependencyReport) string {
+	if len(report.Missing) == 0 && len(report.Manual) == 0 {
+		return "[nunch-skills] Initialization check completed: all declared dependencies are available."
+	}
+	parts := make([]string, 0, 2)
+	if len(report.Missing) > 0 {
+		items := make([]string, 0, len(report.Missing))
+		for _, issue := range report.Missing {
+			items = append(items, fmt.Sprintf("%s for %s", issue.Requirement, strings.Join(issue.RequiredBy, ", ")))
+		}
+		parts = append(parts, "Missing dependencies: "+strings.Join(items, "; ")+
+			". Ask Codex to install nunch-skills dependencies.")
+	}
+	if len(report.Manual) > 0 {
+		items := make([]string, 0, len(report.Manual))
+		for _, dependency := range report.Manual {
+			items = append(items, fmt.Sprintf("%s for %s", dependency.Name, strings.Join(dependency.RequiredBy, ", ")))
+		}
+		parts = append(parts, "Manual setup: "+strings.Join(items, "; ")+".")
+	}
+	return "[nunch-skills] Initialization required. " + strings.Join(parts, " ")
+}
+
+func listMarketplacePlugins(ctx context.Context, config Config, runner Runner) (PluginList, error) {
+	raw, err := runner.Run(ctx, config.CodexCommand,
+		"plugin", "list", "--marketplace", config.Marketplace, "--json", "--available")
+	if err != nil {
+		return PluginList{}, fmt.Errorf("list marketplace plugins: %w", err)
+	}
+	plugins, err := ParsePluginList(raw)
+	if err != nil {
+		return PluginList{}, err
+	}
+	return plugins, nil
+}
+
+func dependencySignature(plugins PluginList) string {
+	identities := make([]string, 0, len(plugins.Installed))
+	for _, plugin := range plugins.Installed {
+		if plugin.Installed {
+			identities = append(identities, plugin.ID+"@"+plugin.Version)
+		}
+	}
+	sort.Strings(identities)
+	digest := sha256.Sum256([]byte(strings.Join(identities, "\n")))
+	return hex.EncodeToString(digest[:])
 }
 
 func dependencyAvailable(ctx context.Context, spec dependencySpec, runner Runner) bool {
-	for _, command := range spec.commands {
-		output, err := runner.Run(ctx, command.name, command.args...)
-		if err == nil && spec.check(output) {
+	for _, candidate := range spec.declaration.Candidates {
+		output, err := runner.Run(ctx, candidate, spec.declaration.VersionArgs...)
+		if err == nil && versionMeetsMinimum(output, spec.declaration.VersionPrefix, spec.minimum) {
 			return true
 		}
 	}
 	return false
-}
-
-func DiagnoseDependencies(ctx context.Context, config Config, runner Runner) (DependencyReport, error) {
-	raw, err := runner.Run(ctx, config.CodexCommand,
-		"plugin", "list", "--marketplace", config.Marketplace, "--json", "--available")
-	if err != nil {
-		return DependencyReport{}, fmt.Errorf("list marketplace plugins: %w", err)
-	}
-	plugins, err := ParsePluginList(raw)
-	if err != nil {
-		return DependencyReport{}, err
-	}
-	report := DependencyReport{
-		Missing: CheckDependencies(ctx, plugins, runner),
-		Manual:  make([]ManualDependency, 0),
-	}
-	for _, plugin := range plugins.Installed {
-		if plugin.Installed && plugin.Name == "kaneo-skills" {
-			report.Manual = append(report.Manual, ManualDependency{
-				Name: "Kaneo MCP", RequiredBy: []string{"kaneo-skills"},
-			})
-		}
-	}
-	return report, nil
-}
-
-func supportsPython311(output []byte) bool {
-	var major int
-	var minor int
-	if _, err := fmt.Sscanf(strings.TrimSpace(string(output)), "Python %d.%d", &major, &minor); err != nil {
-		return false
-	}
-	return major > 3 || major == 3 && minor >= 11
-}
-
-func acceptsAnyVersion([]byte) bool {
-	return true
 }
