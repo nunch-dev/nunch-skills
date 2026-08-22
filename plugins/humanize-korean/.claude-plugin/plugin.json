@@ -1,0 +1,12 @@
+{
+  "name": "humanize-korean",
+  "version": "2.3.2",
+  "description": "Rewrite AI-generated Korean text so it reads naturally while preserving meaning.",
+  "author": {
+    "name": "epoko77-ai",
+    "url": "https://github.com/epoko77-ai"
+  },
+  "homepage": "https://github.com/epoko77-ai/im-not-ai",
+  "repository": "https://github.com/epoko77-ai/im-not-ai",
+  "license": "MIT"
+}
