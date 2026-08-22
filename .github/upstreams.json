@@ -1,0 +1,80 @@
+{
+  "upstreams": [
+    {
+      "name": "i-have-adhd",
+      "repository": "https://github.com/ayghri/i-have-adhd.git",
+      "ref": "main",
+      "copies": [
+        {
+          "source": ".codex-plugin",
+          "destination": "plugins/i-have-adhd/.codex-plugin"
+        },
+        {
+          "source": ".claude-plugin",
+          "destination": "plugins/i-have-adhd/.claude-plugin"
+        },
+        {
+          "source": "skills",
+          "destination": "plugins/i-have-adhd/skills",
+          "removeFrontmatter": [
+            "disable-model-invocation"
+          ]
+        },
+        {
+          "source": "LICENSE",
+          "destination": "plugins/i-have-adhd/LICENSE"
+        },
+        {
+          "source": "logo.png",
+          "destination": "plugins/i-have-adhd/logo.png"
+        }
+      ],
+      "version": {
+        "source": ".codex-plugin/plugin.json",
+        "appendCommit": true,
+        "targets": [
+          "plugins/i-have-adhd/.codex-plugin/plugin.json",
+          "plugins/i-have-adhd/.claude-plugin/plugin.json"
+        ]
+      }
+    },
+    {
+      "name": "humanize-korean",
+      "repository": "https://github.com/epoko77-ai/im-not-ai.git",
+      "ref": "main",
+      "copies": [
+        {
+          "source": ".claude-plugin",
+          "destination": "plugins/humanize-korean/.claude-plugin"
+        },
+        {
+          "source": "agents",
+          "destination": "plugins/humanize-korean/agents"
+        },
+        {
+          "source": "scripts",
+          "destination": "plugins/humanize-korean/scripts"
+        },
+        {
+          "source": "skills",
+          "destination": "plugins/humanize-korean/skills",
+          "removeFrontmatter": [
+            "disable-model-invocation"
+          ]
+        },
+        {
+          "source": "LICENSE",
+          "destination": "plugins/humanize-korean/LICENSE"
+        }
+      ],
+      "version": {
+        "source": ".claude-plugin/plugin.json",
+        "appendCommit": true,
+        "targets": [
+          "plugins/humanize-korean/.codex-plugin/plugin.json",
+          "plugins/humanize-korean/.claude-plugin/plugin.json"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+name: Sync upstream plugins
+
+on:
+  schedule:
+    - cron: "0 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream-plugins
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: tools/upstream-sync/go.mod
+          cache-dependency-path: tools/upstream-sync/go.mod
+
+      - name: Test sync tool
+        working-directory: tools/upstream-sync
+        run: go test -race -shuffle=on -count=1 ./...
+
+      - name: Sync configured upstreams
+        working-directory: tools/upstream-sync
+        run: go run . -root ../..
+
+      - name: Validate plugin manifests
+        run: |
+          jq -e '.name == "i-have-adhd" and (.version | length > 0)' \
+            plugins/i-have-adhd/.codex-plugin/plugin.json >/dev/null
+          jq -e '.name == "humanize-korean" and (.version | length > 0)' \
+            plugins/humanize-korean/.codex-plugin/plugin.json >/dev/null
+
+      - name: Create or update sync pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_BRANCH: automation/sync-upstream-plugins
+        run: |
+          if git diff --quiet; then
+            echo "Upstreams are already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --force-create "$SYNC_BRANCH"
+          git add .github/upstreams.lock.json plugins/i-have-adhd plugins/humanize-korean
+          git commit -m "(upstream-sync) [chore]: 원격 스킬 동기화"
+          git push --force origin "HEAD:$SYNC_BRANCH"
+
+          body=$(cat <<'EOF'
+          예약된 업스트림 동기화 결과입니다.
+
+          - 관리 대상 경로만 원본으로 교체했습니다.
+          - 원본 manifest 버전을 Codex manifest에 전파했습니다.
+          - 실제 반영된 commit은 `.github/upstreams.lock.json`에 기록했습니다.
+
+          병합되기 전에는 설치 사용자에게 배포되지 않습니다.
+          EOF
+          )
+
+          if gh pr view "$SYNC_BRANCH" --json number >/dev/null 2>&1; then
+            gh pr edit "$SYNC_BRANCH" \
+              --title "(upstream-sync) [chore]: 원격 스킬 동기화" \
+              --body "$body"
+          else
+            gh pr create \
+              --base "${{ github.event.repository.default_branch }}" \
+              --head "$SYNC_BRANCH" \
+              --title "(upstream-sync) [chore]: 원격 스킬 동기화" \
+              --body "$body"
+          fi
