@@ -89,7 +89,10 @@ jobs:
           mkdir "$GITHUB_WORKSPACE/release-artifacts"
           cp "$release_root"/*.tgz "$GITHUB_WORKSPACE/release-artifacts/"
           cp "$release_root/package/release-manifest.json" "$GITHUB_WORKSPACE/release-artifacts/"
-          sha256sum "$GITHUB_WORKSPACE/release-artifacts"/* > "$GITHUB_WORKSPACE/release-artifacts/SHA256SUMS"
+
+      - name: Generate portable checksums
+        working-directory: release-artifacts
+        run: sha256sum * > SHA256SUMS
 
       - name: Upload validated release package
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
