@@ -1,6 +1,6 @@
 {
   "name": "@nunch-dev/skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Release-pinned lifecycle CLI for nunch-skills.",
   "license": "MIT",
   "type": "module",

@@ -61,6 +61,14 @@ async function verifyReproducibleBuild(repo) {
         throw new Error(`non-deterministic binary: ${name}`);
       }
     }
+    const committedDigests = await digestDirectory(
+      join(repo, "plugins/nunch-skills-manager/bin")
+    );
+    for (const name of BINARY_NAMES) {
+      if (firstDigests[name] !== committedDigests[name]) {
+        throw new Error(`built binary differs from committed release artifact: ${name}`);
+      }
+    }
     return firstDigests;
   } finally {
     await rm(temporary, { recursive: true, force: true });
