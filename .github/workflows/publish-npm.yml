@@ -91,7 +91,5 @@ jobs:
           npm publish "$tarball" --dry-run --access public --tag latest
           printf 'tarball=%s\n' "$tarball" >> "$GITHUB_OUTPUT"
 
-      - name: Bootstrap first npm publish with provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+      - name: Publish to npm with trusted publishing
         run: npm publish "${{ steps.release.outputs.tarball }}" --access public --tag latest --provenance

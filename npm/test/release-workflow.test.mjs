@@ -18,7 +18,7 @@ test("release workflow writes portable checksum paths", async () => {
   assert.doesNotMatch(workflow, /sha256sum "\$GITHUB_WORKSPACE\/release-artifacts"\/\*/);
 });
 
-test("npm publish workflow verifies a GitHub Release before provenance publishing", async () => {
+test("npm publish workflow verifies a GitHub Release before OIDC publishing", async () => {
   // Given
   const workflow = await readWorkflow("publish-npm.yml");
 
@@ -29,7 +29,7 @@ test("npm publish workflow verifies a GitHub Release before provenance publishin
   assert.match(workflow, /sha256sum -c SHA256SUMS/);
   assert.match(workflow, /release-manifest\.mjs/);
   assert.match(workflow, /npm publish "\$tarball" --dry-run --access public --tag latest/);
-  assert.match(workflow, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_BOOTSTRAP_TOKEN \}\}/);
+  assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_BOOTSTRAP_TOKEN/);
   assert.match(workflow, /--access public --tag latest --provenance/);
   assert.doesNotMatch(workflow, /types: \[published\]/);
 });
