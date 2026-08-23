@@ -4,14 +4,16 @@ Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레
 
 ## 플러그인
 
-| 플러그인 | 포함된 스킬 | 설명 |
-| --- | --- | --- |
-| `deep-interview` | `deep-interview` | 모호한 요청을 인터뷰해 실행 가능한 스펙으로 정리합니다. |
-| `kaneo-skills` | `kaneo-skills` | 자연어 작업을 한국어 Kaneo Todo 이슈로 등록합니다. |
-| `humanize-korean` | `humanize-korean`, `humanize`, `humanize-redo` | AI가 작성한 한국어 문장을 자연스럽게 윤문합니다. |
-| `i-have-adhd` | `i-have-adhd` | 응답을 행동 우선의 ADHD 친화적 형식으로 구성합니다. |
-| `git-tools` | `git-tools` | 원자적 한글 커밋부터 이력·worktree·branch·remote·복구까지 Git porcelain을 안전하게 처리합니다. |
-| `nunch-skills-manager` | Codex 전용 lifecycle manager | 설치, 의존성 진단, release 검증과 자동 갱신을 관리합니다. |
+| 플러그인 | 포함된 스킬 | 설명 | 문서 |
+| --- | --- | --- | --- |
+| `deep-interview` | `deep-interview` | 모호한 요청을 인터뷰해 실행 가능한 스펙으로 정리합니다. | [가이드](docs/skills/deep-interview.md) |
+| `kaneo-skills` | `kaneo-skills` | 자연어 작업을 한국어 Kaneo Todo 이슈로 등록합니다. | [가이드](docs/skills/kaneo-skills.md) |
+| `humanize-korean` | `humanize-korean`, `humanize`, `humanize-redo` | AI가 작성한 한국어 문장을 자연스럽게 윤문합니다. | [오케스트레이터](docs/skills/humanize-korean.md) · [진입 명령](docs/skills/humanize.md) · [재윤문](docs/skills/humanize-redo.md) |
+| `i-have-adhd` | `i-have-adhd` | 응답을 행동 우선의 ADHD 친화적 형식으로 구성합니다. | [가이드](docs/skills/i-have-adhd.md) |
+| `git-tools` | `git-tools` | 원자적 한글 커밋부터 이력·worktree·branch·remote·복구까지 Git porcelain을 안전하게 처리합니다. | [가이드](docs/skills/git-tools.md) |
+| `nunch-skills-manager` | `nunch-skills-manager` | 설치, 의존성 진단, release 검증과 자동 갱신을 관리합니다. | [가이드](docs/skills/nunch-skills-manager.md) |
+
+전체 문서 색인은 [스킬 문서](docs/skills/README.md), 배포 운영 절차는 [release runbook](docs/release-runbook.md)에서 확인할 수 있습니다.
 
 ## Codex lifecycle CLI
 
