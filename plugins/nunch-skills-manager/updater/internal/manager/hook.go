@@ -64,13 +64,20 @@ func (controller *HookController) Run(executable string, env []string) (HookResu
 }
 
 func formatNotice(notice *PendingNotice, lastError string) string {
-	if notice == nil || len(notice.Updates) == 0 && len(notice.Dependencies) == 0 {
+	if notice == nil || len(notice.Updates) == 0 && len(notice.Dependencies) == 0 && notice.Release == nil {
 		if lastError == "" {
 			return ""
 		}
 		return "[nunch-skills] Automatic update check failed; the existing plugins were kept unchanged: " + lastError
 	}
-	parts := make([]string, 0, 2)
+	parts := make([]string, 0, 3)
+	if notice.Release != nil {
+		commit := notice.Release.Commit
+		if len(commit) > 12 {
+			commit = commit[:12]
+		}
+		parts = append(parts, fmt.Sprintf("Verified npm release %s (%s).", notice.Release.Version, commit))
+	}
 	updates := make([]string, 0, len(notice.Updates))
 	for _, update := range notice.Updates {
 		updates = append(updates, fmt.Sprintf("%s %s -> %s", update.PluginID, update.FromVersion, update.ToVersion))

@@ -1,7 +1,7 @@
 {
   "name": "nunch-skills-manager",
-  "version": "0.3.0",
-  "description": "Initialize runtime dependencies and automatically refresh installed nunch-skills plugins.",
+  "version": "0.4.0",
+  "description": "Manage release-pinned nunch-skills installation, verification, dependencies, and updates.",
   "author": {
     "name": "Nunch Dev",
     "url": "https://github.com/nunch-dev"
@@ -12,13 +12,13 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Nunch Skills Manager",
-    "shortDescription": "Initialize dependencies and update plugins",
-    "longDescription": "Guide dependency setup when the installed plugin set changes, refresh the nunch-skills Git marketplace once per day, and update only plugins the user already installed.",
+    "shortDescription": "Install, verify, and update nunch-skills",
+    "longDescription": "Manage release-pinned installation and automatic updates, verify the manager hook before trust changes, and guide dependency setup for installed plugins.",
     "developerName": "Nunch Dev",
     "category": "Developer Tools",
-    "capabilities": ["Hooks", "Automatic Updates", "Dependency Checks"],
+    "capabilities": ["Hooks", "Release Verification", "Lifecycle Management", "Dependency Checks"],
     "defaultPrompt": [
-      "Check the nunch-skills update manager status.",
+      "Run the nunch-skills lifecycle doctor.",
       "Initialize missing nunch-skills dependencies."
     ]
   }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -28,44 +29,88 @@ func main() {
 }
 
 func run(args []string) int {
-	if len(args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: nunch-skills-manager <doctor|hook|run>")
-		return 2
+	return runWith(args, os.Stdout, os.Stderr)
+}
+
+func runWith(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 2 && (args[1] == "--help" || args[1] == "help") {
+		return writeLine(stdout, usage(), 0)
+	}
+	if len(args) == 2 && args[1] == "--version" {
+		return writeLine(stdout, manager.CLIVersion(), 0)
+	}
+	if err := validateCLIArgs(args); err != nil {
+		return writeUsageError(stderr, err)
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return emitHookFailure(fmt.Errorf("resolve home directory: %w", err))
+		return writeError(stderr, fmt.Errorf("resolve home directory: %w", err))
 	}
 	config, err := manager.LoadRuntimeConfig(os.Getenv, home)
 	if err != nil {
-		return emitHookFailure(err)
+		return writeError(stderr, err)
 	}
+	return dispatchCommand(args, config, home, stdout, stderr)
+}
+
+func validateCLIArgs(args []string) error {
+	if len(args) < 2 {
+		return manager.ErrInvalidLifecycleCommand
+	}
+	if args[1] == "hook" || args[1] == "run" {
+		if len(args) != 2 {
+			return manager.ErrInvalidLifecycleCommand
+		}
+		return nil
+	}
+	_, err := manager.ParseLifecycleCommand(args[1:])
+	return err
+}
+
+func dispatchCommand(
+	args []string,
+	config manager.RuntimeConfig,
+	home string,
+	stdout, stderr io.Writer,
+) int {
 	switch args[1] {
 	case "doctor":
-		return runDoctor(config)
+		return runDoctor(config, home, stdout, stderr)
 	case "hook":
 		return runHook(config)
 	case "run":
-		return runUpdate(config)
+		return runUpdate(config, home)
+	case "install", "uninstall", "update":
+		command, parseErr := manager.ParseLifecycleCommand(args[1:])
+		if parseErr != nil {
+			return writeUsageError(stderr, parseErr)
+		}
+		return runLifecycle(config, home, command, stdout, stderr)
 	default:
-		fmt.Fprintln(os.Stderr, "usage: nunch-skills-manager <doctor|hook|run>")
-		return 2
+		return writeUsageError(stderr, manager.ErrInvalidLifecycleCommand)
 	}
 }
 
-func runDoctor(config manager.RuntimeConfig) int {
-	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
-	defer cancel()
-	report, err := manager.DiagnoseDependencies(ctx, config.Manager, manager.ExecRunner{})
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+func writeLine(writer io.Writer, value string, successCode int) int {
+	if _, err := fmt.Fprintln(writer, value); err != nil {
 		return 1
 	}
-	if err := json.NewEncoder(os.Stdout).Encode(report); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	return successCode
+}
+
+func writeError(writer io.Writer, err error) int {
+	return writeLine(writer, err.Error(), 1)
+}
+
+func writeUsageError(writer io.Writer, err error) int {
+	if _, writeErr := fmt.Fprintf(writer, "%s\n%s\n", err, usage()); writeErr != nil {
 		return 1
 	}
-	return 0
+	return 2
+}
+
+func usage() string {
+	return "usage: nunch-skills <install|update|uninstall|doctor> [plugins] [--all] [--dry-run] [--yes]"
 }
 
 func runHook(config manager.RuntimeConfig) int {
@@ -119,7 +164,7 @@ func joinNotices(notices ...string) string {
 	return joined
 }
 
-func runUpdate(config manager.RuntimeConfig) int {
+func runUpdate(config manager.RuntimeConfig, home string) int {
 	lock, err := resolveRunLock(config)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -135,11 +180,17 @@ func runUpdate(config manager.RuntimeConfig) int {
 	}()
 	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
 	defer cancel()
-	service := manager.New(
+	autoRelease, err := manager.NewProductionAutoRelease(config, resolveCodexHome(home), os.Getenv)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	service := manager.NewWithAutoRelease(
 		config.Manager,
 		manager.ExecRunner{},
 		manager.NewFileStore(config.StatePath),
 		manager.SystemClock{},
+		autoRelease.Updater,
 	)
 	if _, err := service.Run(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)

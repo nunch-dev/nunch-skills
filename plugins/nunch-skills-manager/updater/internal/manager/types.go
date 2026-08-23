@@ -70,6 +70,7 @@ type InstallResult struct {
 type PendingNotice struct {
 	Updates      []Update          `json:"updates,omitempty"`
 	Dependencies []DependencyIssue `json:"dependencies,omitempty"`
+	Release      *ReleaseState     `json:"release,omitempty"`
 	CompletedAt  time.Time         `json:"completedAt"`
 }
 
