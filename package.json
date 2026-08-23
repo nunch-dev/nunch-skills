@@ -1,0 +1,40 @@
+{
+  "name": "@nunch-dev/skills",
+  "version": "0.1.0",
+  "description": "Release-pinned lifecycle CLI for nunch-skills.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "nunch-skills": "npm/bin/nunch-skills.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nunch-dev/nunch-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nunch-dev/nunch-skills/issues"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills#readme",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "release-manifest.json",
+    "npm/bin/nunch-skills.mjs",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-darwin-amd64",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-darwin-arm64",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-linux-amd64",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-linux-arm64",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-windows-amd64.exe",
+    "plugins/nunch-skills-manager/bin/nunch-skills-manager-windows-arm64.exe"
+  ],
+  "scripts": {
+    "test": "node --test npm/test/*.test.mjs",
+    "pack:check": "node npm/scripts/pack-check.mjs"
+  }
+}

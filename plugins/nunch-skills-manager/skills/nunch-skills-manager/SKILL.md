@@ -1,9 +1,19 @@
 ---
 name: nunch-skills-manager
-description: Initialize, diagnose, and help install runtime tools required by installed nunch-skills plugins. Use when the first-task initialization notice reports missing dependencies or when the user asks to check, fix, set up, or install nunch-skills dependencies; do not use for ordinary plugin updates.
+description: Manage the release-pinned nunch-skills lifecycle and diagnose its runtime dependencies. Use when the user asks to install, update, uninstall, verify, or repair nunch-skills, or when a first-task initialization notice reports missing dependencies; do not use for unrelated Codex plugins.
 ---
 
-# Nunch Skills Dependencies
+# Nunch Skills Manager
+
+Use the release-pinned lifecycle CLI for user-requested nunch-skills installation, update, removal, or integrity checks. Read [Lifecycle CLI](references/lifecycle-cli.md) before invoking a lifecycle command or explaining hook trust.
+
+Do not treat `npx` download as permission to change Codex configuration. `install`, `update`, and `uninstall` can change the marketplace, installed plugins, or manager hook trust, so show the command and its scope before executing it. `uninstall` must preview its created-only targets and requires interactive confirmation or `--yes`.
+
+The lifecycle CLI verifies the npm tarball, immutable Git tag and commit, manifest allowlist, manager hook, scripts, and selected binary before a release-pinned trust change. If verification fails, keep existing state unchanged. Do not workaround a failure by editing Codex hook trust state; explain that the user may inspect the manager hook through `/hooks` only after understanding the mismatch.
+
+Do not publish npm packages, create or push Git tags, or create GitHub releases as part of lifecycle support. Those are separate remote writes and require an explicit final approval at the point of execution.
+
+## Dependencies
 
 Use the manager's bundled doctor as the source of truth. Resolve the physical plugin root as two directories above this `SKILL.md`; do not rely on `PLUGIN_ROOT` being present outside a hook.
 

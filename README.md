@@ -1,6 +1,6 @@
 # nunch-skills
 
-Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레이스입니다. 설치 과정에서 Bun, Node.js, Python 같은 별도 런타임을 사용하지 않습니다.
+Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레이스입니다. Codex의 권장 설치·갱신 경로는 release-pinned npm CLI인 `@nunch-dev/skills`입니다. CLI에는 Node.js 22 이상과 npm 또는 pnpm이 필요하며, 실제 plugin lifecycle은 포함된 플랫폼별 manager binary가 처리합니다.
 
 ## 플러그인
 
@@ -11,53 +11,91 @@ Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레
 | `humanize-korean` | `humanize-korean`, `humanize`, `humanize-redo` | AI가 작성한 한국어 문장을 자연스럽게 윤문합니다. |
 | `i-have-adhd` | `i-have-adhd` | 응답을 행동 우선의 ADHD 친화적 형식으로 구성합니다. |
 | `git-tools` | `git-tools` | 원자적 한글 커밋부터 이력·worktree·branch·remote·복구까지 Git porcelain을 안전하게 처리합니다. |
-| `nunch-skills-manager` | Codex 전용 updater | 설치된 nunch-skills 플러그인을 하루 한 번 자동으로 갱신합니다. |
+| `nunch-skills-manager` | Codex 전용 lifecycle manager | 설치, 의존성 진단, release 검증과 자동 갱신을 관리합니다. |
 
-## Codex 설치
+## Codex lifecycle CLI
+
+`@nunch-dev/skills`는 `nunch-skills` 명령 하나로 설치, 갱신, 진단, 제거를 제공합니다. 최초 `npx` 또는 `pnpm dlx` 실행은 npm이 전달한 launcher와 package를 실행하는 bootstrap trust 경계입니다. npm registry integrity, provenance, `@nunch-dev`의 최초 publish 권한·인증 통제가 이 초기 신뢰를 완화하지만, 첫 실행 자체를 Git 검증만으로 대체할 수는 없습니다.
+
+Bootstrap 뒤에는 npm package가 Codex 설정이나 hook 신뢰 상태를 임의로 바꾸지 않습니다. 명시적인 `install`, `update`, `uninstall`만 lifecycle 변경을 요청할 수 있으며, 그 요청도 dual npm+Git verification이 완료되기 전에는 marketplace, plugin, `config.toml`, hook trust를 변경하지 않습니다.
+
+```bash
+npx @nunch-dev/skills install
+pnpm dlx @nunch-dev/skills install
+```
+
+기본 설치는 `nunch-skills-manager`만 대상으로 합니다. 필요한 skill은 이름으로 추가하고, 전체 설치는 `--all`을 명시합니다.
+
+```bash
+# manager와 git-tools만 설치
+npx @nunch-dev/skills install git-tools
+
+# 모든 nunch-skills plugin 설치
+npx @nunch-dev/skills install --all
+
+# 실제 변경 없이 설치 대상을 미리 확인
+npx @nunch-dev/skills install git-tools --dry-run
+```
+
+설치 후 상태와 개별 skill의 실행 의존성을 확인합니다.
+
+```bash
+npx @nunch-dev/skills doctor
+```
+
+`doctor`는 dependency, release integrity, 중단된 transaction, manager hook trust, resource ownership을 구분해 보고합니다. 누락된 Python·uv·Git 같은 실행 의존성은 진단만 하며 자동으로 시스템 패키지를 설치하지 않습니다.
+
+### 갱신과 자동 갱신
+
+수동 갱신은 다음 명령으로 실행합니다.
+
+```bash
+npx @nunch-dev/skills update
+pnpm dlx @nunch-dev/skills update
+```
+
+설치가 완료된 뒤에는 신뢰된 manager의 SessionStart hook도 새 release를 확인합니다. 이 경로는 `main`이나 이동 가능한 tag를 신뢰 기준으로 사용하지 않습니다. 현재 신뢰된 manager가 npm tarball과 immutable Git tag·full commit을 별도로 읽고, canonical release manifest에 기록된 marketplace, manager manifest, hook, launcher script, 플랫폼별 binary digest를 모두 비교합니다. 검증 전에는 candidate release의 코드를 실행하거나 Codex marketplace, plugin, `config.toml`, hook trust를 바꾸지 않습니다.
+
+자동 SessionStart update는 현재 release보다 엄격히 높은 stable SemVer만 수용합니다. prerelease와 같은 버전 또는 downgrade candidate는 자동 적용하지 않습니다. 검증을 통과한 candidate만 non-manager plugin, manager, 정확한 hook trust 순서로 staged 적용하고 최종 검증 뒤에 완료 상태를 기록합니다. 어느 단계든 실패하면 installer가 소유한 변경만 마지막 정상 release로 되돌리고 기존 설치와 trust 상태를 유지합니다.
+
+### Hook trust와 실패 시 동작
+
+`install`은 release manifest와 실제 설치 결과가 모두 일치할 때에만 `nunch-skills-manager`가 소유한 SessionStart hook 한 개의 신뢰 해시를 등록합니다. 다른 plugin이나 사용자가 등록한 hook은 읽거나 변경하지 않습니다.
+
+검증이 실패하거나 hook 정의가 release manifest와 일치하지 않으면 fail closed 합니다. 즉, 새 hook을 자동 신뢰하지 않고 plugin·설정의 기존 상태를 유지합니다. 이 경우 원인을 `doctor`로 확인한 뒤, 필요하면 Codex의 `/hooks`에서 표시된 manager hook을 직접 검토하고 신뢰할 수 있습니다. `/hooks`에서의 수동 신뢰는 release-pinned lifecycle 검증을 우회하는 것이므로, digest 불일치 원인을 해결하기 전에는 권장하지 않습니다.
+
+### 제거
+
+제거는 installer ownership ledger에서 `created`로 기록한 항목만 기본 대상으로 삼습니다. 설치 전부터 있던 plugin, marketplace, hook trust, adopted resource와 manager 상태 데이터는 보존합니다. 먼저 preview를 출력하며, interactive 확인 또는 `--yes`가 있어야 실제 제거합니다.
+
+```bash
+# 변경 없이 제거 대상을 확인
+npx @nunch-dev/skills uninstall --dry-run
+
+# preview된 created resource만 비대화형으로 제거
+npx @nunch-dev/skills uninstall --yes
+```
+
+## Codex plugin 직접 설치
+
+개별 plugin을 연구하거나 개발 중에 Codex 명령을 직접 사용할 수도 있습니다.
 
 ```bash
 codex plugin marketplace add nunch-dev/nunch-skills
-codex plugin add nunch-skills-manager@nunch-skills
 codex plugin add deep-interview@nunch-skills
 ```
 
-manager의 SessionStart hook을 최초 한 번 승인하면 별도의 예약 작업 없이 자동 업데이트가 활성화됩니다. manager는 Codex가 이미 설치한 `nunch-skills` 플러그인만 유지하며, 사용자가 선택하지 않은 플러그인을 새로 설치하지 않습니다. 설치된 플러그인에 필요한 실행 파일도 함께 점검하고, 누락된 항목은 다음 Codex 작업에서 알립니다.
+이 경로는 npm lifecycle ownership ledger와 release-pinned 자동 trust를 만들지 않습니다. `nunch-skills-manager`를 직접 설치했다면 `/hooks`에서 SessionStart hook을 직접 검토·승인해야 합니다. 일반 사용에는 lifecycle CLI를 권장합니다.
 
-설치 가능한 목록은 다음 명령으로 확인합니다.
+## 의존성 초기화
 
-```bash
-codex plugin list
-```
-
-manager는 Codex 시작 시 백그라운드에서 동작하며 다음 순서로 갱신합니다.
-
-1. 최근 성공한 확인으로부터 24시간이 지났는지 확인합니다.
-2. `codex plugin marketplace upgrade nunch-skills`로 등록된 Git ref를 갱신합니다.
-3. 사용자가 이미 설치한 플러그인만 `codex plugin add`로 갱신합니다.
-4. Codex가 반환한 설치 버전이 달라진 항목을 기록합니다.
-5. 다음 Codex 작업에서 실제 변경된 플러그인을 알립니다.
-6. 설치된 플러그인의 Python·uv·Git 요구사항을 확인하고 누락 항목을 알립니다.
-
-의존성 알림을 받았거나 직접 점검하려면 Codex에 다음처럼 요청합니다.
-
-```text
-nunch-skills 의존성을 확인하고 설치해줘.
-```
-
-각 플러그인은 root `dependencies.json`에 실행·연결 의존성을 선언합니다. 설치된 플러그인 집합이나 버전이 바뀐 뒤 첫 Codex 작업에서 manager hook이 같은 작업 안에 초기화 결과를 전달합니다. Manager의 `nunch-skills-manager` 스킬은 번들 doctor를 실행해 설치된 플러그인에 필요한 항목만 찾습니다. 실제 패키지 설치는 시스템을 변경하므로, 사용할 패키지 관리자와 명령을 먼저 보여주고 승인을 받은 뒤 진행합니다. Kaneo MCP처럼 실행 파일이 아닌 연결 의존성은 자동 설치하지 않고 필요한 설정을 안내합니다.
-
-네트워크 또는 업데이트 명령이 실패하면 기존 설치를 유지하고 30분 뒤 다시 시도합니다. 자동 업데이트를 끄려면 Codex 실행 환경에 다음 값을 설정합니다.
+각 plugin은 root `dependencies.json`에 실행·연결 의존성을 선언합니다. 설치된 plugin 집합이나 버전이 바뀐 뒤 첫 Codex 작업에서 manager hook이 같은 작업 안에 초기화 결과를 전달합니다. 의존성 알림을 받았거나 직접 점검하려면 다음 명령을 사용합니다.
 
 ```bash
-export NUNCH_SKILLS_AUTO_UPDATE_DISABLED=1
+npx @nunch-dev/skills doctor
 ```
 
-수동 갱신도 계속 사용할 수 있습니다.
-
-```bash
-codex plugin marketplace upgrade nunch-skills
-codex plugin add deep-interview@nunch-skills
-```
+실제 패키지 설치는 시스템을 변경하므로, 사용할 패키지 관리자와 명령을 먼저 검토하고 승인한 뒤 진행해야 합니다. Kaneo MCP처럼 실행 파일이 아닌 연결 의존성은 자동 설치하지 않고 필요한 설정을 안내합니다.
 
 ## 업스트림 동기화
 
@@ -91,19 +129,19 @@ claude plugin update deep-interview@nunch-skills
 ```text
 .agents/plugins/marketplace.json    Codex 마켓플레이스
 .claude-plugin/marketplace.json     Claude Code 마켓플레이스
+npm/                                npm launcher·package verification
 plugins/<name>/.codex-plugin/       Codex manifest
 plugins/<name>/.claude-plugin/      Claude Code manifest
 plugins/<name>/skills/              두 제품이 공유하는 스킬 콘텐츠
-plugins/nunch-skills-manager/bin/   OS·아키텍처별 정적 updater
+plugins/nunch-skills-manager/bin/   OS·아키텍처별 lifecycle binary
+docs/release-runbook.md             검증·publish 승인 절차
 ```
 
-각 플러그인은 설치 시 자체 완결된 디렉터리로 복사됩니다.
-
-자동 업데이트가 동작하려면 변경된 플러그인의 manifest와 marketplace entry에서 버전을 함께 올려야 합니다. Git commit만 바뀌고 버전이 같으면 Codex는 기존 설치 버전을 유지합니다. manager 자체 hook이 변경된 릴리스는 Codex가 hook 재승인을 요청할 수 있습니다.
+각 plugin은 설치 시 자체 완결된 디렉터리로 복사됩니다. manager plugin 자체의 manifest와 release artifact가 바뀌면 plugin version과 release metadata를 함께 갱신해야 합니다. Git commit만 바뀌고 버전이 같으면 Codex는 기존 plugin 설치 버전을 유지할 수 있습니다.
 
 ## 런타임 요구사항
 
-플러그인 설치와 manager 실행에는 Codex 또는 Claude Code 외의 런타임이 필요하지 않습니다. manager는 macOS, Linux, Windows의 ARM64·x64 정적 바이너리를 포함합니다. 다만 개별 스킬이 실행 중 외부 명령이나 연결을 사용할 수 있습니다.
+Lifecycle CLI에는 Node.js 22 이상과 npm 또는 pnpm이 필요합니다. manager는 macOS, Linux, Windows의 ARM64·x64 binary를 포함하므로 Go, Python, uv, Bun을 설치할 필요는 없습니다. 다만 개별 skill은 실행 중 외부 명령이나 연결을 사용할 수 있습니다.
 
 | 플러그인 | 실행·연결 의존성 |
 | --- | --- |
@@ -113,3 +151,7 @@ plugins/nunch-skills-manager/bin/   OS·아키텍처별 정적 updater
 | `kaneo-skills` | 연결된 Kaneo MCP |
 
 manager는 `python3`와 `python`을 모두 확인합니다. 실행 파일이 누락되거나 Python 버전이 낮아도 기존 플러그인을 삭제하거나 자동 업데이트 전체를 실패 처리하지 않습니다.
+
+## 릴리스
+
+릴리스 artifact는 npm version, immutable Git tag, full commit SHA와 canonical digest manifest를 한 단위로 검증합니다. 로컬 검증은 [release runbook](docs/release-runbook.md)을 따릅니다. Git tag·push, npm publish, GitHub release 생성은 모두 원격 상태를 바꾸므로 실행 직전에 각각 범위와 대상을 확인하고 별도 승인을 받아야 합니다.

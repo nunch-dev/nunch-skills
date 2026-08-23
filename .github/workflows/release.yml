@@ -1,0 +1,121 @@
+name: Validate release artifacts
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing immutable vX.Y.Z tag to validate"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-nunch-skills-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the immutable release ref
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version-file: plugins/nunch-skills-manager/updater/go.mod
+          cache-dependency-path: plugins/nunch-skills-manager/updater/go.mod
+
+      - id: release-identity
+        name: Verify release identity
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          release_commit=$(git rev-parse HEAD)
+          test "$(git status --porcelain --untracked-files=all)" = ""
+          test "$RELEASE_TAG" = "v$(node -p "require('./package.json').version")"
+          test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$release_commit"
+          printf 'commit=%s\n' "$release_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Install npm package metadata
+        run: npm ci --ignore-scripts
+
+      - name: Test manager source
+        working-directory: plugins/nunch-skills-manager/updater
+        run: go test -race -shuffle=on -count=1 ./...
+
+      - name: Test npm package surface
+        run: |
+          npm test
+          npm run pack:check
+
+      - name: Compare two clean binary builds
+        run: node npm/scripts/repro-build.mjs
+
+      - name: Build staged release package and canonical manifest
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          RELEASE_COMMIT: ${{ steps.release-identity.outputs.commit }}
+        run: |
+          release_root=$(mktemp -d)
+          npm pack --ignore-scripts --pack-destination "$release_root"
+          tar -xzf "$release_root"/*.tgz -C "$release_root"
+          rm "$release_root"/*.tgz
+          NUNCH_SKILLS_VERSION="$(node -p "require('./package.json').version")" \
+            plugins/nunch-skills-manager/updater/build.sh "$release_root/package/plugins/nunch-skills-manager/bin"
+          node npm/scripts/release-manifest.mjs \
+            --repo . \
+            --staging "$release_root/package" \
+            --commit "$RELEASE_COMMIT" \
+            --tag "$RELEASE_TAG"
+          (
+            cd "$release_root/package"
+            npm pack --ignore-scripts --json --pack-destination "$release_root"
+          )
+          mkdir "$GITHUB_WORKSPACE/release-artifacts"
+          cp "$release_root"/*.tgz "$GITHUB_WORKSPACE/release-artifacts/"
+          cp "$release_root/package/release-manifest.json" "$GITHUB_WORKSPACE/release-artifacts/"
+          sha256sum "$GITHUB_WORKSPACE/release-artifacts"/* > "$GITHUB_WORKSPACE/release-artifacts/SHA256SUMS"
+
+      - name: Upload validated release package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nunch-skills-release-${{ inputs.tag || github.ref_name }}
+          path: release-artifacts
+          if-no-files-found: error
+
+  publish-npm:
+    if: ${{ false }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: npm-production
+    permissions:
+      id-token: write
+    steps:
+      - name: Reserved for approved npm provenance publish
+        run: exit 1
+
+  publish-github-release:
+    if: ${{ false }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: github-release-production
+    permissions:
+      contents: write
+    steps:
+      - name: Reserved for approved GitHub release asset upload
+        run: exit 1
