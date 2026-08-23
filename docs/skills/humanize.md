@@ -1,5 +1,7 @@
 # humanize
 
+> 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai), epoko77-ai, MIT License. 이 명령은 원본 프로젝트를 `humanize-korean` 플러그인으로 동기화해 제공합니다.
+
 ## 개요
 
 `humanize-korean` 파이프라인을 간단히 호출하는 사용자 진입 명령입니다. 기본은 빠른 경로를 사용하고 `--strict`로 정밀 경로를 강제할 수 있습니다.
@@ -23,3 +25,5 @@
 결과에는 윤문본, 변경률·등급, 카테고리별 before/after와 주요 변경이 포함됩니다. 등급이 낮으면 `humanize-redo`로 2차 윤문할 수 있습니다.
 
 Source: [`plugins/humanize-korean/skills/humanize/SKILL.md`](../../plugins/humanize-korean/skills/humanize/SKILL.md)
+
+License: [`plugins/humanize-korean/LICENSE`](../../plugins/humanize-korean/LICENSE)

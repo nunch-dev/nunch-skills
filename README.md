@@ -103,6 +103,15 @@ npx @nunch-dev/skills doctor
 
 외부 프로젝트에서 가져온 `i-have-adhd`와 `humanize-korean`은 매일 KST 04:00에 GitHub Actions가 원본의 `main` branch를 확인합니다. 변경이 있으면 관리 대상으로 선언된 파일만 교체하고, 원본 버전과 commit SHA를 반영한 `automation/sync-upstream-plugins` PR을 생성하거나 갱신합니다. `main`에 직접 반영하지 않으므로 diff를 검토한 뒤 병합할 수 있습니다.
 
+### 업스트림 출처
+
+| 원본 프로젝트 | 이 저장소의 플러그인 | 원저자 | 현재 동기화 기준 | 라이선스 |
+| --- | --- | --- | --- | --- |
+| [`ayghri/i-have-adhd`](https://github.com/ayghri/i-have-adhd) | `i-have-adhd` | [Ayoub G.](https://github.com/ayghri) | [`b42a45a`](https://github.com/ayghri/i-have-adhd/commit/b42a45a068e080294924bfba19a7a2e8944c48ff) | MIT |
+| [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai) | `humanize-korean`, `humanize`, `humanize-redo` | [epoko77-ai](https://github.com/epoko77-ai) | [`c4d03d4`](https://github.com/epoko77-ai/im-not-ai/commit/c4d03d4859acda143f0b04b4bbdb56c5e6a94db1) | MIT |
+
+각 원본의 저작권 고지와 MIT 전문은 [`plugins/i-have-adhd/LICENSE`](plugins/i-have-adhd/LICENSE)와 [`plugins/humanize-korean/LICENSE`](plugins/humanize-korean/LICENSE)에 보존합니다. `im-not-ai`는 원본 프로젝트명이며 이 marketplace에서는 한국어 윤문 기능을 `humanize-korean` 플러그인으로 제공합니다.
+
 동기화 대상과 복사 경로는 `.github/upstreams.json`, 마지막으로 반영한 commit은 `.github/upstreams.lock.json`에서 관리합니다. 로컬에서는 Go 1.23 이상과 Git을 준비한 뒤 다음 명령으로 같은 동작을 실행합니다.
 
 ```bash

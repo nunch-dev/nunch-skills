@@ -1,5 +1,7 @@
 # i-have-adhd
 
+> 출처: [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd), Ayoub G., MIT License. 현재 동기화 기준은 [`b42a45a`](https://github.com/ayghri/i-have-adhd/commit/b42a45a068e080294924bfba19a7a2e8944c48ff)입니다.
+
 ## 개요
 
 응답을 ADHD 독자가 바로 실행할 수 있는 형태로 바꾸는 지속형 출력 모드입니다. 단순히 짧게 쓰는 것이 아니라 시작 마찰, 작업 기억, 시간 감각과 진행 보상을 고려합니다.
@@ -23,3 +25,5 @@
 안전 확인, 충분한 설명 요청, 실제 ambiguity와 harness 규칙은 형식보다 우선합니다.
 
 Source: [`plugins/i-have-adhd/skills/i-have-adhd/SKILL.md`](../../plugins/i-have-adhd/skills/i-have-adhd/SKILL.md)
+
+License: [`plugins/i-have-adhd/LICENSE`](../../plugins/i-have-adhd/LICENSE)

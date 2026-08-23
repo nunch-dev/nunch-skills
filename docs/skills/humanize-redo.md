@@ -1,5 +1,7 @@
 # humanize-redo
 
+> 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai), epoko77-ai, MIT License. 이 명령은 원본 프로젝트를 `humanize-korean` 플러그인으로 동기화해 제공합니다.
+
 ## 개요
 
 가장 최근 `humanize-korean` 결과를 기존 run ID에서 다시 다듬는 후속 명령입니다. 전체 파이프라인을 처음부터 반복하지 않고 잔존 finding과 지정 범위만 처리합니다.
@@ -23,3 +25,5 @@
 이전 결과는 `final_prev.md`로 보존하고 새 결과는 `03_rewrite_v2.md`처럼 version을 분리합니다. 최대 round 3을 넘기면 사람 검토를 권고합니다.
 
 Source: [`plugins/humanize-korean/skills/humanize-redo/SKILL.md`](../../plugins/humanize-korean/skills/humanize-redo/SKILL.md)
+
+License: [`plugins/humanize-korean/LICENSE`](../../plugins/humanize-korean/LICENSE)

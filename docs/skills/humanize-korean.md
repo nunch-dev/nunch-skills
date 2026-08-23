@@ -1,5 +1,7 @@
 # humanize-korean
 
+> 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai), epoko77-ai, MIT License. 현재 동기화 기준은 [`c4d03d4`](https://github.com/epoko77-ai/im-not-ai/commit/c4d03d4859acda143f0b04b4bbdb56c5e6a94db1)입니다.
+
 ## 개요
 
 AI가 작성한 한국어에서 번역투, 기계적 병렬, 관용구, 피동태, 접속사·이모지·불릿 과다와 균일한 리듬을 탐지하고 의미를 보존한 채 자연스럽게 윤문하는 오케스트레이터입니다.
@@ -31,3 +33,5 @@ AI가 작성한 한국어에서 번역투, 기계적 병렬, 관용구, 피동�
 각 실행은 cwd의 `_workspace/<run_id>/`에 입력, 진단, rewrite, 검증과 최종 결과를 남깁니다. Python 3.11 이상이 필요합니다.
 
 Source: [`plugins/humanize-korean/skills/humanize-korean/SKILL.md`](../../plugins/humanize-korean/skills/humanize-korean/SKILL.md)
+
+License: [`plugins/humanize-korean/LICENSE`](../../plugins/humanize-korean/LICENSE)
