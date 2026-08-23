@@ -1,0 +1,91 @@
+name: Publish verified GitHub Release to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Published stable vX.Y.Z GitHub Release to publish"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-npm-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the immutable release tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+
+      - name: Set up Node and npm registry
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm CLI
+        run: |
+          npm install --global npm@11.19.0
+          test "$(npm --version)" = "11.19.0"
+
+      - name: Verify GitHub Release and publish exact tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          node -e 'if (!/^v\d+\.\d+\.\d+$/.test(process.env.RELEASE_TAG)) process.exit(1)'
+          release_json=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,isDraft,isPrerelease)
+          RELEASE_JSON="$release_json" node -e '
+            const release = JSON.parse(process.env.RELEASE_JSON);
+            if (release.tagName !== process.env.RELEASE_TAG || release.isDraft || release.isPrerelease) {
+              process.exit(1);
+            }
+          '
+
+          release_commit=$(git rev-parse HEAD)
+          test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$release_commit"
+          test "$(git status --porcelain --untracked-files=all)" = ""
+
+          version=${RELEASE_TAG#v}
+          release_root="$RUNNER_TEMP/nunch-skills-release-$version"
+          mkdir "$release_root"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir "$release_root"
+
+          tarball="$release_root/nunch-dev-skills-$version.tgz"
+          test -f "$tarball"
+          test -f "$release_root/release-manifest.json"
+          test -f "$release_root/SHA256SUMS"
+          test "$(find "$release_root" -maxdepth 1 -type f | wc -l)" -eq 3
+
+          (
+            cd "$release_root"
+            if grep -Eq '  /' SHA256SUMS; then
+              exit 1
+            fi
+            sha256sum -c SHA256SUMS
+          )
+
+          mkdir "$release_root/extracted"
+          tar -xzf "$tarball" -C "$release_root/extracted"
+          node npm/scripts/release-manifest.mjs \
+            --repo . \
+            --staging "$release_root/extracted/package" \
+            --commit "$release_commit" \
+            --tag "$RELEASE_TAG" \
+            --dry-run > "$release_root/expected-manifest.json"
+          cmp "$release_root/expected-manifest.json" "$release_root/release-manifest.json"
+          cmp "$release_root/release-manifest.json" \
+            "$release_root/extracted/package/release-manifest.json"
+
+          npm publish "$tarball" --dry-run --access public --tag latest
+          npm publish "$tarball" --access public --tag latest

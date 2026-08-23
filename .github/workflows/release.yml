@@ -92,7 +92,7 @@ jobs:
 
       - name: Generate portable checksums
         working-directory: release-artifacts
-        run: sha256sum * > SHA256SUMS
+        run: sha256sum ./* > SHA256SUMS
 
       - name: Upload validated release package
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -100,25 +100,3 @@ jobs:
           name: nunch-skills-release-${{ inputs.tag || github.ref_name }}
           path: release-artifacts
           if-no-files-found: error
-
-  publish-npm:
-    if: ${{ false }}
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: npm-production
-    permissions:
-      id-token: write
-    steps:
-      - name: Reserved for approved npm provenance publish
-        run: exit 1
-
-  publish-github-release:
-    if: ${{ false }}
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: github-release-production
-    permissions:
-      contents: write
-    steps:
-      - name: Reserved for approved GitHub release asset upload
-        run: exit 1

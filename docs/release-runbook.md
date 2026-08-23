@@ -48,7 +48,7 @@ python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.
   plugins/nunch-skills-manager/skills/nunch-skills-manager
 ```
 
-The release workflow runs the same source and package checks, compares two clean Go builds, generates a staged canonical manifest, and uploads a tarball plus `SHA256SUMS`. Its publish jobs are intentionally disabled; validation success is not publication.
+The validation workflow runs the same source and package checks, compares two clean Go builds, generates a staged canonical manifest, and uploads a tarball plus `SHA256SUMS`. It never publishes. The separate `publish-npm.yml` workflow accepts only a manually selected, already-published stable GitHub Release.
 
 ## Approval gate for remote writes
 
@@ -62,14 +62,18 @@ Do not create a tag, push a ref, publish to npm, or create a GitHub release befo
 
 For the first npm publication, verify that the authenticated account has authority for `@nunch-dev/skills`, public access is intended, and the chosen authentication or trusted-publishing setup is correct. Do not put npm tokens in repository files, workflow logs, or release notes.
 
+The npm trusted publisher is bound to repository `nunch-dev/nunch-skills`, workflow file `publish-npm.yml`, no GitHub Environment, and the `npm publish` permission. The workflow uses GitHub OIDC and must not receive a long-lived `NODE_AUTH_TOKEN`.
+
 Only attach a stable release to the npm `latest` dist-tag. SessionStart automatic update accepts a strictly newer stable SemVer only; it rejects prerelease, same-version, and downgrade candidates. Prerelease testing must use an explicitly selected non-`latest` version and must not silently replace a stable installed release.
 
 ## Publish sequence after approval
 
 1. Create the immutable tag for the already-validated commit and push only that tag.
-2. Wait for the tag-triggered release validation workflow to complete successfully. Confirm the uploaded tarball and `SHA256SUMS` correspond to the approved version and commit.
-3. Publish that exact approved tarball to npm with public access and provenance according to the approved publishing mechanism.
-4. Create the GitHub release from the same immutable tag and upload only the validated artifacts and checksums.
-5. In a fresh temporary `CODEX_HOME`, install the published package with `npx @nunch-dev/skills@X.Y.Z install`, run `doctor`, and confirm the manager hook trust and installed release identity match the manifest.
+2. Wait for the tag-triggered validation workflow to complete successfully. Confirm the uploaded tarball and `SHA256SUMS` correspond to the approved version and commit.
+3. Create the GitHub Release from the same immutable tag and attach only the validated tarball, canonical manifest, and checksums.
+4. Download those assets from the published GitHub Release into a new directory. Verify GitHub's asset digests and run `sha256sum -c SHA256SUMS` without rewriting the files.
+5. After a separate npm approval, manually dispatch `publish-npm.yml` with the exact stable tag. The workflow checks out that tag, downloads the GitHub Release, validates its three-file surface, checksums, commit identity, canonical manifest, and embedded package manifest, then publishes the exact tarball through npm trusted publishing with automatic provenance.
+6. Wait for the workflow to succeed. Download `@nunch-dev/skills@X.Y.Z` from npm and confirm its SHA-256 matches the GitHub Release tarball and `latest` points to the approved version.
+7. In a fresh temporary `CODEX_HOME`, install the published package with `npx @nunch-dev/skills@X.Y.Z install`, run `doctor`, and confirm the manager hook trust and installed release identity match the manifest.
 
 If any verification or post-publish check fails, stop. Do not republish the same version, retag, force-push, or replace artifacts. Investigate the immutable failure, prepare a new version, and obtain a new approval for the next remote publication.

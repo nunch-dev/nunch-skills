@@ -165,4 +165,4 @@ manager는 `python3`와 `python`을 모두 확인합니다. 실행 파일이 누
 
 ## 릴리스
 
-릴리스 artifact는 npm version, immutable Git tag, full commit SHA와 canonical digest manifest를 한 단위로 검증합니다. 로컬 검증은 [release runbook](docs/release-runbook.md)을 따릅니다. Git tag·push, npm publish, GitHub release 생성은 모두 원격 상태를 바꾸므로 실행 직전에 각각 범위와 대상을 확인하고 별도 승인을 받아야 합니다.
+릴리스 artifact는 npm version, immutable Git tag, full commit SHA와 canonical digest manifest를 한 단위로 검증합니다. 검증된 GitHub Release를 배포 원본으로 확정한 뒤, Release에서 다시 내려받아 검증한 tarball만 GitHub OIDC trusted publishing과 provenance로 npm에 게시합니다. 로컬 검증은 [release runbook](docs/release-runbook.md)을 따릅니다. Git tag·push, GitHub Release 생성, npm workflow dispatch는 모두 원격 상태를 바꾸므로 실행 직전에 각각 범위와 대상을 확인하고 별도 승인을 받아야 합니다.
