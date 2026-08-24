@@ -13,3 +13,4 @@
 .serena
 __pycache__/
 .nunch
+node_modules

@@ -7,17 +7,14 @@ release-pinned nunch-skills 설치·업데이트·제거·무결성 검증과 pl
 ## 명령
 
 ```bash
-npx @nunch-dev/skills install
-npx @nunch-dev/skills update
-npx @nunch-dev/skills doctor
-npx @nunch-dev/skills uninstall --dry-run
+npx @nunch-dev/skills
 ```
 
-기본 install은 manager만 설치합니다. plugin 이름을 추가하거나 `--all`을 명시해야 범위가 늘어납니다. 기본 uninstall은 ownership ledger에서 `created`인 리소스만 preview하고, 실제 제거에는 interactive 확인 또는 `--yes`가 필요합니다.
+TTY menu에서 설치, 전체 업데이트, 선택 삭제, doctor, telemetry 설정을 고릅니다. manager는 항상 설치되는 control plane이며 삭제는 created resource full teardown으로만 가능합니다.
 
 ## Release 검증
 
-npm tarball, immutable Git tag·full commit, marketplace, manager manifest, hook, Unix·Windows launcher와 선택된 플랫폼 binary digest를 비교합니다. 검증이 끝나기 전에는 Codex marketplace, plugin, config나 hook trust를 변경하지 않습니다.
+npm tarball, immutable Git tag·full commit, marketplace, manager manifest, hook, Windows Node dispatcher와 TypeScript runtime digest를 비교합니다. 검증이 끝나기 전에는 Codex marketplace, plugin, config나 hook trust를 변경하지 않습니다.
 
 최초 `npx` 실행은 npm-delivered bootstrap을 신뢰합니다. 설치가 끝난 뒤 SessionStart 자동 업데이트는 현재 신뢰된 manager가 candidate code를 실행하지 않고 npm과 Git을 먼저 검증합니다.
 

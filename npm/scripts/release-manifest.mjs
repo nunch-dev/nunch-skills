@@ -1,42 +1,42 @@
 #!/usr/bin/env node
 
-import { basename } from "node:path";
-import { fileURLToPath } from "node:url";
+import { basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { ReleaseManifestError, generateReleaseManifest } from "./release-manifest-core.mjs";
+import { generateReleaseManifest, ReleaseManifestError } from './release-manifest-core.mjs';
 
 function usage() {
-  return "usage: node npm/scripts/release-manifest.mjs --repo <path> --staging <path> --commit <full-sha> --tag <vX> [--dry-run]";
+  return 'usage: node npm/scripts/release-manifest.mjs --repo <path> --staging <path> --commit <full-sha> --tag <vX> [--dry-run]';
 }
 
 function parseArguments(argv) {
   const options = { dryRun: false };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
-    if (argument === "--dry-run") {
+    if (argument === '--dry-run') {
       options.dryRun = true;
       continue;
     }
-    if (argument === "--help" || argument === "-h") {
+    if (argument === '--help' || argument === '-h') {
       options.help = true;
       continue;
     }
-    if (!argument.startsWith("--")) {
+    if (!argument.startsWith('--')) {
       throw new ReleaseManifestError(`unexpected argument: ${argument}`);
     }
     const key = argument.slice(2);
-    if (key !== "repo" && key !== "staging" && key !== "commit" && key !== "tag") {
+    if (key !== 'repo' && key !== 'staging' && key !== 'commit' && key !== 'tag') {
       throw new ReleaseManifestError(`unknown option: ${argument}`);
     }
     const value = argv[index + 1];
-    if (value === undefined || value.startsWith("--")) {
+    if (value === undefined || value.startsWith('--')) {
       throw new ReleaseManifestError(`${argument} requires a value`);
     }
     options[key] = value;
     index += 1;
   }
   if (!options.help) {
-    for (const key of ["repo", "staging", "commit", "tag"]) {
+    for (const key of ['repo', 'staging', 'commit', 'tag']) {
       if (options[key] === undefined) {
         throw new ReleaseManifestError(`--${key} is required`);
       }
@@ -64,6 +64,6 @@ async function main() {
 
 export { parseArguments };
 
-if (basename(process.argv[1] ?? "") === basename(fileURLToPath(import.meta.url))) {
+if (basename(process.argv[1] ?? '') === basename(fileURLToPath(import.meta.url))) {
   process.exitCode = await main();
 }

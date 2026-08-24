@@ -1,27 +1,27 @@
-import { createHash } from "node:crypto";
-import { isAbsolute } from "node:path";
+import { createHash } from 'node:crypto';
+import { isAbsolute } from 'node:path';
 
-const MANIFEST_PATH = "release-manifest.json";
+const MANIFEST_PATH = 'release-manifest.json';
 const COMMIT_PATTERN = /^[a-f0-9]{40}$/;
 const SEMVER_PATTERN = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
 class ReleaseManifestError extends Error {
   constructor(message) {
     super(message);
-    this.name = "ReleaseManifestError";
+    this.name = 'ReleaseManifestError';
   }
 }
 
 function sha256(data) {
-  return createHash("sha256").update(data).digest("hex");
+  return createHash('sha256').update(data).digest('hex');
 }
 
 function isSafeRelativePath(path) {
-  return path !== "" && !isAbsolute(path) && !path.includes("\\") && !path.startsWith("../") && path !== ".";
+  return path !== '' && !isAbsolute(path) && !path.includes('\\') && !path.startsWith('../') && path !== '.';
 }
 
 function gitTreeSha256(files) {
-  const hash = createHash("sha256");
+  const hash = createHash('sha256');
   for (const path of [...files.keys()].sort()) {
     if (!isSafeRelativePath(path)) {
       throw new ReleaseManifestError(`unsafe Git path: ${path}`);
@@ -36,15 +36,15 @@ function gitTreeSha256(files) {
     hash.update(frame);
     hash.update(content);
   }
-  return hash.digest("hex");
+  return hash.digest('hex');
 }
 
 export {
   COMMIT_PATTERN,
+  gitTreeSha256,
+  isSafeRelativePath,
   MANIFEST_PATH,
   ReleaseManifestError,
   SEMVER_PATTERN,
-  gitTreeSha256,
-  isSafeRelativePath,
-  sha256
+  sha256,
 };

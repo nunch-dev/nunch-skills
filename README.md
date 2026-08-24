@@ -1,6 +1,6 @@
 # nunch-skills
 
-Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레이스입니다. Codex의 권장 설치·갱신 경로는 release-pinned npm CLI인 `@nunch-dev/skills`입니다. CLI에는 Node.js 22 이상과 npm 또는 pnpm이 필요하며, 실제 plugin lifecycle은 포함된 플랫폼별 manager binary가 처리합니다.
+Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레이스입니다. Codex의 권장 설치·갱신 경로는 release-pinned npm CLI인 `@nunch-dev/skills`입니다. CLI와 lifecycle manager는 Node.js 22 이상의 TypeScript bundle로 동작합니다.
 
 ## 플러그인
 
@@ -19,44 +19,39 @@ Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레
 
 `@nunch-dev/skills`는 `nunch-skills` 명령 하나로 설치, 갱신, 진단, 제거를 제공합니다. 최초 `npx` 또는 `pnpm dlx` 실행은 npm이 전달한 launcher와 package를 실행하는 bootstrap trust 경계입니다. npm registry integrity, provenance, `@nunch-dev`의 최초 publish 권한·인증 통제가 이 초기 신뢰를 완화하지만, 첫 실행 자체를 Git 검증만으로 대체할 수는 없습니다.
 
-Bootstrap 뒤에는 npm package가 Codex 설정이나 hook 신뢰 상태를 임의로 바꾸지 않습니다. 명시적인 `install`, `update`, `uninstall`만 lifecycle 변경을 요청할 수 있으며, 그 요청도 dual npm+Git verification이 완료되기 전에는 marketplace, plugin, `config.toml`, hook trust를 변경하지 않습니다.
+공개 CLI는 인자 없는 TTY menu만 제공합니다. 사용자가 menu에서 작업과 대상을 고른 뒤에도 dual npm+Git verification이 완료되기 전에는 marketplace, plugin, `config.toml`, hook trust를 변경하지 않습니다.
 
 ```bash
-npx @nunch-dev/skills install
-pnpm dlx @nunch-dev/skills install
+npx @nunch-dev/skills
+pnpm dlx @nunch-dev/skills
+bunx @nunch-dev/skills
 ```
 
-기본 설치는 `nunch-skills-manager`만 대상으로 합니다. 필요한 skill은 이름으로 추가하고, 전체 설치는 `--all`을 명시합니다.
+menu에서 설치, 전체 업데이트, 선택 삭제, doctor, telemetry 설정을 고릅니다. 설치 화면에서는 leaf plugin을 복수 선택할 수 있으며 `nunch-skills-manager`는 lifecycle control plane으로 항상 포함됩니다.
+
+telemetry는 최초 실행부터 기본 활성화되며 설정 menu 또는 `NUNCH_SKILLS_TELEMETRY_DISABLED=1`로 끌 수 있습니다. 전송 항목은 임의 installation ID, CLI 버전, OS·architecture, 작업 종류와 결과, 시간 구간, 선택한 plugin ID로 제한합니다. prompt, 파일 경로, 명령 출력, 원문 오류와 개인 프로필은 전송하지 않습니다. Manager 전체 삭제 시 installation ID를 포함한 로컬 lifecycle·telemetry 데이터도 함께 제거합니다.
 
 ```bash
-# manager와 git-tools만 설치
-npx @nunch-dev/skills install git-tools
-
-# 모든 nunch-skills plugin 설치
-npx @nunch-dev/skills install --all
-
-# 실제 변경 없이 설치 대상을 미리 확인
-npx @nunch-dev/skills install git-tools --dry-run
+npx @nunch-dev/skills
 ```
 
 설치 후 상태와 개별 skill의 실행 의존성을 확인합니다.
 
 ```bash
-npx @nunch-dev/skills doctor
+npx @nunch-dev/skills
 ```
 
-`doctor`는 dependency, release integrity, 중단된 transaction, manager hook trust, resource ownership을 구분해 보고합니다. 누락된 Python·uv·Git 같은 실행 의존성은 진단만 하며 자동으로 시스템 패키지를 설치하지 않습니다.
+`doctor`는 dependency, release integrity, 중단된 transaction, manager hook trust, resource ownership을 구분해 보고합니다. 누락된 실행 의존성은 진단만 하며 자동으로 시스템 패키지를 설치하지 않습니다.
 
 ### 갱신과 자동 갱신
 
-수동 갱신은 다음 명령으로 실행합니다.
+수동 갱신은 TTY menu의 `전체 업데이트`를 선택합니다.
 
 ```bash
-npx @nunch-dev/skills update
-pnpm dlx @nunch-dev/skills update
+npx @nunch-dev/skills
 ```
 
-설치가 완료된 뒤에는 신뢰된 manager의 SessionStart hook도 새 release를 확인합니다. 이 경로는 `main`이나 이동 가능한 tag를 신뢰 기준으로 사용하지 않습니다. 현재 신뢰된 manager가 npm tarball과 immutable Git tag·full commit을 별도로 읽고, canonical release manifest에 기록된 marketplace, manager manifest, hook, launcher script, 플랫폼별 binary digest를 모두 비교합니다. 검증 전에는 candidate release의 코드를 실행하거나 Codex marketplace, plugin, `config.toml`, hook trust를 바꾸지 않습니다.
+설치가 완료된 뒤에는 신뢰된 manager의 SessionStart hook도 새 release를 확인합니다. 현재 manager가 npm tarball을 scripts 없이 내려받고 immutable Git tag·full commit과 canonical manifest의 marketplace, manager manifest, hook, dispatcher, TypeScript runtime digest를 교차 검증합니다. 검증 전에는 candidate code를 실행하거나 Codex 상태를 바꾸지 않습니다.
 
 자동 SessionStart update는 현재 release보다 엄격히 높은 stable SemVer만 수용합니다. prerelease와 같은 버전 또는 downgrade candidate는 자동 적용하지 않습니다. 검증을 통과한 candidate만 non-manager plugin, manager, 정확한 hook trust 순서로 staged 적용하고 최종 검증 뒤에 완료 상태를 기록합니다. 어느 단계든 실패하면 installer가 소유한 변경만 마지막 정상 release로 되돌리고 기존 설치와 trust 상태를 유지합니다.
 
@@ -68,14 +63,10 @@ pnpm dlx @nunch-dev/skills update
 
 ### 제거
 
-제거는 installer ownership ledger에서 `created`로 기록한 항목만 기본 대상으로 삼습니다. 설치 전부터 있던 plugin, marketplace, hook trust, adopted resource와 manager 상태 데이터는 보존합니다. 먼저 preview를 출력하며, interactive 확인 또는 `--yes`가 있어야 실제 제거합니다.
+제거 menu에는 ownership ledger에서 `created`로 기록한 leaf plugin만 활성화됩니다. manager 제거를 고르면 created plugin, manager trust, 비어 있는 created marketplace를 함께 정리하는 full teardown으로 전환되며 adopted·pre-existing 자원은 보존합니다.
 
 ```bash
-# 변경 없이 제거 대상을 확인
-npx @nunch-dev/skills uninstall --dry-run
-
-# preview된 created resource만 비대화형으로 제거
-npx @nunch-dev/skills uninstall --yes
+npx @nunch-dev/skills
 ```
 
 ## Codex plugin 직접 설치
@@ -94,7 +85,7 @@ codex plugin add deep-interview@nunch-skills
 각 plugin은 root `dependencies.json`에 실행·연결 의존성을 선언합니다. 설치된 plugin 집합이나 버전이 바뀐 뒤 첫 Codex 작업에서 manager hook이 같은 작업 안에 초기화 결과를 전달합니다. 의존성 알림을 받았거나 직접 점검하려면 다음 명령을 사용합니다.
 
 ```bash
-npx @nunch-dev/skills doctor
+npx @nunch-dev/skills
 ```
 
 실제 패키지 설치는 시스템을 변경하므로, 사용할 패키지 관리자와 명령을 먼저 검토하고 승인한 뒤 진행해야 합니다. Kaneo MCP처럼 실행 파일이 아닌 연결 의존성은 자동 설치하지 않고 필요한 설정을 안내합니다.
@@ -112,11 +103,11 @@ npx @nunch-dev/skills doctor
 
 각 원본의 저작권 고지와 MIT 전문은 [`plugins/i-have-adhd/LICENSE`](plugins/i-have-adhd/LICENSE)와 [`plugins/humanize-korean/LICENSE`](plugins/humanize-korean/LICENSE)에 보존합니다. `im-not-ai`는 원본 프로젝트명이며 이 marketplace에서는 한국어 윤문 기능을 `humanize-korean` 플러그인으로 제공합니다.
 
-동기화 대상과 복사 경로는 `.github/upstreams.json`, 마지막으로 반영한 commit은 `.github/upstreams.lock.json`에서 관리합니다. 로컬에서는 Go 1.23 이상과 Git을 준비한 뒤 다음 명령으로 같은 동작을 실행합니다.
+동기화 대상과 복사 경로는 `.github/upstreams.json`, 마지막으로 반영한 commit은 `.github/upstreams.lock.json`에서 관리합니다. 로컬에서는 Node.js 22 이상과 Git을 준비한 뒤 다음 명령으로 같은 동작을 실행합니다.
 
 ```bash
-cd tools/upstream-sync
-go run . -root ../..
+pnpm run build
+node tools/upstream-sync/dist/upstream-sync.mjs -root .
 ```
 
 동기화 시 원본 버전에 `+upstream.<commit SHA 12자리>` build metadata를 붙여 Codex와 Claude manifest에 함께 기록합니다. 따라서 원본이 자체 버전을 올리지 않은 변경도 설치 버전 변경으로 감지됩니다. PR이 병합되면 `nunch-skills-manager`의 기존 배포 업데이트가 새 플러그인 버전을 설치 사용자에게 전달합니다.
@@ -144,7 +135,8 @@ npm/                                npm launcher·package verification
 plugins/<name>/.codex-plugin/       Codex manifest
 plugins/<name>/.claude-plugin/      Claude Code manifest
 plugins/<name>/skills/              두 제품이 공유하는 스킬 콘텐츠
-plugins/nunch-skills-manager/bin/   OS·아키텍처별 lifecycle binary
+plugins/nunch-skills-manager/runtime/ TypeScript lifecycle runtime
+tools/upstream-sync/                TypeScript upstream synchronization tool
 docs/release-runbook.md             검증·publish 승인 절차
 ```
 
@@ -152,7 +144,7 @@ docs/release-runbook.md             검증·publish 승인 절차
 
 ## 런타임 요구사항
 
-Lifecycle CLI에는 Node.js 22 이상과 npm 또는 pnpm이 필요합니다. manager는 macOS, Linux, Windows의 ARM64·x64 binary를 포함하므로 Go, Python, uv, Bun을 설치할 필요는 없습니다. 다만 개별 skill은 실행 중 외부 명령이나 연결을 사용할 수 있습니다.
+Lifecycle CLI와 manager에는 Node.js 22 이상이 필요하며 npm, pnpm, Bun 중 어떤 실행 경로로도 사용할 수 있습니다. 저장소 개발과 검증은 pnpm을 기준으로 합니다. lifecycle runtime은 동일한 ESM bundle을 macOS, Linux, Windows에서 실행하며 Go, Python, uv는 필요하지 않습니다. 다만 개별 skill은 실행 중 외부 명령이나 연결을 사용할 수 있습니다.
 
 | 플러그인 | 실행·연결 의존성 |
 | --- | --- |

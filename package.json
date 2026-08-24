@@ -1,6 +1,7 @@
 {
   "name": "@nunch-dev/skills",
-  "version": "0.1.2",
+  "version": "0.1.3",
+  "packageManager": "pnpm@10.32.1",
   "description": "Release-pinned lifecycle CLI for nunch-skills.",
   "license": "MIT",
   "type": "module",
@@ -25,16 +26,31 @@
     "LICENSE",
     "README.md",
     "release-manifest.json",
+    ".agents/plugins/marketplace.json",
     "npm/bin/nunch-skills.mjs",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-darwin-amd64",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-darwin-arm64",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-linux-amd64",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-linux-arm64",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-windows-amd64.exe",
-    "plugins/nunch-skills-manager/bin/nunch-skills-manager-windows-arm64.exe"
+    "plugins/nunch-skills-manager/.codex-plugin/plugin.json",
+    "plugins/nunch-skills-manager/hooks/hooks.json",
+    "plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs",
+    "plugins/nunch-skills-manager/scripts/node-dispatch.ps1",
+    "tools/upstream-sync/dist/upstream-sync.mjs"
   ],
   "scripts": {
-    "test": "node --test npm/test/*.test.mjs",
+    "build": "node npm/scripts/build-typescript.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "test": "node --test npm/test/*.test.mjs && node --experimental-strip-types --test npm/test/*.test.ts tools/upstream-sync/test/*.test.ts plugins/nunch-skills-manager/runtime/test/*.test.ts",
+    "test:upstream-sync": "node --experimental-strip-types --test tools/upstream-sync/test/*.test.ts",
     "pack:check": "node npm/scripts/pack-check.mjs"
+  },
+  "dependencies": {
+    "@clack/prompts": "1.7.0",
+    "posthog-node": "5.50.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.10",
+    "@types/node": "24.10.1",
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
   }
 }

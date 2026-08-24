@@ -1,78 +1,59 @@
 #!/usr/bin/env node
 
-import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const BINARY_NAMES = [
-  "nunch-skills-manager-darwin-amd64",
-  "nunch-skills-manager-darwin-arm64",
-  "nunch-skills-manager-linux-amd64",
-  "nunch-skills-manager-linux-arm64",
-  "nunch-skills-manager-windows-amd64.exe",
-  "nunch-skills-manager-windows-arm64.exe"
+const ARTIFACT_PATHS = [
+  'npm/bin/nunch-skills.mjs',
+  'plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs',
+  'tools/upstream-sync/dist/upstream-sync.mjs',
 ];
 
 function parseArguments(argv) {
   if (argv.length === 0) {
-    return { repo: resolve(fileURLToPath(new URL("../../", import.meta.url))) };
+    return { repo: resolve(fileURLToPath(new URL('../../', import.meta.url))) };
   }
-  if (argv.length === 2 && argv[0] === "--repo") {
+  if (argv.length === 2 && argv[0] === '--repo') {
     return { repo: resolve(argv[1]) };
   }
-  throw new Error("usage: node npm/scripts/repro-build.mjs [--repo <path>]");
+  throw new Error('usage: node npm/scripts/repro-build.mjs [--repo <path>]');
 }
 
-function runBuild(repo, output, version) {
-  const result = spawnSync("sh", ["plugins/nunch-skills-manager/updater/build.sh", output], {
+function runBuild(repo) {
+  const result = spawnSync('pnpm', ['run', 'build'], {
     cwd: repo,
-    encoding: "utf8",
-    env: { ...process.env, NUNCH_SKILLS_VERSION: version }
+    encoding: 'utf8',
   });
   if (result.status !== 0) {
     throw new Error(`reproducible build failed: ${result.stderr.trim()}`);
   }
 }
 
-async function digestDirectory(directory) {
+async function digestArtifacts(repo) {
   const result = {};
-  for (const name of BINARY_NAMES) {
-    const content = await readFile(join(directory, name));
-    result[name] = createHash("sha256").update(content).digest("hex");
+  for (const path of ARTIFACT_PATHS) {
+    const content = await readFile(join(repo, path));
+    result[path] = createHash('sha256').update(content).digest('hex');
   }
   return result;
 }
 
-async function verifyReproducibleBuild(repo) {
-  const temporary = await mkdtemp(join(tmpdir(), "nunch-skills-repro-build-"));
-  try {
-    const packageManifest = JSON.parse(await readFile(join(repo, "package.json"), "utf8"));
-    const first = join(temporary, "first");
-    const second = join(temporary, "second");
-    runBuild(repo, first, packageManifest.version);
-    runBuild(repo, second, packageManifest.version);
-    const firstDigests = await digestDirectory(first);
-    const secondDigests = await digestDirectory(second);
-    for (const name of BINARY_NAMES) {
-      if (firstDigests[name] !== secondDigests[name]) {
-        throw new Error(`non-deterministic binary: ${name}`);
-      }
+async function verifyReproducibleBuild(repo, build = runBuild) {
+  const committedDigests = await digestArtifacts(repo);
+  await build(repo);
+  const firstDigests = await digestArtifacts(repo);
+  await build(repo);
+  const secondDigests = await digestArtifacts(repo);
+  for (const path of ARTIFACT_PATHS) {
+    if (firstDigests[path] !== secondDigests[path]) throw new Error(`non-deterministic bundle: ${path}`);
+    if (firstDigests[path] !== committedDigests[path]) {
+      throw new Error(`built bundle differs from committed release artifact: ${path}`);
     }
-    const committedDigests = await digestDirectory(
-      join(repo, "plugins/nunch-skills-manager/bin")
-    );
-    for (const name of BINARY_NAMES) {
-      if (firstDigests[name] !== committedDigests[name]) {
-        throw new Error(`built binary differs from committed release artifact: ${name}`);
-      }
-    }
-    return firstDigests;
-  } finally {
-    await rm(temporary, { recursive: true, force: true });
   }
+  return firstDigests;
 }
 
 async function main() {
@@ -87,7 +68,7 @@ async function main() {
   }
 }
 
-export { BINARY_NAMES, verifyReproducibleBuild };
+export { ARTIFACT_PATHS, verifyReproducibleBuild };
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   process.exitCode = await main();

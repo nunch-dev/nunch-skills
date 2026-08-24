@@ -22,19 +22,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+      - name: Set up pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v6
         with:
-          go-version-file: tools/upstream-sync/go.mod
-          cache-dependency-path: tools/upstream-sync/go.mod
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Test sync tool
-        working-directory: tools/upstream-sync
-        run: go test -race -shuffle=on -count=1 ./...
+        run: |
+          pnpm run typecheck
+          pnpm run test:upstream-sync
+          pnpm run build
 
       - name: Sync configured upstreams
-        working-directory: tools/upstream-sync
-        run: go run . -root ../..
+        run: node tools/upstream-sync/dist/upstream-sync.mjs -root .
 
       - name: Validate plugin manifests
         run: |

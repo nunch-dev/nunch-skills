@@ -1,0 +1,101 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { CodexBackend } from '../src/codex.ts';
+import type { CommandRunner } from '../src/codex-schema.ts';
+
+test('pins a missing marketplace and installs a plugin by verified identity', async () => {
+  // Given
+  const runner = new RecordingRunner([
+    '{"marketplaces":[]}',
+    '{}',
+    '{"pluginId":"git-tools@nunch-skills","name":"git-tools","version":"1.0.0"}',
+  ]);
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+  });
+
+  // When
+  await backend.ensureMarketplace();
+  await backend.installPlugin('git-tools');
+
+  // Then
+  assert.deepEqual(runner.calls, [
+    ['codex', 'plugin', 'marketplace', 'list', '--json'],
+    ['codex', 'plugin', 'marketplace', 'add', 'nunch-dev/nunch-skills', '--ref', 'a'.repeat(40), '--json'],
+    ['codex', 'plugin', 'add', 'git-tools@nunch-skills', '--json'],
+  ]);
+});
+
+test('lists only installed marketplace plugins', async () => {
+  // Given
+  const runner = new RecordingRunner([
+    JSON.stringify({
+      installed: [
+        {
+          pluginId: 'git-tools@nunch-skills',
+          name: 'git-tools',
+          version: '1.0.0',
+          installed: true,
+          marketplaceName: 'nunch-skills',
+          source: { path: '/tmp/git-tools' },
+        },
+        {
+          pluginId: 'other@elsewhere',
+          name: 'other',
+          version: '1.0.0',
+          installed: true,
+          marketplaceName: 'elsewhere',
+          source: { path: '/tmp/other' },
+        },
+      ],
+    }),
+  ]);
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+  });
+
+  // When
+  const installed = await backend.listInstalled();
+
+  // Then
+  assert.deepEqual(installed, ['git-tools']);
+});
+
+test('rejects an existing marketplace pinned to another commit', async () => {
+  // Given
+  const runner = new RecordingRunner([
+    '{"marketplaces":[{"name":"nunch-skills","root":"/tmp/nunch-marketplace"}]}',
+    `${'b'.repeat(40)}\n`,
+  ]);
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+  });
+
+  // When / Then
+  await assert.rejects(() => backend.ensureMarketplace(), /commit/);
+});
+
+class RecordingRunner implements CommandRunner {
+  calls: string[][] = [];
+  outputs: string[];
+
+  constructor(outputs: string[]) {
+    this.outputs = outputs;
+  }
+
+  async run(command: string, args: string[]): Promise<string> {
+    this.calls.push([command, ...args]);
+    const output = this.outputs.shift();
+    if (output === undefined) throw new Error('missing test output');
+    return output;
+  }
+}

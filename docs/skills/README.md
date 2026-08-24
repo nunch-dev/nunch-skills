@@ -16,11 +16,7 @@
 ## 공통 설치
 
 ```bash
-npx @nunch-dev/skills install <plugin-name>
+npx @nunch-dev/skills
 ```
 
-기본 `install`은 manager만 설치합니다. 모든 plugin을 설치하려면 `--all`을 명시합니다.
-
-```bash
-npx @nunch-dev/skills install --all
-```
+TTY menu에서 lifecycle 작업과 대상 plugin을 선택합니다. manager는 설치 시 자동 포함됩니다.

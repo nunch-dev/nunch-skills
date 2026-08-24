@@ -1,6 +1,6 @@
 {
   "name": "nunch-skills-manager",
-  "version": "0.4.0",
+  "version": "0.4.0+codex.20260824211759",
   "description": "Manage release-pinned nunch-skills installation, verification, dependencies, and updates.",
   "author": {
     "name": "Nunch Dev",
@@ -17,9 +17,6 @@
     "developerName": "Nunch Dev",
     "category": "Developer Tools",
     "capabilities": ["Hooks", "Release Verification", "Lifecycle Management", "Dependency Checks"],
-    "defaultPrompt": [
-      "Run the nunch-skills lifecycle doctor.",
-      "Initialize missing nunch-skills dependencies."
-    ]
+    "defaultPrompt": ["Run the nunch-skills lifecycle doctor.", "Initialize missing nunch-skills dependencies."]
   }
 }
