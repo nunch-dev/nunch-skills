@@ -25,7 +25,7 @@ const manifestSchema = z.strictObject({
   scripts: z.array(fileSchema),
   runtime: fileSchema,
 });
-const packageSchema = z.strictObject({
+const packageSchema = z.object({
   name: z.literal('@nunch-dev/skills'),
   version: z.string(),
   files: z.array(z.string()),

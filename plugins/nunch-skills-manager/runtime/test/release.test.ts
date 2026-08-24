@@ -9,14 +9,20 @@ import test from 'node:test';
 import { inspectTarball } from '../src/release.ts';
 import { authenticateReleaseManifest, type ReleaseManifest, verifyCandidateLayout } from '../src/release-manifest.ts';
 
-test('verifies npm and Git protected files before candidate execution', async () => {
+test('accepts standard npm metadata while verifying protected files', async () => {
   // Given
   const root = await mkdtemp(join(tmpdir(), 'release-candidate-'));
   const packageRoot = join(root, 'package');
   const gitRoot = join(root, 'git');
   const runtime = 'plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs';
   const content = 'runtime\n';
-  const packageJson = `${JSON.stringify({ name: '@nunch-dev/skills', version: '1.2.3', files: [runtime] })}\n`;
+  const packageJson = `${JSON.stringify({
+    name: '@nunch-dev/skills',
+    version: '1.2.3',
+    description: 'fixture package',
+    license: 'MIT',
+    files: [runtime],
+  })}\n`;
   await write(packageRoot, 'package.json', packageJson);
   await write(gitRoot, 'package.json', packageJson);
   await write(packageRoot, runtime, content);
