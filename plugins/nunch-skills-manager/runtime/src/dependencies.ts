@@ -8,14 +8,19 @@ import { z } from 'zod';
 import type { pluginSchema } from './codex-schema.ts';
 
 const execFileAsync = promisify(execFile);
-const executableSchema = z.strictObject({
-  name: z.string().min(1),
-  requirement: z.string().min(1),
-  candidates: z.array(z.string().min(1)).min(1),
-  versionArgs: z.array(z.string()).min(1),
-  versionPrefix: z.string(),
-  minimumVersion: z.string(),
-});
+const executableSchema = z
+  .strictObject({
+    name: z.string().min(1),
+    requirement: z.string().min(1),
+    candidates: z.array(z.string().min(1)).min(1),
+    versionArgs: z.array(z.string()).min(1),
+    versionPrefix: z.string().optional(),
+    minimumVersion: z.string().optional(),
+  })
+  .refine(
+    (declaration) => (declaration.versionPrefix === undefined) === (declaration.minimumVersion === undefined),
+    'versionPrefix and minimumVersion must be declared together',
+  );
 const dependencySchema = z.strictObject({
   schemaVersion: z.literal(1),
   executables: z.array(executableSchema).default([]),
@@ -91,6 +96,7 @@ async function available(declaration: Executable): Promise<boolean> {
 }
 
 function versionMeetsMinimum(output: string, declaration: Executable): boolean {
+  if (declaration.versionPrefix === undefined || declaration.minimumVersion === undefined) return true;
   const raw = output.trim();
   if (declaration.versionPrefix.length > 0 && !raw.startsWith(declaration.versionPrefix)) return false;
   const value = raw.slice(declaration.versionPrefix.length).trim().split(/\s+/)[0];

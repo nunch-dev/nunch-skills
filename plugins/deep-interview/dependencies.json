@@ -13,7 +13,9 @@
       "name": "uv",
       "requirement": "uv",
       "candidates": ["uv"],
-      "versionArgs": ["--version"]
+      "versionArgs": ["--version"],
+      "versionPrefix": "uv ",
+      "minimumVersion": "0.0.0"
     }
   ]
 }

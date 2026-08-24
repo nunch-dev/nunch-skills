@@ -36,6 +36,9 @@
   ],
   "scripts": {
     "build": "node npm/scripts/build-typescript.mjs",
+    "dev:cli": "node --experimental-strip-types npm/src/entry.ts",
+    "dev:manager": "node --experimental-strip-types plugins/nunch-skills-manager/runtime/src/entry.ts",
+    "dev:upstream-sync": "node --experimental-strip-types tools/upstream-sync/src/cli.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check . --error-on-warnings",
     "test": "node --test npm/test/*.test.mjs && node --experimental-strip-types --test npm/test/*.test.ts tools/upstream-sync/test/*.test.ts plugins/nunch-skills-manager/runtime/test/*.test.ts",

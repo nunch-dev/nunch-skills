@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { CodexBackend } from '../../plugins/nunch-skills-manager/runtime/src/codex.ts';
 import { ExecRunner } from '../../plugins/nunch-skills-manager/runtime/src/command.ts';
+import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
 import { runLifecycleDoctor } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
 import { LifecycleService, type ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
 import {
@@ -36,6 +37,7 @@ type OperationInput = {
   plugins: string[];
   progress: (event: ProgressEvent) => void;
   runtime: OperationRuntime;
+  doctorReport?: (report: DoctorItem[]) => Promise<void>;
 };
 
 export async function main(): Promise<number> {
@@ -85,6 +87,7 @@ export async function main(): Promise<number> {
         plugins,
         progress: ui.progress.bind(ui),
         runtime: { createBackend, dataRoot, releaseCommit: release.commit },
+        doctorReport: ui.doctorReport.bind(ui),
       });
     },
     configureTelemetry: async () => {
@@ -151,6 +154,7 @@ async function executeOperation(input: OperationInput): Promise<void> {
           status,
         });
       });
+      await input.doctorReport?.(report);
       if (report.some((item) => item.status === 'error')) throw new DoctorErrorsFound('doctor found lifecycle errors');
       return;
     }

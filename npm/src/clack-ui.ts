@@ -1,5 +1,7 @@
 import * as clack from '@clack/prompts';
+import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
 import type { ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
+import { copyToClipboard } from './clipboard.ts';
 import type { CliOperation, PublicCliDependencies } from './public-cli.ts';
 
 const phaseLabels: Record<ProgressEvent['phase'], string> = {
@@ -19,6 +21,22 @@ const doctorLabels: Record<string, string> = {
   Git: 'Git',
   'Codex CLI': 'Codex CLI',
 };
+const doctorSymbols: Record<DoctorItem['status'], string> = { ok: '✔', warning: '⚠', error: '✖' };
+
+export function formatDoctorReport(report: DoctorItem[]): string {
+  const lines = ['상태 진단 결과', '────────────────────────'];
+  for (const item of report) {
+    const label = doctorLabels[item.name] ?? item.name;
+    lines.push(`${doctorSymbols[item.status]} ${label}`);
+    if (item.detail !== undefined) lines.push(`  상세: ${item.detail.replaceAll('\n', '\n  ')}`);
+    if (item.fix !== undefined) lines.push(`  조치: ${item.fix}`);
+  }
+  const passed = report.filter((item) => item.status === 'ok').length;
+  const failed = report.filter((item) => item.status === 'error').length;
+  const warnings = report.filter((item) => item.status === 'warning').length;
+  lines.push('', '요약', '────────────────────────', `  ${passed} passed, ${failed} failed, ${warnings} warning`);
+  return lines.join('\n');
+}
 
 export class ClackUi {
   activeSpinner = clack.spinner();
@@ -82,6 +100,18 @@ export class ClackUi {
     this.activeSpinner.stop(`${label} 실패`);
   }
 
+  async doctorReport(report: DoctorItem[]): Promise<void> {
+    clack.note(formatDoctorReport(report), '상태 진단 상세');
+    const result = await clack.confirm({ message: 'AI 문제 해결 프롬프트를 클립보드에 복사할까요?' });
+    if (clack.isCancel(result) || !result) return;
+    try {
+      await copyToClipboard(doctorAiPrompt(report));
+      clack.log.success('AI 문제 해결 프롬프트를 클립보드에 복사했습니다.');
+    } catch (error) {
+      clack.log.error(`클립보드에 복사하지 못했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }
+  }
+
   success(message: string): void {
     clack.outro(message);
   }
@@ -89,6 +119,16 @@ export class ClackUi {
   error(message: string): void {
     clack.log.error(message);
   }
+}
+
+function doctorAiPrompt(report: DoctorItem[]): string {
+  return [
+    '다음 Nunch Skills 상태 진단 결과를 분석해 문제를 해결해 주세요.',
+    '각 경고·오류의 근본 원인, 안전한 해결 순서, 실행할 명령을 설명해 주세요.',
+    '설치된 플러그인이나 사용자 설정을 삭제·변경하기 전에는 영향과 되돌리는 방법을 먼저 알려 주세요.',
+    '',
+    formatDoctorReport(report),
+  ].join('\n');
 }
 
 export function bindUiDependencies(

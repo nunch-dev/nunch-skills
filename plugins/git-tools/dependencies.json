@@ -5,7 +5,9 @@
       "name": "git",
       "requirement": "Git",
       "candidates": ["git"],
-      "versionArgs": ["--version"]
+      "versionArgs": ["--version"],
+      "versionPrefix": "git version ",
+      "minimumVersion": "0.0.0"
     }
   ]
 }
