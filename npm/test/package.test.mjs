@@ -56,21 +56,32 @@ test('default test command includes TypeScript public CLI tests', async () => {
   assert.match(command, /npm\/test\/\*\.test\.ts/);
 });
 
-test('exposes each TypeScript CLI for local development', async () => {
+test('exposes the public TypeScript CLI for local development', async () => {
+  // Given
+  const manifest = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+
+  // When
+  const script = manifest.scripts['dev:cli'];
+
+  // Then
+  assert.equal(script, 'node --experimental-strip-types npm/src/entry.ts');
+});
+
+test('exposes the minimal local verification commands', async () => {
   // Given
   const manifest = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
 
   // When
   const scripts = {
-    cli: manifest.scripts['dev:cli'],
-    manager: manifest.scripts['dev:manager'],
-    upstreamSync: manifest.scripts['dev:upstream-sync'],
+    fast: manifest.scripts['test:fast'],
+    check: manifest.scripts.check,
   };
 
   // Then
   assert.deepEqual(scripts, {
-    cli: 'node --experimental-strip-types npm/src/entry.ts',
-    manager: 'node --experimental-strip-types plugins/nunch-skills-manager/runtime/src/entry.ts',
-    upstreamSync: 'node --experimental-strip-types tools/upstream-sync/src/cli.ts',
+    fast: 'node scripts/test-fast.mjs',
+    check: 'pnpm run typecheck && pnpm run lint && pnpm run build && pnpm test && pnpm run pack:check',
   });
+  assert.equal(manifest.scripts['qa:local'], undefined);
+  assert.equal(manifest.scripts['qa:all'], undefined);
 });
