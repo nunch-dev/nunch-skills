@@ -13,60 +13,72 @@ Codex와 Claude Code에서 함께 사용할 수 있는 플러그인 마켓플레
 | `git-tools` | `git-tools` | 원자적 한글 커밋부터 이력·worktree·branch·remote·복구까지 Git porcelain을 안전하게 처리합니다. | [가이드](docs/skills/git-tools.md) |
 | `nunch-skills-manager` | `nunch-skills-manager` | 설치, 의존성 진단, release 검증과 자동 갱신을 관리합니다. | [가이드](docs/skills/nunch-skills-manager.md) |
 
-전체 문서 색인은 [스킬 문서](docs/skills/README.md), 배포 운영 절차는 [release runbook](docs/release-runbook.md)에서 확인할 수 있습니다.
+전체 문서 색인은 [스킬 문서](docs/skills/README.md), 개발·로컬 QA는 [개발 가이드](docs/local-development.md), 배포 운영 절차는 [release runbook](docs/release-runbook.md)에서 확인할 수 있습니다.
 
-## Codex lifecycle CLI
+## Codex와 Claude Code lifecycle CLI
 
 `@nunch-dev/skills`는 `nunch-skills` 명령 하나로 설치, 갱신, 진단, 제거를 제공합니다. 최초 `npx` 또는 `pnpm dlx` 실행은 npm이 전달한 launcher와 package를 실행하는 bootstrap trust 경계입니다. npm registry integrity, provenance, `@nunch-dev`의 최초 publish 권한·인증 통제가 이 초기 신뢰를 완화하지만, 첫 실행 자체를 Git 검증만으로 대체할 수는 없습니다.
 
-공개 CLI는 인자 없는 TTY menu만 제공합니다. 사용자가 menu에서 작업과 대상을 고른 뒤에도 dual npm+Git verification이 완료되기 전에는 marketplace, plugin, `config.toml`, hook trust를 변경하지 않습니다.
+공개 CLI는 omo와 같은 subcommand 구조를 사용합니다. `install`과 별칭 `setup`은 대화형 설치를 시작하고, `doctor`는 TTY 없이도 실행됩니다. Codex 작업은 dual npm+Git verification을 마친 뒤에만 marketplace, plugin, `config.toml`, hook trust를 변경합니다. Claude Code 작업은 marketplace가 `github:nunch-dev/nunch-skills`인지 확인한 뒤에만 plugin을 변경합니다.
 
 ```bash
-npx @nunch-dev/skills
-pnpm dlx @nunch-dev/skills
-bunx @nunch-dev/skills
+npx @nunch-dev/skills install
+pnpm dlx @nunch-dev/skills install
+bunx @nunch-dev/skills install
 ```
 
-menu에서 설치, 전체 업데이트, 선택 삭제, doctor, telemetry 설정을 고릅니다. 설치 화면에서는 leaf plugin을 복수 선택할 수 있으며 `nunch-skills-manager`는 lifecycle control plane으로 항상 포함됩니다.
+설치 과정은 플랫폼 선택 → Node.js·Git·대상 CLI 사전 점검 → leaf plugin 선택 → npm·Git release 검증 → marketplace → plugin → manager hook trust → 최종 검증 순서입니다. 플랫폼은 Codex, Claude Code 또는 둘 다를 선택할 수 있습니다. Codex에는 `nunch-skills-manager` lifecycle control plane과 hook trust가 함께 설치되며, Claude Code에는 선택한 leaf plugin만 설치됩니다.
 
-telemetry는 최초 실행부터 기본 활성화되며 설정 menu 또는 `NUNCH_SKILLS_TELEMETRY_DISABLED=1`로 끌 수 있습니다. 전송 항목은 임의 installation ID, CLI 버전, OS·architecture, 작업 종류와 결과, 시간 구간, 선택한 plugin ID로 제한합니다. prompt, 파일 경로, 명령 출력, 원문 오류와 개인 프로필은 전송하지 않습니다. Manager 전체 삭제 시 installation ID를 포함한 로컬 lifecycle·telemetry 데이터도 함께 제거합니다.
+CI나 bootstrap script에서는 모든 값을 명시한 비대화식 설치를 사용할 수 있습니다. `--plugins`에는 쉼표 구분 이름, `all`, `none`을 지정합니다.
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills install --no-tui --platform=both --plugins=all
+```
+
+telemetry는 최초 실행부터 기본 활성화되며 `settings` 명령 또는 `NUNCH_SKILLS_TELEMETRY_DISABLED=1`로 끌 수 있습니다. 전송 항목은 임의 installation ID, CLI 버전, OS·architecture, 작업 종류와 결과, 시간 구간, 선택한 plugin ID로 제한합니다. prompt, 파일 경로, 명령 출력, 원문 오류와 개인 프로필은 전송하지 않습니다. Manager 전체 삭제 시 installation ID를 포함한 로컬 lifecycle·telemetry 데이터도 함께 제거합니다.
+
+```bash
+npx @nunch-dev/skills settings
 ```
 
 설치 후 상태와 개별 skill의 실행 의존성을 확인합니다.
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills doctor
 ```
 
-`doctor`는 dependency, release integrity, 중단된 transaction, manager hook trust, resource ownership을 구분해 보고합니다. 누락된 실행 의존성은 진단만 하며 자동으로 시스템 패키지를 설치하지 않습니다.
+`doctor`는 실행 파일, 설치된 plugin, dependency, release integrity, 중단된 transaction, manager hook trust, resource ownership을 구분해 병렬로 검사합니다. 기본 출력은 문제만 보여주고 `--status`는 간결한 대시보드, `--verbose`는 전체 상세와 조치, `--json`은 자동화용 구조를 출력합니다. `--platform=codex` 또는 `--platform=claude`로 범위를 좁힐 수 있습니다. 누락된 실행 의존성은 진단만 하며 자동으로 시스템 패키지를 설치하지 않습니다.
+
+```bash
+npx @nunch-dev/skills doctor --status
+npx @nunch-dev/skills doctor --verbose --platform=codex
+npx @nunch-dev/skills doctor --json
+```
 
 ### 갱신과 자동 갱신
 
-수동 갱신은 TTY menu의 `전체 업데이트`를 선택합니다.
+수동 갱신은 `update` 명령을 사용합니다. `--platform`을 생략하면 TTY에서 대상을 묻습니다.
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills update --platform=both
 ```
 
-설치가 완료된 뒤에는 신뢰된 manager의 SessionStart hook도 새 release를 확인합니다. 현재 manager가 npm tarball을 scripts 없이 내려받고 immutable Git tag·full commit과 canonical manifest의 marketplace, manager manifest, hook, dispatcher, TypeScript runtime digest를 교차 검증합니다. 검증 전에는 candidate code를 실행하거나 Codex 상태를 바꾸지 않습니다.
+Codex 설치가 완료된 뒤에는 신뢰된 manager의 SessionStart hook도 새 release를 확인합니다. 현재 manager가 npm tarball을 scripts 없이 내려받고 immutable Git tag·full commit과 canonical manifest의 marketplace, manager manifest, hook, dispatcher, TypeScript runtime digest를 교차 검증합니다. 검증 전에는 candidate code를 실행하거나 Codex 상태를 바꾸지 않습니다.
 
-자동 SessionStart update는 현재 release보다 엄격히 높은 stable SemVer만 수용합니다. prerelease와 같은 버전 또는 downgrade candidate는 자동 적용하지 않습니다. 검증을 통과한 candidate만 non-manager plugin, manager, 정확한 hook trust 순서로 staged 적용하고 최종 검증 뒤에 완료 상태를 기록합니다. 어느 단계든 실패하면 installer가 소유한 변경만 마지막 정상 release로 되돌리고 기존 설치와 trust 상태를 유지합니다.
+Codex 자동 SessionStart update는 현재 release보다 엄격히 높은 stable SemVer만 수용합니다. prerelease와 같은 버전 또는 downgrade candidate는 자동 적용하지 않습니다. 검증을 통과한 candidate만 non-manager plugin, manager, 정확한 hook trust 순서로 staged 적용하고 최종 검증 뒤에 완료 상태를 기록합니다. 어느 단계든 실패하면 installer가 소유한 변경만 마지막 정상 release로 되돌리고 기존 설치와 trust 상태를 유지합니다.
 
 ### Hook trust와 실패 시 동작
 
-`install`은 release manifest와 실제 설치 결과가 모두 일치할 때에만 `nunch-skills-manager`가 소유한 SessionStart hook 한 개의 신뢰 해시를 등록합니다. 다른 plugin이나 사용자가 등록한 hook은 읽거나 변경하지 않습니다.
+Codex `install`은 release manifest와 실제 설치 결과가 모두 일치할 때에만 `nunch-skills-manager`가 소유한 SessionStart hook 한 개의 신뢰 해시를 등록합니다. 다른 plugin이나 사용자가 등록한 hook은 읽거나 변경하지 않습니다.
 
-검증이 실패하거나 hook 정의가 release manifest와 일치하지 않으면 fail closed 합니다. 즉, 새 hook을 자동 신뢰하지 않고 plugin·설정의 기존 상태를 유지합니다. 이 경우 원인을 `doctor`로 확인한 뒤, 필요하면 Codex의 `/hooks`에서 표시된 manager hook을 직접 검토하고 신뢰할 수 있습니다. `/hooks`에서의 수동 신뢰는 release-pinned lifecycle 검증을 우회하는 것이므로, digest 불일치 원인을 해결하기 전에는 권장하지 않습니다.
+Codex 검증이 실패하거나 hook 정의가 release manifest와 일치하지 않으면 fail closed 합니다. 즉, 새 hook을 자동 신뢰하지 않고 plugin·설정의 기존 상태를 유지합니다. 이 경우 원인을 `doctor`로 확인한 뒤, 필요하면 Codex의 `/hooks`에서 표시된 manager hook을 직접 검토하고 신뢰할 수 있습니다. `/hooks`에서의 수동 신뢰는 release-pinned lifecycle 검증을 우회하는 것이므로, digest 불일치 원인을 해결하기 전에는 권장하지 않습니다.
 
 ### 제거
 
-제거 menu에는 ownership ledger에서 `created`로 기록한 leaf plugin만 활성화됩니다. manager 제거를 고르면 created plugin, manager trust, 비어 있는 created marketplace를 함께 정리하는 full teardown으로 전환되며 adopted·pre-existing 자원은 보존합니다.
+`uninstall` 명령에는 ownership ledger에서 `created`로 기록한 leaf plugin만 표시됩니다. manager 제거를 고르면 created plugin, manager trust, 비어 있는 created marketplace를 함께 정리하는 full teardown으로 전환되며 adopted·pre-existing 자원은 보존합니다.
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills uninstall --platform=codex
 ```
 
 ## Codex plugin 직접 설치
@@ -85,7 +97,7 @@ codex plugin add deep-interview@nunch-skills
 각 plugin은 root `dependencies.json`에 실행·연결 의존성을 선언합니다. 설치된 plugin 집합이나 버전이 바뀐 뒤 첫 Codex 작업에서 manager hook이 같은 작업 안에 초기화 결과를 전달합니다. 의존성 알림을 받았거나 직접 점검하려면 다음 명령을 사용합니다.
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills doctor --verbose
 ```
 
 실제 패키지 설치는 시스템을 변경하므로, 사용할 패키지 관리자와 명령을 먼저 검토하고 승인한 뒤 진행해야 합니다. Kaneo MCP처럼 실행 파일이 아닌 연결 의존성은 자동 설치하지 않고 필요한 설정을 안내합니다.

@@ -7,7 +7,7 @@ description: Manage the release-pinned nunch-skills lifecycle and diagnose its r
 
 Use the release-pinned lifecycle CLI for user-requested nunch-skills installation, update, removal, or integrity checks. Read [Lifecycle CLI](references/lifecycle-cli.md) before invoking a lifecycle command or explaining hook trust.
 
-Do not treat `npx` download as permission to change Codex configuration. The public CLI is an interactive TTY menu; the user chooses install, update, uninstall, doctor, or settings and reviews the selected scope before mutation. Uninstall always previews created-only targets and requires interactive confirmation.
+Do not treat `npx` download as permission to change Codex configuration. Use the explicit `install|setup`, `update`, `uninstall`, `doctor`, or `settings` subcommand the user requested. Interactive mutation commands show their selected scope; `install --no-tui` is allowed only when `--platform` and `--plugins` make the scope explicit. Uninstall always previews created-only targets and requires interactive confirmation.
 
 The lifecycle CLI verifies the npm tarball, immutable Git tag and commit, manifest allowlist, manager hook, dispatcher, and TypeScript runtime before a release-pinned trust change. If verification fails, keep existing state unchanged. Do not workaround a failure by editing Codex hook trust state; explain that the user may inspect the manager hook through `/hooks` only after understanding the mismatch.
 
@@ -15,11 +15,11 @@ Do not publish npm packages, create or push Git tags, or create GitHub releases 
 
 ## Dependencies
 
-Use the lifecycle menu's doctor operation as the source of truth.
+Use the lifecycle CLI's `doctor` command as the source of truth.
 
 The trusted SessionStart hook checks dependency declarations when the installed plugin set or version changes. Treat its initialization context as a diagnosis, not permission to install packages.
 
-- Run `npx @nunch-dev/skills` in a TTY and select `상태 진단`.
+- Run `npx @nunch-dev/skills doctor --verbose`. Use `--platform=codex` or `--platform=claude` when the request concerns one platform.
 
 The JSON report separates missing executable dependencies from integrations that require a manual connection. Only act on dependencies required by plugins the user installed.
 

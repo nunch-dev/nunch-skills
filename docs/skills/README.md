@@ -16,7 +16,7 @@
 ## 공통 설치
 
 ```bash
-npx @nunch-dev/skills
+npx @nunch-dev/skills install
 ```
 
-TTY menu에서 lifecycle 작업과 대상 plugin을 선택합니다. manager는 설치 시 자동 포함됩니다.
+설치 화면에서 플랫폼과 대상 plugin을 선택합니다. manager는 Codex 설치 시 자동 포함됩니다. 상태 점검은 `npx @nunch-dev/skills doctor`를 사용합니다.

@@ -3,13 +3,13 @@
 `@nunch-dev/skills` exposes the `nunch-skills` command. It is the supported lifecycle path for Codex users with Node.js 22 or later and npm or pnpm.
 
 ```bash
-npx @nunch-dev/skills
-pnpm dlx @nunch-dev/skills
+npx @nunch-dev/skills install
+pnpm dlx @nunch-dev/skills install
 ```
 
 The first `npx` or `pnpm dlx` invocation is a bootstrap trust boundary: npm-delivered launcher and package code must run before this project can independently verify a Git release. npm integrity, provenance, and controlled first-publication access for `@nunch-dev/skills` mitigate that risk; they do not make first-run package execution disappear. After bootstrap, dual npm+Git verification must complete before a lifecycle command changes any Codex marketplace, plugin, config, or hook trust state.
 
-## Interactive operations
+## Commands
 
 | Operation | Scope |
 | --- | --- |
@@ -18,7 +18,13 @@ The first `npx` or `pnpm dlx` invocation is a bootstrap trust boundary: npm-deli
 | Doctor | Reports dependency, integrity, transaction, trust, and ownership health without changing state. |
 | Uninstall | Selects created leaf plugins or performs a created-only full teardown when manager removal is chosen. |
 
-The public CLI rejects arguments and non-TTY input. Cancellation, empty selection, and Ctrl-C do not mutate state.
+`install` and its `setup` alias use a TTY by default. The non-interactive form requires an explicit platform and plugin selection:
+
+```bash
+npx @nunch-dev/skills install --no-tui --platform=both --plugins=all
+```
+
+`doctor` does not require a TTY. Its default mode prints actionable issues, while `--status`, `--verbose`, and `--json` provide compact, detailed, and machine-readable views. Cancellation, empty selection, and Ctrl-C do not mutate state.
 
 ## Trust boundary
 

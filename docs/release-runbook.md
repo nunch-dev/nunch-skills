@@ -30,13 +30,11 @@ Run the local validation suite from the repository root:
 
 ```bash
 pnpm install --frozen-lockfile --ignore-scripts
-pnpm run build
-pnpm run typecheck
-pnpm run lint
-pnpm test
-pnpm run pack:check
+pnpm run check
 node npm/scripts/repro-build.mjs
 ```
+
+`check` runs the complete static/build/test/package gate. Before release, source `scripts/qa-sandbox.sh` and manually exercise the built CLI plus the applicable Codex or Claude installation flow in the throwaway homes. See [Local development and QA](local-development.md) for the exact commands.
 
 Also validate the manager plugin and its skill after documentation or manifest changes:
 
@@ -73,6 +71,6 @@ Only attach a stable release to the npm `latest` dist-tag. SessionStart automati
 4. Download those assets from the published GitHub Release into a new directory. Verify GitHub's asset digests and run `sha256sum -c SHA256SUMS` without rewriting the files.
 5. After a separate npm approval, manually dispatch `publish-npm.yml` with the exact stable tag. The workflow checks out that tag, downloads the GitHub Release, validates its three-file surface, checksums, commit identity, canonical manifest, and embedded package manifest, then publishes the exact tarball through npm trusted publishing with automatic provenance.
 6. Wait for the workflow to succeed. Download `@nunch-dev/skills@X.Y.Z` from npm and confirm its SHA-256 matches the GitHub Release tarball and `latest` points to the approved version.
-7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z`, choose install in the TTY menu, then run it again and choose doctor. Confirm the manager hook trust and installed release identity match the manifest.
+7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z install --platform=codex`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=codex`. Confirm the manager hook trust and installed release identity match the manifest.
 
 If any verification or post-publish check fails, stop. Do not republish the same version, retag, force-push, or replace artifacts. Investigate the immutable failure, prepare a new version, and obtain a new approval for the next remote publication.
