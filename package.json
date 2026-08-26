@@ -37,16 +37,17 @@
   "scripts": {
     "build": "node npm/scripts/build-typescript.mjs",
     "dev:cli": "node --experimental-strip-types npm/src/entry.ts",
-    "dev:manager": "node --experimental-strip-types plugins/nunch-skills-manager/runtime/src/entry.ts",
-    "dev:upstream-sync": "node --experimental-strip-types tools/upstream-sync/src/cli.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check . --error-on-warnings",
     "test": "node --test npm/test/*.test.mjs && node --experimental-strip-types --test npm/test/*.test.ts tools/upstream-sync/test/*.test.ts plugins/nunch-skills-manager/runtime/test/*.test.ts",
+    "test:fast": "node scripts/test-fast.mjs",
     "test:upstream-sync": "node --experimental-strip-types --test tools/upstream-sync/test/*.test.ts",
-    "pack:check": "node npm/scripts/pack-check.mjs"
+    "pack:check": "node npm/scripts/pack-check.mjs",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run build && pnpm test && pnpm run pack:check"
   },
   "dependencies": {
     "@clack/prompts": "1.7.0",
+    "commander": "15.0.0",
     "posthog-node": "5.50.0",
     "zod": "4.4.3"
   },

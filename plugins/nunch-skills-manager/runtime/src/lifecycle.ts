@@ -31,14 +31,21 @@ type ProgressSink = (event: ProgressEvent) => void;
 export class LifecycleService {
   backend: LifecycleBackend;
   progress: ProgressSink;
+  includeManager: boolean;
 
-  constructor(backend: LifecycleBackend, progress: ProgressSink = () => undefined) {
+  constructor(
+    backend: LifecycleBackend,
+    progress: ProgressSink = () => undefined,
+    options: { includeManager?: boolean } = {},
+  ) {
     this.backend = backend;
     this.progress = progress;
+    this.includeManager = options.includeManager ?? true;
   }
 
   async install(selected: string[]): Promise<void> {
-    const targets = [managerName, ...unique(selected.filter((name) => name !== managerName)).sort()];
+    const leafPlugins = unique(selected.filter((name) => name !== managerName)).sort();
+    const targets = this.includeManager ? [managerName, ...leafPlugins] : leafPlugins;
     const installedBefore = new Set(await this.backend.listInstalled());
     await this.stage('install', 'marketplace', undefined, () => this.backend.ensureMarketplace());
     for (const target of targets) {
@@ -48,7 +55,9 @@ export class LifecycleService {
       }
       await this.stage('install', 'plugins', target, () => this.backend.installPlugin(target));
     }
-    await this.stage('install', 'trust', managerName, () => this.backend.ensureTrust());
+    if (this.includeManager) {
+      await this.stage('install', 'trust', managerName, () => this.backend.ensureTrust());
+    }
   }
 
   async update(): Promise<void> {

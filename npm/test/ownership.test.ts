@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { addResource, createLifecycleState } from '../../plugins/nunch-skills-manager/runtime/src/state.ts';
-import { applyOwnershipResult, uninstallExecution } from '../src/ownership.ts';
+import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from '../src/ownership.ts';
 
 test('records pre-existing marketplace and trust without promoting ownership', () => {
   // Given
@@ -49,4 +49,20 @@ test('full teardown plans only resources recorded as created', () => {
   assert.deepEqual(plan.plugins, ['nunch-skills-manager']);
   assert.equal(plan.removeTrust, true);
   assert.equal(plan.removeMarketplace, false);
+});
+
+test('selects uninstall plugins only when recorded for the target', () => {
+  // Given
+  let state = createLifecycleState();
+  state = addResource(state, {
+    kind: 'plugin',
+    name: 'git-tools@nunch-skills',
+    ownership: 'created',
+  });
+
+  // When
+  const selected = selectedUninstallPlugins(state, ['git-tools', 'nunch-skills-manager']);
+
+  // Then
+  assert.deepEqual(selected, ['git-tools']);
 });

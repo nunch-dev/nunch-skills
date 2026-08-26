@@ -13,6 +13,7 @@ type OwnershipInput = {
   operation: Exclude<CliOperation, 'cancel' | 'settings' | 'doctor'>;
   plugins: string[];
   preState: LifecyclePreState;
+  includeManager?: boolean;
 };
 
 type UninstallExecution = {
@@ -28,6 +29,15 @@ export async function uninstallChoices(dataRoot: string): Promise<string[]> {
     .filter((resource) => resource.kind === 'plugin' && resource.ownership === 'created')
     .map((resource) => resource.name.replace(/@nunch-skills$/, ''))
     .sort();
+}
+
+export function selectedUninstallPlugins(state: LifecycleState, selected: string[]): string[] {
+  const installed = new Set(
+    state.resources
+      .filter((resource) => resource.kind === 'plugin')
+      .map((resource) => resource.name.replace(/@nunch-skills$/, '')),
+  );
+  return selected.filter((name) => installed.has(name));
 }
 
 export function uninstallExecution(state: LifecycleState, selected: string[]): UninstallExecution {
@@ -52,24 +62,31 @@ export function uninstallExecution(state: LifecycleState, selected: string[]): U
 export function applyOwnershipResult(input: OwnershipInput): LifecycleState {
   const { state, operation, plugins, preState } = input;
   if (operation === 'install') {
+    const includeManager = input.includeManager ?? true;
+    const pluginNames = includeManager ? ['nunch-skills-manager', ...plugins] : plugins;
     let next = state;
-    for (const name of ['nunch-skills-manager', ...plugins]) {
-      const ownership = preState.plugins.includes(name) ? 'pre-existing' : 'created';
+    for (const name of pluginNames) {
+      const key = `${name}@nunch-skills`;
+      const existing = state.resources.find((r) => r.kind === 'plugin' && r.name === key);
+      const ownership = existing?.ownership ?? (preState.plugins.includes(name) ? 'pre-existing' : 'created');
       next = addResource(next, {
         kind: 'plugin',
-        name: `${name}@nunch-skills`,
+        name: key,
         ownership,
         ...(ownership === 'created' ? {} : { preStateFingerprint: name }),
       });
     }
-    const marketplaceOwnership = preState.marketplace ? 'pre-existing' : 'created';
+    const existingMarketplace = state.resources.find((r) => r.kind === 'marketplace' && r.name === 'nunch-skills');
+    const marketplaceOwnership = existingMarketplace?.ownership ?? (preState.marketplace ? 'pre-existing' : 'created');
     next = addResource(next, {
       kind: 'marketplace',
       name: 'nunch-skills',
       ownership: marketplaceOwnership,
       ...(marketplaceOwnership === 'created' ? {} : { preStateFingerprint: 'present' }),
     });
-    const trustOwnership = preState.trust ? 'pre-existing' : 'created';
+    if (!includeManager) return next;
+    const existingTrust = state.resources.find((r) => r.kind === 'trust' && r.name === 'manager-session-start');
+    const trustOwnership = existingTrust?.ownership ?? (preState.trust ? 'pre-existing' : 'created');
     return addResource(next, {
       kind: 'trust',
       name: 'manager-session-start',

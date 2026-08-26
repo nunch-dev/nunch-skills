@@ -9,20 +9,20 @@ import { fileURLToPath } from 'node:url';
 const launcher = new URL('../bin/nunch-skills.mjs', import.meta.url);
 const launcherPath = fileURLToPath(launcher);
 
-test('public launcher rejects explicit lifecycle arguments', () => {
+test('public launcher exposes the install command', () => {
   // Given / When
-  const result = spawnSync(process.execPath, [launcherPath, 'install'], { encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [launcherPath, 'install', '--help'], { encoding: 'utf8' });
 
   // Then
-  assert.equal(result.status, 2);
+  assert.equal(result.status, 0, result.stderr);
 });
 
-test('public launcher rejects non-TTY execution without mutation', () => {
+test('public launcher shows help without a TTY', () => {
   // Given / When
   const result = spawnSync(process.execPath, [launcherPath], { encoding: 'utf8' });
 
   // Then
-  assert.equal(result.status, 2);
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test('rejects invalid invocation before release discovery', async () => {
@@ -32,7 +32,7 @@ test('rejects invalid invocation before release discovery', async () => {
   await copyFile(launcherPath, isolatedLauncher);
 
   // When
-  const result = spawnSync(process.execPath, [isolatedLauncher, 'install'], {
+  const result = spawnSync(process.execPath, [isolatedLauncher, 'install', '--no-tui', '--platform=codex'], {
     encoding: 'utf8',
     cwd: isolated,
   });

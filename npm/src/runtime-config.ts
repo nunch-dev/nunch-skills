@@ -16,6 +16,10 @@ export function codexHomePath(): string {
   return process.env['CODEX_HOME'] ?? join(homedir(), '.codex');
 }
 
+export function claudeHomePath(): string {
+  return process.env['CLAUDE_HOME'] ?? join(homedir(), '.claude');
+}
+
 type ResolvedRelease = { commit: string; manifest?: ReleaseManifest };
 
 export async function resolveRelease(): Promise<ResolvedRelease> {

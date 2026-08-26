@@ -122,6 +122,19 @@ test('failed install preserves plugins that existed before the operation', async
   assert.deepEqual(backend.removed, []);
 });
 
+test('install without manager skips the manager and trust stages', async () => {
+  // Given
+  const backend = new RecordingBackend();
+  const service = new LifecycleService(backend, undefined, { includeManager: false });
+
+  // When
+  await service.install(['git-tools', 'humanize-korean']);
+
+  // Then
+  assert.deepEqual(backend.installed, ['git-tools', 'humanize-korean']);
+  assert.deepEqual(backend.events, ['marketplace']);
+});
+
 test('manager teardown removes only the selected created plugins', async () => {
   // Given
   const backend = new RecordingBackend(['nunch-skills-manager', 'git-tools']);

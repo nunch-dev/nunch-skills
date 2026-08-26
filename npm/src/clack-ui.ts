@@ -1,8 +1,6 @@
 import * as clack from '@clack/prompts';
-import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
 import type { ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
-import { copyToClipboard } from './clipboard.ts';
-import type { CliOperation, PublicCliDependencies } from './public-cli.ts';
+import type { InstallPlatform, InstallTarget, PublicCliDependencies } from './public-cli.ts';
 
 const phaseLabels: Record<ProgressEvent['phase'], string> = {
   marketplace: '마켓플레이스 확인',
@@ -17,26 +15,15 @@ const doctorLabels: Record<string, string> = {
   transaction: '중단된 작업',
   trust: 'Manager hook 신뢰',
   ownership: '설치 소유권',
+  'cli-version': 'Nunch Skills CLI',
+  'installed:codex': 'Codex 설치 스킬',
+  'installed:claude': 'Claude Code 설치 스킬',
   'Node.js': 'Node.js',
   Git: 'Git',
   'Codex CLI': 'Codex CLI',
+  'Claude Code CLI': 'Claude Code CLI',
 };
-const doctorSymbols: Record<DoctorItem['status'], string> = { ok: '✔', warning: '⚠', error: '✖' };
-
-export function formatDoctorReport(report: DoctorItem[]): string {
-  const lines = ['상태 진단 결과', '────────────────────────'];
-  for (const item of report) {
-    const label = doctorLabels[item.name] ?? item.name;
-    lines.push(`${doctorSymbols[item.status]} ${label}`);
-    if (item.detail !== undefined) lines.push(`  상세: ${item.detail.replaceAll('\n', '\n  ')}`);
-    if (item.fix !== undefined) lines.push(`  조치: ${item.fix}`);
-  }
-  const passed = report.filter((item) => item.status === 'ok').length;
-  const failed = report.filter((item) => item.status === 'error').length;
-  const warnings = report.filter((item) => item.status === 'warning').length;
-  lines.push('', '요약', '────────────────────────', `  ${passed} passed, ${failed} failed, ${warnings} warning`);
-  return lines.join('\n');
-}
+const targetLabels: Record<InstallTarget, string> = { codex: 'Codex', claude: 'Claude Code' };
 
 export class ClackUi {
   activeSpinner = clack.spinner();
@@ -45,22 +32,21 @@ export class ClackUi {
     clack.intro('Nunch Skills');
   }
 
-  async chooseOperation(): Promise<CliOperation> {
+  async choosePlatform(initial?: InstallPlatform): Promise<InstallPlatform | undefined> {
     const result = await clack.select({
-      message: '무엇을 할까요?',
+      message: '설치 대상 플랫폼을 선택하세요',
       options: [
-        { value: 'install', label: '스킬 설치' },
-        { value: 'update', label: '전체 업데이트' },
-        { value: 'uninstall', label: '스킬 삭제' },
-        { value: 'doctor', label: '상태 진단' },
-        { value: 'settings', label: '설정' },
+        { value: 'codex' as const, label: 'Codex' },
+        { value: 'claude' as const, label: 'Claude Code' },
+        { value: 'both' as const, label: '둘 다' },
       ],
+      initialValue: initial,
     });
-    if (clack.isCancel(result)) return 'cancel';
-    return result;
+    return clack.isCancel(result) ? undefined : result;
   }
 
   async choosePlugins(plugins: string[]): Promise<string[] | undefined> {
+    if (plugins.length === 0) return [];
     const result = await clack.multiselect({
       message: '대상 스킬을 선택하세요',
       options: plugins.map((plugin) => ({ value: plugin, label: plugin })),
@@ -75,7 +61,7 @@ export class ClackUi {
     return clack.isCancel(result) ? false : result;
   }
 
-  progress(event: ProgressEvent): void {
+  progress(event: ProgressEvent, targetPrefix?: string): void {
     const phase = phaseLabels[event.phase];
     const target =
       event.target === undefined
@@ -84,7 +70,8 @@ export class ClackUi {
             (label, [source, localized]) => label.replace(source, localized),
             event.target,
           );
-    const label = target === undefined ? phase : `${phase} · ${target}`;
+    const base = target === undefined ? phase : `${phase} · ${target}`;
+    const label = targetPrefix === undefined ? base : `[${targetPrefix}] ${base}`;
     if (event.status === 'started') {
       this.activeSpinner.start(label);
       return;
@@ -94,22 +81,11 @@ export class ClackUi {
       return;
     }
     if (event.status === 'skipped') {
+      this.activeSpinner.start(label);
       this.activeSpinner.stop(`${label} 건너뜀`);
       return;
     }
     this.activeSpinner.stop(`${label} 실패`);
-  }
-
-  async doctorReport(report: DoctorItem[]): Promise<void> {
-    clack.note(formatDoctorReport(report), '상태 진단 상세');
-    const result = await clack.confirm({ message: 'AI 문제 해결 프롬프트를 클립보드에 복사할까요?' });
-    if (clack.isCancel(result) || !result) return;
-    try {
-      await copyToClipboard(doctorAiPrompt(report));
-      clack.log.success('AI 문제 해결 프롬프트를 클립보드에 복사했습니다.');
-    } catch (error) {
-      clack.log.error(`클립보드에 복사하지 못했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-    }
   }
 
   success(message: string): void {
@@ -121,25 +97,23 @@ export class ClackUi {
   }
 }
 
-function doctorAiPrompt(report: DoctorItem[]): string {
-  return [
-    '다음 Nunch Skills 상태 진단 결과를 분석해 문제를 해결해 주세요.',
-    '각 경고·오류의 근본 원인, 안전한 해결 순서, 실행할 명령을 설명해 주세요.',
-    '설치된 플러그인이나 사용자 설정을 삭제·변경하기 전에는 영향과 되돌리는 방법을 먼저 알려 주세요.',
-    '',
-    formatDoctorReport(report),
-  ].join('\n');
+export function targetLabel(target: InstallTarget): string {
+  return targetLabels[target];
 }
 
 export function bindUiDependencies(
   ui: ClackUi,
-  dependencies: Omit<PublicCliDependencies, 'chooseOperation' | 'choosePlugins' | 'confirm' | 'writeError'>,
+  dependencies: Omit<
+    PublicCliDependencies,
+    'choosePlatform' | 'choosePlugins' | 'confirm' | 'writeError' | 'writeOutput'
+  >,
 ): PublicCliDependencies {
   return {
     ...dependencies,
-    chooseOperation: () => ui.chooseOperation(),
+    choosePlatform: (initial) => ui.choosePlatform(initial),
     choosePlugins: (plugins) => ui.choosePlugins(plugins),
     confirm: (message) => ui.confirm(message),
-    writeError: (message) => ui.error(message),
+    writeError: (message) => process.stderr.write(message),
+    writeOutput: (message) => process.stdout.write(message),
   };
 }

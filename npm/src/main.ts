@@ -1,44 +1,29 @@
-import { randomUUID } from 'node:crypto';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { ClaudeBackend } from '../../plugins/nunch-skills-manager/runtime/src/claude.ts';
 import { CodexBackend } from '../../plugins/nunch-skills-manager/runtime/src/codex.ts';
 import { ExecRunner } from '../../plugins/nunch-skills-manager/runtime/src/command.ts';
-import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
-import { runLifecycleDoctor } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
-import { LifecycleService, type ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
-import {
-  recoverLifecycleTransaction,
-  runLifecycleTransaction,
-} from '../../plugins/nunch-skills-manager/runtime/src/lifecycle-transaction.ts';
-import { acquireLock, LifecycleStore } from '../../plugins/nunch-skills-manager/runtime/src/store.ts';
+import { runDoctor } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
 import {
   loadTelemetryState,
   setTelemetryEnabled,
 } from '../../plugins/nunch-skills-manager/runtime/src/telemetry-state.ts';
 import { catalogPlugins } from './catalog.ts';
 import { bindUiDependencies, ClackUi } from './clack-ui.ts';
-import { applyOwnershipResult, uninstallChoices, uninstallExecution } from './ownership.ts';
-import { type CliOperation, publicInputRejection, runPublicCli } from './public-cli.ts';
-import { cliVersion, codexHomePath, resolveRelease } from './runtime-config.ts';
-import { captureTelemetry } from './telemetry-runtime.ts';
+import { formatDoctorReport } from './doctor-output.ts';
+import { DoctorErrorsFound, executeOperation, type TargetRuntime } from './lifecycle-command.ts';
+import { uninstallChoices } from './ownership.ts';
+import { type CliExecution, type InstallTarget, runPublicCli } from './public-cli.ts';
+import { claudeHomePath, codexHomePath, resolveRelease } from './runtime-config.ts';
 
-class DoctorErrorsFound extends Error {
-  name = 'DoctorErrorsFound';
+class InstallationPreflightError extends Error {
+  name = 'InstallationPreflightError';
 }
 
-type OperationRuntime = {
-  createBackend: (allowRepin: boolean) => CodexBackend;
-  dataRoot: string;
-  releaseCommit: string;
-};
-type OperationInput = {
-  operation: Exclude<CliOperation, 'cancel' | 'settings'>;
-  plugins: string[];
-  progress: (event: ProgressEvent) => void;
-  runtime: OperationRuntime;
-  doctorReport?: (report: DoctorItem[]) => Promise<void>;
-};
+function dataRootForTarget(target: InstallTarget): string {
+  const home = target === 'codex' ? codexHomePath() : claudeHomePath();
+  return join(home, 'plugins', 'data', 'nunch-skills');
+}
 
 export async function main(): Promise<number> {
   if (process.env['NUNCH_SKILLS_INTERNAL_OPERATION'] === 'update') return runInternalUpdate();
@@ -47,47 +32,100 @@ export async function main(): Promise<number> {
     stdinTty: process.stdin.isTTY,
     stdoutTty: process.stdout.isTTY,
   };
-  const rejection = publicInputRejection(input);
-  if (rejection !== undefined) {
-    process.stderr.write(`${rejection}\n`);
-    return 2;
-  }
   const ui = new ClackUi();
-  ui.intro();
+  const command = input.argv[0];
+  const usesInteractiveUi = shouldUseInteractiveUi(input);
+  if (usesInteractiveUi) ui.intro();
   const codexHome = codexHomePath();
-  const dataRoot = join(codexHome, 'plugins', 'data', 'nunch-skills');
-  const telemetryPath = join(dataRoot, 'telemetry.json');
+  const codexDataRoot = join(codexHome, 'plugins', 'data', 'nunch-skills');
+  const telemetryPath = join(codexDataRoot, 'telemetry.json');
 
   const dependencies = bindUiDependencies(ui, {
     availablePlugins: async () =>
       catalogPlugins()
         .map((plugin) => plugin.name)
         .filter((name) => name !== 'nunch-skills-manager'),
-    installedPlugins: async () => uninstallChoices(dataRoot),
-    execute: async (operation, plugins) => {
-      ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'started' });
+    installedPlugins: async (targets) => {
+      const allPlugins = new Set<string>();
+      for (const target of targets) {
+        const plugins = await uninstallChoices(dataRootForTarget(target));
+        for (const p of plugins) allPlugins.add(p);
+      }
+      return [...allPlugins].sort();
+    },
+    execute: async (execution: CliExecution) => {
+      const { operation, plugins, targets } = execution;
+      const showProgress = operation !== 'doctor';
+      if (operation === 'install') {
+        const preflight = await runDoctor(
+          undefined,
+          (name, status) => ui.progress({ operation, phase: 'verify', target: name, status }),
+          targets,
+        );
+        const blockers = preflight.filter((item) => item.status === 'error');
+        if (blockers.length > 0) {
+          throw new InstallationPreflightError(
+            `설치 사전 점검 실패: ${blockers.map((item) => item.name).join(', ')}. 해당 CLI를 설치한 뒤 다시 실행하세요.`,
+          );
+        }
+      }
+      if (showProgress) ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'started' });
       const release = await resolveRelease().catch((error: unknown) => {
-        ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'failed' });
+        if (showProgress) ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'failed' });
         throw error;
       });
-      ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'completed' });
-      const createBackend = (allowRepin: boolean): CodexBackend =>
-        new CodexBackend({
-          runner: new ExecRunner(),
-          codexCommand: process.env['NUNCH_SKILLS_CODEX_COMMAND'] ?? 'codex',
-          marketplace: 'nunch-skills',
-          releaseCommit: release.commit,
-          allowRepin,
-          configPath: join(codexHome, 'config.toml'),
-          ...(release.manifest === undefined ? {} : { releaseManifest: release.manifest }),
-          snapshotPath: join(dataRoot, 'snapshots', 'foreground.json'),
-        });
+      if (showProgress) ui.progress({ operation, phase: 'verify', target: 'npm·Git 릴리스', status: 'completed' });
+
+      const runtimes: TargetRuntime[] = [];
+      for (const target of targets) {
+        if (target === 'codex') {
+          runtimes.push({
+            target: 'codex',
+            createBackend: (allowRepin) =>
+              new CodexBackend({
+                runner: new ExecRunner(),
+                codexCommand: process.env['NUNCH_SKILLS_CODEX_COMMAND'] ?? 'codex',
+                marketplace: 'nunch-skills',
+                releaseCommit: release.commit,
+                allowRepin,
+                configPath: join(codexHome, 'config.toml'),
+                ...(release.manifest === undefined ? {} : { releaseManifest: release.manifest }),
+                snapshotPath: join(codexDataRoot, 'snapshots', 'foreground.json'),
+              }),
+            dataRoot: codexDataRoot,
+            releaseCommit: release.commit,
+            includeManager: true,
+          });
+        } else {
+          const claudeDataRoot = dataRootForTarget('claude');
+          runtimes.push({
+            target: 'claude',
+            createBackend: (allowRepin) =>
+              new ClaudeBackend({
+                runner: new ExecRunner(),
+                claudeCommand: process.env['NUNCH_SKILLS_CLAUDE_COMMAND'] ?? 'claude',
+                marketplace: 'nunch-skills',
+                allowRepin,
+              }),
+            dataRoot: claudeDataRoot,
+            releaseCommit: release.commit,
+            includeManager: false,
+          });
+        }
+      }
+
+      const usePrefix = targets.length > 1;
       await executeOperation({
         operation,
         plugins,
-        progress: ui.progress.bind(ui),
-        runtime: { createBackend, dataRoot, releaseCommit: release.commit },
-        doctorReport: ui.doctorReport.bind(ui),
+        progress: (event, prefix) => {
+          if (showProgress) ui.progress(event, usePrefix ? prefix : undefined);
+        },
+        runtimes,
+        doctorReport: async (report, duration) => {
+          const doctor = execution.doctor ?? { mode: 'default' as const, json: false };
+          process.stdout.write(`${formatDoctorReport(report, doctor.mode, doctor.json, duration)}\n`);
+        },
       });
     },
     configureTelemetry: async () => {
@@ -98,12 +136,40 @@ export async function main(): Promise<number> {
   });
   try {
     const code = await runPublicCli(input, dependencies);
-    if (code === 0) ui.success('작업을 마쳤습니다');
+    if (code === 0 && usesInteractiveUi) ui.success(successMessage(command));
     return code;
   } catch (error) {
-    ui.error(error instanceof Error ? error.message : '알 수 없는 오류');
+    if (error instanceof DoctorErrorsFound) return 1;
+    const message = error instanceof Error ? error.message : '알 수 없는 오류';
+    if (usesInteractiveUi) ui.error(message);
+    else process.stderr.write(`${message}\n`);
     return 1;
   }
+}
+
+export function shouldUseInteractiveUi(input: { argv: string[]; stdinTty: boolean; stdoutTty: boolean }): boolean {
+  if (
+    !input.stdinTty ||
+    !input.stdoutTty ||
+    input.argv.some((argument) => argument === '--help' || argument === '-h')
+  ) {
+    return false;
+  }
+  const command = input.argv[0];
+  return (
+    command === 'install' ||
+    command === 'setup' ||
+    command === 'update' ||
+    command === 'uninstall' ||
+    command === 'settings'
+  );
+}
+
+function successMessage(command: string | undefined): string {
+  if (command === 'install' || command === 'setup') return '설치가 완료되었습니다';
+  if (command === 'update') return '업데이트가 완료되었습니다';
+  if (command === 'uninstall') return '삭제가 완료되었습니다';
+  return '설정을 저장했습니다';
 }
 
 async function runInternalUpdate(): Promise<number> {
@@ -111,111 +177,33 @@ async function runInternalUpdate(): Promise<number> {
   const dataRoot = join(codexHome, 'plugins', 'data', 'nunch-skills');
   const release = await resolveRelease();
   const commit = release.commit;
-  const backend = () =>
-    new CodexBackend({
-      runner: new ExecRunner(),
-      codexCommand: process.env['NUNCH_SKILLS_CODEX_COMMAND'] ?? 'codex',
-      marketplace: 'nunch-skills',
-      releaseCommit: commit,
-      allowRepin: true,
-      configPath: join(codexHome, 'config.toml'),
-      ...(release.manifest === undefined ? {} : { releaseManifest: release.manifest }),
-      snapshotPath: join(dataRoot, 'snapshots', 'automatic.json'),
-    });
+  const runtime: TargetRuntime = {
+    target: 'codex',
+    createBackend: () =>
+      new CodexBackend({
+        runner: new ExecRunner(),
+        codexCommand: process.env['NUNCH_SKILLS_CODEX_COMMAND'] ?? 'codex',
+        marketplace: 'nunch-skills',
+        releaseCommit: commit,
+        allowRepin: true,
+        configPath: join(codexHome, 'config.toml'),
+        ...(release.manifest === undefined ? {} : { releaseManifest: release.manifest }),
+        snapshotPath: join(dataRoot, 'snapshots', 'automatic.json'),
+      }),
+    dataRoot,
+    releaseCommit: commit,
+    includeManager: true,
+  };
   try {
     await executeOperation({
       operation: 'update',
       plugins: [],
       progress: () => undefined,
-      runtime: { createBackend: backend, dataRoot, releaseCommit: commit },
+      runtimes: [runtime],
     });
     return 0;
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : 'internal update failed'}\n`);
     return 1;
   }
-}
-
-async function executeOperation(input: OperationInput): Promise<void> {
-  const { operation, plugins, progress } = input;
-  const { createBackend, dataRoot, releaseCommit } = input.runtime;
-  const startedAt = Date.now();
-  let result: 'success' | 'failure' = 'success';
-  let fullTeardown = false;
-  try {
-    if (operation === 'doctor') {
-      const backend = createBackend(false);
-      const store = new LifecycleStore(join(dataRoot, 'lifecycle.json'));
-      const report = await runLifecycleDoctor({ backend, store }, (name, status, detail) => {
-        progress({
-          operation: 'doctor',
-          phase: 'verify',
-          target: detail === undefined ? name : `${name} · ${detail}`,
-          status,
-        });
-      });
-      await input.doctorReport?.(report);
-      if (report.some((item) => item.status === 'error')) throw new DoctorErrorsFound('doctor found lifecycle errors');
-      return;
-    }
-    const lock = await acquireLock(join(dataRoot, 'lifecycle.lock'), Date.now(), 600_000);
-    const store = new LifecycleStore(join(dataRoot, 'lifecycle.json'));
-    try {
-      const backend = createBackend(operation === 'update');
-      const state = await recoverLifecycleTransaction(store, backend);
-      const preState = await backend.inspectPreState();
-      const uninstall =
-        operation === 'uninstall'
-          ? uninstallExecution(state, plugins)
-          : { plugins, removeTrust: false, removeMarketplace: false, fullTeardown: false };
-      fullTeardown = uninstall.fullTeardown;
-      const service = new LifecycleService(backend, progress);
-      await runLifecycleTransaction(
-        {
-          store,
-          backend,
-          operation,
-          release: { version: cliVersion, commit: releaseCommit },
-          operationId: randomUUID(),
-          startedAt: new Date().toISOString(),
-        },
-        async (current) => {
-          switch (operation) {
-            case 'install':
-              await service.install(plugins);
-              break;
-            case 'update':
-              await service.update();
-              break;
-            case 'uninstall':
-              await service.uninstall(uninstall.plugins, {
-                removeTrust: uninstall.removeTrust,
-                removeMarketplace: uninstall.removeMarketplace,
-              });
-              break;
-            default:
-              assertNever(operation);
-          }
-          return applyOwnershipResult({
-            state: current,
-            operation,
-            plugins: operation === 'uninstall' ? uninstall.plugins : plugins,
-            preState,
-          });
-        },
-      );
-    } finally {
-      await lock.release();
-    }
-    if (fullTeardown) await rm(dataRoot, { recursive: true, force: true });
-  } catch (error) {
-    result = 'failure';
-    throw error;
-  } finally {
-    if (!fullTeardown) await captureTelemetry(operation, plugins, result, Date.now() - startedAt, dataRoot);
-  }
-}
-
-function assertNever(value: never): never {
-  throw new TypeError(`unexpected operation: ${String(value)}`);
 }
