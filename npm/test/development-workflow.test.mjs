@@ -31,6 +31,19 @@ test('runs runtime and packaged launcher checks on Windows', async () => {
   assert.match(installSmoke, /node npm\/bin\/nunch-skills\.mjs doctor --help/);
 });
 
+test('runs deep-interview Python tests on Linux and Windows', async () => {
+  // Given
+  const workflow = await readFile(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+
+  // When / Then
+  assert.match(workflow, /deep-interview-tests:/);
+  assert.match(workflow, /os: \[ubuntu-latest, windows-latest\]/);
+  assert.match(workflow, /actions\/setup-python@[0-9a-f]{40}/);
+  assert.match(workflow, /astral-sh\/setup-uv@[0-9a-f]{40}/);
+  assert.match(workflow, /uv run --python 3\.11 --with pytest pytest -q/);
+  assert.match(workflow, /deep-interview\/skills\/deep-interview\/tests/);
+});
+
 test('local development docs pass CLI arguments through pnpm without a literal separator', async () => {
   // Given
   const guide = await readFile(new URL('../../docs/local-development.md', import.meta.url), 'utf8');
