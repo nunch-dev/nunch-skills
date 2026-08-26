@@ -115,6 +115,7 @@ jobs:
           node --experimental-strip-types --test
           plugins/nunch-skills-manager/runtime/test/command.test.ts
           plugins/nunch-skills-manager/runtime/test/doctor.test.ts
+          plugins/nunch-skills-manager/runtime/test/release-tar.test.ts
       - name: Build package
         run: pnpm run build
       - name: Smoke test the packaged launcher
