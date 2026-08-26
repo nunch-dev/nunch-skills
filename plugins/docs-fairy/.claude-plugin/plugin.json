@@ -1,7 +1,7 @@
 {
   "name": "docs-fairy",
   "version": "0.1.0",
-  "description": "Generate, sync, and improve project documentation with evidence-based diagnosis and Starlight doc sites.",
+  "description": "Generate, record, sync, and improve project documentation with evidence-based diagnosis and Starlight doc sites.",
   "author": {
     "name": "Nunch Dev",
     "url": "https://github.com/nunch-dev"
