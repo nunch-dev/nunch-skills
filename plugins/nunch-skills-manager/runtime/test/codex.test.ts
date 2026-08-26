@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CodexBackend } from '../src/codex.ts';
 import type { CommandRunner } from '../src/codex-schema.ts';
+import { CommandError } from '../src/command.ts';
 
 test('pins a missing marketplace and installs a plugin by verified identity', async () => {
   // Given
@@ -67,6 +68,23 @@ test('lists only installed marketplace plugins', async () => {
   assert.deepEqual(installed, ['git-tools']);
 });
 
+test('trust registration fails closed and explains the development checkout cause', async () => {
+  // Given: no verified release manifest exists (development checkout).
+  const backend = new CodexBackend({
+    runner: new RecordingRunner([]),
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+    configPath: '/tmp/nonexistent-config.toml',
+  });
+
+  // When
+  const failure = await backend.ensureTrust().catch((error: unknown) => error);
+
+  // Then
+  assert.ok(failure instanceof CommandError);
+  assert.match((failure as Error).message, /개발 체크아웃|development checkout/);
+});
 test('rejects an existing marketplace pinned to another commit', async () => {
   // Given
   const runner = new RecordingRunner([
@@ -82,6 +100,23 @@ test('rejects an existing marketplace pinned to another commit', async () => {
 
   // When / Then
   await assert.rejects(() => backend.ensureMarketplace(), /commit/);
+});
+
+test('rejects release verification without a verified manifest', async () => {
+  // Given
+  const runner = new RecordingRunner([
+    '{"marketplaces":[{"name":"nunch-skills","root":"/tmp/nunch-marketplace"}]}',
+    `${'a'.repeat(40)}\n`,
+  ]);
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+  });
+
+  // When / Then
+  await assert.rejects(() => backend.verifyRelease(), /manifest/);
 });
 
 class RecordingRunner implements CommandRunner {

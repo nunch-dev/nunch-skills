@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { z } from 'zod';
 import type { pluginSchema } from './codex-schema.ts';
+import { CommandError } from './command.ts';
 import { inspectDependencies } from './dependencies.ts';
 import type { LifecycleStore } from './store.ts';
 
@@ -20,19 +21,24 @@ export interface DoctorBackend {
   verifyTrust(): Promise<void>;
 }
 type LifecycleDoctorInput = { backend: DoctorBackend; store: LifecycleStore };
+type DoctorPlatform = 'codex' | 'claude';
 
 export async function runDoctor(
   probe: ExecutableProbe = new ProcessProbe(),
   progress: DoctorProgress = () => undefined,
+  platforms: DoctorPlatform[] = ['codex', 'claude'],
 ): Promise<DoctorItem[]> {
   const checks: [string, string[], string][] = [
     ['node', ['--version'], 'Node.js'],
     ['git', ['--version'], 'Git'],
-    ['codex', ['--version'], 'Codex CLI'],
   ];
-  const report: DoctorItem[] = [];
-  for (const [command, args, name] of checks) report.push(await executableCheck(probe, command, args, name, progress));
-  return report;
+  if (platforms.includes('codex')) checks.push(['codex', ['--version'], 'Codex CLI']);
+  if (platforms.includes('claude')) checks.push(['claude', ['--version'], 'Claude Code CLI']);
+  const results: DoctorItem[] = [];
+  for (const [command, args, name] of checks) {
+    results.push(await executableCheck(probe, command, args, name, progress));
+  }
+  return results;
 }
 
 export async function runLifecycleDoctor(
@@ -92,31 +98,38 @@ export async function runLifecycleDoctor(
       fix: 'Manager에서 제거 후 다시 설치해 소유권 ledger를 재생성한 뒤 다시 진단하세요.',
     },
   ];
-  const report: DoctorItem[] = [];
-  for (const { name, check, fix } of checks) {
-    progress(name, 'started');
-    try {
-      const detail = await check();
-      report.push({ name, status: 'ok', detail });
-      progress(name, 'completed', detail);
-    } catch (error) {
-      if (error instanceof DoctorWarning) {
-        const detail = `${causeDetail(error)}\n${error.detail}`;
-        report.push({ name, status: 'warning', detail, fix });
+  return Promise.all(
+    checks.map(async ({ name, check, fix }): Promise<DoctorItem> => {
+      progress(name, 'started');
+      try {
+        const detail = await check();
         progress(name, 'completed', detail);
-        continue;
+        return { name, status: 'ok', detail };
+      } catch (error) {
+        const missingManifest =
+          error instanceof CommandError && error.message === 'verified release manifest is missing';
+        if (missingManifest && (name === 'integrity' || name === 'trust')) {
+          const detail = `원인: verified release manifest is missing → 릴리스로 게시되지 않은 개발 체크아웃에서 실행한 것으로 보입니다.\n개발 환경에서는 정상 상태이며, npm 릴리스 설치본에서 같은 결과가 나오면 다시 설치하세요.`;
+          progress(name, 'completed', detail);
+          return { name, status: 'warning', detail, fix };
+        }
+        if (error instanceof DoctorWarning) {
+          const detail = `${causeDetail(error)}\n${error.detail}`;
+          progress(name, 'completed', detail);
+          return { name, status: 'warning', detail, fix };
+        }
+        const detail = causeDetail(error);
+        const item: DoctorItem = {
+          name,
+          status: 'error',
+          detail,
+          fix,
+        };
+        progress(name, 'failed', detail);
+        return item;
       }
-      const detail = causeDetail(error);
-      report.push({
-        name,
-        status: 'error',
-        detail,
-        fix,
-      });
-      progress(name, 'failed', detail);
-    }
-  }
-  return report;
+    }),
+  );
 }
 
 class DoctorWarning extends Error {

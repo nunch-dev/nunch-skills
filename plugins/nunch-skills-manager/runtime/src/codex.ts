@@ -131,6 +131,10 @@ export class CodexBackend implements LifecycleBackend {
   async ensureTrust(): Promise<void> {
     const configPath = this.options.configPath;
     if (configPath === undefined) throw new CommandError('hook trust inputs are missing');
+    if (this.options.releaseManifest === undefined)
+      throw new CommandError(
+        'verified release manifest is missing → 릴리스로 게시되지 않은 개발 체크아웃에서는 hook 신뢰를 등록할 수 없습니다. npm 릴리스 설치본(npx @nunch-dev/skills install)을 사용하세요.',
+      );
     const hash = await this.verifyManagerIntegrity();
     const current = await inspectTrustHash(configPath, trustId);
     if (current === hash) return;
