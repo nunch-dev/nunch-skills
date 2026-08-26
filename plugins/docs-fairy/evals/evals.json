@@ -1,0 +1,56 @@
+{
+  "skill_name": "docs-fairy",
+  "evals": [
+    {
+      "id": 0,
+      "name": "readme-generation",
+      "prompt": "이 프로젝트에 README가 없네. 새로 온 사람이 바로 설치해서 써볼 수 있게 README 좀 작성해줘.",
+      "expected_output": "코드에서 검증된 명령어·옵션만 담긴 간결한 한국어 README.md (설치/사용법/옵션 표)",
+      "files": [
+        "fixtures/tasklite"
+      ],
+      "assertions": [
+        "README.md exists at the project root and its body is written in Korean",
+        "Every command and option documented in README actually exists in src/cli.js (add/list/done, --priority, --all, TASKLITE_HOME) — no fabricated commands or flags",
+        "README documents the three core commands (add, list, done) with at least one runnable usage example each or a combined example",
+        "Install/run instructions are consistent with package.json (bin name 'tasklite', node >=18) and contain no unverifiable claims (no invented npm registry install if unpublished is ambiguous — command must at least match manifest)",
+        "README is concise: no marketing filler sections (badges, 'powerful features' prose) that the user did not ask for"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "stale-docs-diagnosis",
+      "prompt": "최근에 CLI 옵션을 좀 바꿨는데 문서를 안 건드렸어. 문서가 코드랑 맞는지 확인해줘.",
+      "expected_output": "파일을 수정하지 않고, --format→--output 변경·--gzip 추가·env var 변경으로 낡은 README/docs 항목을 근거(파일:라인/커밋)와 함께 진단 표로 보고",
+      "files": [
+        "fixtures/logship"
+      ],
+      "assertions": [
+        "No documentation files were modified: git status in the project shows README.md and docs/configuration.md unchanged",
+        "Response identifies the --format → --output rename",
+        "Response identifies the new --gzip flag as undocumented",
+        "Response identifies the env var rename LOGSHIP_ENDPOINT → LOGSHIP_COLLECTOR",
+        "Response identifies the default format change json → ndjson",
+        "Findings cite concrete evidence (file:line and/or commit hash) for each item",
+        "Response ends by asking the user which items to fix (approval gate) rather than claiming fixes were made"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "starlight-site",
+      "prompt": "docs 폴더에 마크다운 문서들이 있는데, 이걸 Starlight 문서 사이트로 만들어줘. 기존 문서들 이관까지 부탁해.",
+      "expected_output": "Starlight 사이트 scaffold + 한국어 locale + 기존 docs 3개 이관(frontmatter, H1 제거) + 예제 콘텐츠 제거 + 빌드 검증",
+      "files": [
+        "fixtures/palette"
+      ],
+      "assertions": [
+        "An Astro config with the Starlight integration exists in the project",
+        "All three docs (getting-started, api, accessibility) are migrated into the Starlight content directory with a frontmatter title",
+        "Migrated pages do not duplicate the title as a body H1",
+        "Starlight starter/example content (e.g. 'Example Guide' demo pages) is removed",
+        "Korean locale (lang ko) is configured in the Starlight config",
+        "The site actually builds: running the project's build command succeeds"
+      ]
+    }
+  ]
+}

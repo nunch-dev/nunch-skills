@@ -42,6 +42,13 @@
       "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
       "version": "0.2.1",
       "category": "development"
+    },
+    {
+      "name": "docs-fairy",
+      "source": "./plugins/docs-fairy",
+      "description": "Generate, sync, and improve docs with evidence-based diagnosis and Starlight sites.",
+      "version": "0.1.0",
+      "category": "development"
     }
   ]
 }

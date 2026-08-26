@@ -1,0 +1,26 @@
+{
+  "name": "docs-fairy",
+  "version": "0.1.0",
+  "description": "Generate, sync, and improve project documentation with evidence-based diagnosis and Starlight doc sites.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills",
+  "keywords": ["documentation", "docs", "readme", "starlight", "korean"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Docs Fairy",
+    "shortDescription": "Evidence-based docs generation, sync, and Starlight sites",
+    "longDescription": "Analyze the codebase to generate READMEs, architecture docs, API/CLI references, changelogs, and runbooks; detect stale docs via git diff or full audits with approval-gated fixes; improve doc quality; and scaffold or integrate Starlight documentation sites.",
+    "developerName": "Nunch Dev",
+    "category": "Developer Tools",
+    "capabilities": ["Instructions"],
+    "defaultPrompt": [
+      "이 프로젝트의 README를 작성해줘.",
+      "최근 변경으로 낡은 문서가 있는지 진단해줘.",
+      "docs 디렉터리를 Starlight 문서 사이트로 만들어줘."
+    ]
+  }
+}
