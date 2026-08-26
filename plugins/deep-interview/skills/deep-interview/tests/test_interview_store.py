@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +26,47 @@ from interview_store import (
 )
 
 TIMESTAMP = "2026-08-21T00:00:00.000000Z"
+
+
+def test_imports_store_on_windows_without_fcntl(tmp_path: Path) -> None:
+    # Given
+    code = f"""
+import sys
+import types
+from pathlib import Path
+
+scripts = {str(SCRIPTS)!r}
+root = Path({str(tmp_path)!r}) / "store"
+calls = []
+
+msvcrt = types.ModuleType("msvcrt")
+msvcrt.LK_LOCK = 1
+msvcrt.LK_UNLCK = 0
+msvcrt.locking = lambda file_descriptor, operation, size: calls.append(operation)
+sys.modules["msvcrt"] = msvcrt
+sys.modules["fcntl"] = None
+sys.path.insert(0, scripts)
+sys.platform = "win32"
+
+from interview_store import writer_lock
+
+with writer_lock(root):
+    pass
+
+print(calls)
+"""
+
+    # When
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    # Then
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "[1, 0]\n"
 
 
 def draft(

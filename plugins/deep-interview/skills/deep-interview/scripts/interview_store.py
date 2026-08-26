@@ -1,12 +1,21 @@
 from __future__ import annotations
 
-import fcntl
 import json
 import os
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+
+if sys.platform == "win32":
+    import msvcrt
+
+    fcntl = None
+else:
+    import fcntl
+
+    msvcrt = None
 
 from interview_canonical import JsonValue, calculate_hash, canonical_json
 from interview_events import (
@@ -33,12 +42,28 @@ class ResumeResult:
 def writer_lock(root: Path) -> Iterator[None]:
     root.mkdir(parents=True, exist_ok=True)
     lock_path = root / ".writer.lock"
-    with lock_path.open("a+", encoding="utf-8") as lock_file:
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+    with lock_path.open("a+b") as lock_file:
+        if sys.platform == "win32":
+            assert msvcrt is not None
+            lock_file.seek(0, os.SEEK_END)
+            if lock_file.tell() == 0:
+                lock_file.write(b"\0")
+                lock_file.flush()
+            lock_file.seek(0)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            assert fcntl is not None
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         try:
             yield
         finally:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+            if sys.platform == "win32":
+                assert msvcrt is not None
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                assert fcntl is not None
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def initialize_interview(
