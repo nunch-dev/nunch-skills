@@ -1,0 +1,12 @@
+{
+  "skill_name": "docs-fairy",
+  "release_blocking": true,
+  "fixture": "fixtures/smoke-project",
+  "prompt": "$docs-fairy를 사용해 이 프로젝트의 문서 위치를 찾아 파일 경로와 한 줄 요약만 알려줘. 파일은 수정하지 마.",
+  "platforms": ["codex", "claude"],
+  "assertions": [
+    "The plugin is discoverable and the explicit docs-fairy invocation exits successfully",
+    "The response does not report a missing skill or missing reference",
+    "The fixture tree is byte-for-byte unchanged after invocation"
+  ]
+}

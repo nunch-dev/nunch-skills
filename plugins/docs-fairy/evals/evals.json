@@ -1,18 +1,18 @@
 {
   "skill_name": "docs-fairy",
+  "release_blocking": false,
+  "purpose": "Non-blocking manual quality scenarios. Model wording and generated artifacts are not release gates.",
   "evals": [
     {
       "id": 0,
       "name": "readme-generation",
       "prompt": "이 프로젝트에 README가 없네. 새로 온 사람이 바로 설치해서 써볼 수 있게 README 좀 작성해줘.",
-      "expected_output": "코드에서 검증된 명령어·옵션만 담긴 간결한 한국어 README.md (설치/사용법/옵션 표)",
-      "files": [
-        "fixtures/tasklite"
-      ],
+      "expected_output": "코드에서 검증된 명령어·옵션만 담고 Diátaxis에 따라 빠른 시작과 레퍼런스를 분리한 간결한 한국어 README.md (설치/사용법/옵션 표)",
       "assertions": [
         "README.md exists at the project root and its body is written in Korean",
         "Every command and option documented in README actually exists in src/cli.js (add/list/done, --priority, --all, TASKLITE_HOME) — no fabricated commands or flags",
         "README documents the three core commands (add, list, done) with at least one runnable usage example each or a combined example",
+        "README applies Diátaxis by keeping the guided quick-start flow separate from the command and option reference instead of mixing their purposes",
         "Install/run instructions are consistent with package.json (bin name 'tasklite', node >=18) and contain no unverifiable claims (no invented npm registry install if unpublished is ambiguous — command must at least match manifest)",
         "README is concise: no marketing filler sections (badges, 'powerful features' prose) that the user did not ask for"
       ]
@@ -22,9 +22,6 @@
       "name": "stale-docs-diagnosis",
       "prompt": "최근에 CLI 옵션을 좀 바꿨는데 문서를 안 건드렸어. 문서가 코드랑 맞는지 확인해줘.",
       "expected_output": "파일을 수정하지 않고, --format→--output 변경·--gzip 추가·env var 변경으로 낡은 README/docs 항목을 근거(파일:라인/커밋)와 함께 진단 표로 보고",
-      "files": [
-        "fixtures/logship"
-      ],
       "assertions": [
         "No documentation files were modified: git status in the project shows README.md and docs/configuration.md unchanged",
         "Response identifies the --format → --output rename",
@@ -39,17 +36,97 @@
       "id": 2,
       "name": "starlight-site",
       "prompt": "docs 폴더에 마크다운 문서들이 있는데, 이걸 Starlight 문서 사이트로 만들어줘. 기존 문서들 이관까지 부탁해.",
-      "expected_output": "Starlight 사이트 scaffold + 한국어 locale + 기존 docs 3개 이관(frontmatter, H1 제거) + 예제 콘텐츠 제거 + 빌드 검증",
-      "files": [
-        "fixtures/palette"
-      ],
+      "expected_output": "Starlight 사이트 scaffold + Mermaid/내부 링크 검증 기본 설치 + Diátaxis 정보 구조 + 한국어 locale + 기존 docs 3개 이관(frontmatter, H1 제거) + 예제 콘텐츠 제거 + 빌드 검증",
       "assertions": [
         "An Astro config with the Starlight integration exists in the project",
+        "The docs package installs astro-mermaid, mermaid, and starlight-links-validator as dependencies",
+        "The Astro config registers the Mermaid integration before Starlight and registers starlight-links-validator as a Starlight plugin",
+        "The docs package does not install starlight-telescope, starlight-plugin-icons, starlight-image-zoom, or starlight-site-graph unless explicitly requested",
+        "The migrated site uses Diátaxis to separate getting-started tutorial content, goal-oriented guides, and API reference content without creating empty categories",
         "All three docs (getting-started, api, accessibility) are migrated into the Starlight content directory with a frontmatter title",
         "Migrated pages do not duplicate the title as a body H1",
         "Starlight starter/example content (e.g. 'Example Guide' demo pages) is removed",
         "Korean locale (lang ko) is configured in the Starlight config",
         "The site actually builds: running the project's build command succeeds"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "visual-beginner-explainer",
+      "prompt": "Tasklite에서 할 일이 추가되고 목록에 나타난 뒤 완료되는 흐름을 코드를 모르는 사람도 한눈에 이해할 수 있게 그림 중심 문서로 만들어줘.",
+      "expected_output": "코드로 검증한 add/list/done 흐름을 Mermaid 시각 요약과 짧은 쉬운 설명으로 먼저 보여주고 정확한 용어와 상세 동작을 뒤에 둔 Diátaxis explanation 문서",
+      "assertions": [
+        "A new Markdown documentation page explains the task lifecycle for a beginner audience",
+        "The page starts with one Mermaid diagram and a concise 2-4 sentence overview before detailed implementation terminology",
+        "The diagram and explanation accurately reflect add, list, and done behavior from src/cli.js and do not invent databases, network services, or unsupported state transitions",
+        "Unfamiliar technical terms are introduced in plain language while retaining their accurate names, without childish phrasing or decorative filler",
+        "Verified details and relevant constraints appear after the visual summary, and reference-style details are kept distinct from the beginner explanation",
+        "The output remains Markdown rather than creating a standalone HTML artifact because the user did not request HTML"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "goal-oriented-howto",
+      "prompt": "Tasklite의 데이터 저장 위치를 바꾸는 방법만 짧은 문서로 만들어줘.",
+      "expected_output": "실제 TASKLITE_HOME 동작을 근거로 목표·전제 조건·번호 절차·기대 결과를 갖춘 간결한 Diátaxis how-to 문서",
+      "assertions": [
+        "The document is a focused how-to for changing the data location rather than a broad tutorial or conceptual overview",
+        "The procedure uses the actual TASKLITE_HOME environment variable and does not invent configuration files or unsupported flags",
+        "The document states relevant prerequisites before a short numbered procedure and gives an observable expected result afterward",
+        "Reference-style details or background explanation do not interrupt the goal-oriented procedure",
+        "Every command, path behavior, and expected result is verified against src/cli.js"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "retrospective-adr-evidence-gate",
+      "prompt": "Tasklite가 JSON 파일에 저장하도록 설계된 이유를 ADR로 남겨줘.",
+      "expected_output": "코드에서 확인되는 현재 JSON 저장 동작과 근거가 필요한 과거 결정 이유를 구분하고, 이유를 확인할 기록이 없으면 완성된 ADR을 지어내지 않는 진단",
+      "assertions": [
+        "The response distinguishes the code-proven current JSON storage behavior from the historical rationale for choosing it",
+        "The response checks available git history and existing project records for decision evidence before drawing a conclusion",
+        "The response does not invent motivations such as simplicity, portability, or performance when no source supports them",
+        "If the rationale cannot be verified, no finalized ADR is created; the response reports the known facts and asks for the missing decision context",
+        "Any proposed ADR structure keeps context, decision, alternatives, consequences, and evidence distinct"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "project-history-from-git",
+      "prompt": "이 프로젝트가 지금까지 어떻게 바뀌었는지 git 기록을 근거로 프로젝트 히스토리 문서로 정리해줘.",
+      "expected_output": "git 이력의 의미 있는 전환점을 날짜·변화·영향·근거로 묶고 확인되지 않은 이유를 추정하지 않는 프로젝트 히스토리 문서",
+      "assertions": [
+        "A project history document is created in the repository's existing documentation convention or at docs/project-history.md when no convention exists",
+        "The history groups related commits into meaningful feature, structure, or operational milestones instead of listing every commit",
+        "Each milestone includes a verifiable date or period, the change, its observable impact, and supporting commit, tag, or document evidence",
+        "Decision reasons appear only when supported by an issue, ADR, commit context, or user-provided explanation; unsupported narrative is omitted",
+        "The document contains no fabricated early history, motivations, releases, or milestones"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "installed-humanize-korean-finishing-pass",
+      "prompt": "현재 환경에는 humanize-korean 스킬이 설치되어 있어. Tasklite의 한국어 README를 새로 작성해줘.",
+      "expected_output": "코드로 검증한 한국어 README 초안을 먼저 완성한 뒤 자연어 산문만 humanize-korean 강도 기본으로 윤문하고 정확값과 Markdown 구조를 보존한 결과",
+      "assertions": [
+        "README.md is complete and factually verified before humanize-korean is used as the final prose-editing pass",
+        "The humanization input excludes or protects frontmatter, headings and anchors, code, tables, commands, options, TASKLITE_HOME, paths, URLs, numbers, names, and quotations",
+        "The final README preserves every documented command, option, environment variable, example, link target, and procedural order from the verified draft",
+        "The humanize-korean workflow runs outside the target repository so no _workspace directory or intermediate humanization artifact is left in the project",
+        "The target README does not contain a HUMANIZE-SUMMARY comment; the response reports the humanization route and final gate or grade separately",
+        "If humanize-korean reports hold, failure, or an unverifiable result, the verified pre-humanization draft is retained instead"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "humanize-korean-unavailable-fallback",
+      "prompt": "humanize-korean 스킬이 설치되지 않은 환경에서 Tasklite의 한국어 README를 새로 작성해줘.",
+      "expected_output": "선택적 윤문 도구가 없어도 중단하거나 설치를 요구하지 않고 코드로 검증된 한국어 README를 정상 생성",
+      "assertions": [
+        "README.md is created successfully with the same evidence, structure, and example requirements as the normal generation flow",
+        "The response does not ask the user to install or connect humanize-korean and does not treat its absence as an error",
+        "No humanize-korean workspace, summary block, placeholder, or partial artifact appears in the repository or final README",
+        "All commands, options, paths, and environment variables remain verified against src/cli.js"
       ]
     }
   ]

@@ -68,4 +68,12 @@ claude plugin marketplace add "$PWD" --scope user
 claude plugin list --json
 ```
 
+`docs-fairy`를 배포하기 전에는 양쪽 marketplace 발견과 실제 read-only 호출을 격리된 홈에서 확인합니다. 이 gate는 모델의 문구나 문서 결과를 비교하지 않고 호출 성공, skill/reference 로딩 오류 부재, fixture 무변경만 검사합니다.
+
+```bash
+scripts/qa-docs-fairy-smoke.sh
+```
+
+Codex와 Claude CLI 인증이 모두 필요합니다. 실행 로그와 응답은 명령이 출력한 QA sandbox의 `docs-fairy-evidence/`에 남습니다.
+
 작업이 끝나면 `rm -rf "$NUNCH_SKILLS_QA_SANDBOX"`로 임시 홈을 지웁니다. 이 명령은 값이 출력한 임시 경로인지 확인한 뒤 실행합니다. release-pinned npm/Git 검증은 release workflow와 staged package 검증이 담당합니다.

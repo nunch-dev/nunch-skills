@@ -45,6 +45,14 @@ python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.
   plugins/nunch-skills-manager/skills/nunch-skills-manager
 ```
 
+`docs-fairy`를 포함하는 release에서는 repository-owned CI contract 검사에 더해 격리된 실제 호출 gate도 통과해야 합니다.
+
+```bash
+scripts/qa-docs-fairy-smoke.sh
+```
+
+이 명령은 Codex와 Claude marketplace에서 `docs-fairy`를 발견·설치하고, 각 플랫폼에서 read-only 요청을 한 번 실행한 뒤 fixture가 바뀌지 않았는지 확인합니다. 구체적인 응답 문구나 생성 결과는 release 합격 조건이 아닙니다.
+
 The validation workflow runs the same source and package checks, compares two clean TypeScript bundle builds, generates a staged canonical manifest, and uploads a tarball plus `SHA256SUMS`. It never publishes. The separate `publish-npm.yml` workflow accepts only a manually selected, already-published stable GitHub Release.
 
 ## Approval gate for remote writes
