@@ -153,8 +153,8 @@ Restate 확인 후에만 Approval gate를 제시합니다.
 ## Prompt-external validation
 
 ```bash
-python3 scripts/validate_interview_output.py --input <output.md> --kind initial --mode standard
-python3 scripts/validate_interview_output.py --input <spec.md> --kind spec --mode deep --require-passed
+uv run scripts/validate_interview_output.py --input <output.md> --kind initial --mode standard
+uv run scripts/validate_interview_output.py --input <spec.md> --kind spec --mode deep --require-passed
 uv run scripts/interview_state.py validate --root <.nunch/interviews/id>
 ```
 
