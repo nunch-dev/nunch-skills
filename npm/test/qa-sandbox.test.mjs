@@ -6,12 +6,12 @@ import test from 'node:test';
 test('qa sandbox exports throwaway homes without inheriting user homes', async (context) => {
   // Given
   const command = [
-    'source scripts/qa-sandbox.sh >/dev/null',
+    '. scripts/qa-sandbox.sh >/dev/null',
     "node -e 'console.log(JSON.stringify({codex:process.env.CODEX_HOME,claude:process.env.CLAUDE_HOME,config:process.env.CLAUDE_CONFIG_DIR}))'",
   ].join('; ');
 
   // When
-  const result = spawnSync('zsh', ['-c', command], { encoding: 'utf8' });
+  const result = spawnSync('sh', ['-c', command], { encoding: 'utf8' });
 
   // Then
   assert.equal(result.status, 0, result.stderr);
