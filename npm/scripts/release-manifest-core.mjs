@@ -216,4 +216,4 @@ async function generateReleaseManifest(input) {
   return { bytes, manifest, output: resolve(staging, MANIFEST_PATH) };
 }
 
-export { generateReleaseManifest, gitTreeSha256, MANIFEST_PATH, ReleaseManifestError, RUNTIME_PATH };
+export { generateReleaseManifest, gitTreeSha256, ReleaseManifestError, RUNTIME_PATH };

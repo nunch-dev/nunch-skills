@@ -3,7 +3,7 @@ import packageManifest from '../../package.json' with { type: 'json' };
 
 export type InstallTarget = 'codex' | 'claude';
 export type InstallPlatform = InstallTarget | 'both';
-export type DoctorMode = 'default' | 'status' | 'verbose';
+type DoctorMode = 'default' | 'status' | 'verbose';
 export type CliOperation = 'install' | 'update' | 'uninstall' | 'doctor';
 
 export type CliExecution = {

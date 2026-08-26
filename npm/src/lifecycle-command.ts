@@ -39,7 +39,7 @@ export type TargetRuntime = CodexTargetRuntime | ClaudeTargetRuntime;
 type LifecycleOperation = Exclude<CliOperation, 'doctor'>;
 type LifecycleOperationInput = Omit<OperationInput, 'operation'> & { operation: LifecycleOperation };
 
-export type OperationInput = {
+type OperationInput = {
   operation: CliOperation;
   plugins: string[];
   progress: (event: ProgressEvent, targetPrefix?: string) => void;
