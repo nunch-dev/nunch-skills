@@ -74,7 +74,7 @@ jobs:
   install-smoke:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
@@ -88,6 +88,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Run Windows runtime tests
+        if: runner.os == 'Windows'
+        run: >-
+          node --experimental-strip-types --test
+          plugins/nunch-skills-manager/runtime/test/command.test.ts
+          plugins/nunch-skills-manager/runtime/test/doctor.test.ts
       - name: Build package
         run: pnpm run build
       - name: Smoke test the packaged launcher

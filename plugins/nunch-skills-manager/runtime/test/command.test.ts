@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
-import { resolveCommandInvocation } from '../src/command.ts';
+import { execCommand, resolveCommandInvocation } from '../src/command.ts';
 
 test('routes a Windows command shim through cmd.exe', () => {
   // Given
@@ -33,4 +36,20 @@ test('executes a Windows executable directly', () => {
 
   // Then
   assert.deepEqual(invocation, { file: command, args });
+});
+
+test('executes a Windows command shim through the native shell', { skip: process.platform !== 'win32' }, async () => {
+  // Given
+  const root = await mkdtemp(join(tmpdir(), 'nunch-windows-command-'));
+  await writeFile(join(root, 'codex.cmd'), '@echo off\r\necho codex-cli 1.0.0\r\n');
+
+  try {
+    // When
+    const result = await execCommand('codex', ['--version'], { platform: 'win32', pathEnv: root });
+
+    // Then
+    assert.equal(result.stdout.trim(), 'codex-cli 1.0.0');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

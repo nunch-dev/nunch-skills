@@ -19,6 +19,18 @@ test('pull request CI separates fast tests, static checks, and package checks', 
   for (const command of commands) assert.match(workflow, new RegExp(command.replaceAll(' ', '\\s+')));
 });
 
+test('runs runtime and packaged launcher checks on Windows', async () => {
+  // Given
+  const workflow = await readFile(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  const installSmoke = workflow.slice(workflow.indexOf('  install-smoke:'));
+
+  // When / Then
+  assert.match(installSmoke, /os: \[ubuntu-latest, macos-latest, windows-latest\]/);
+  assert.match(installSmoke, /runtime\/test\/command\.test\.ts/);
+  assert.match(installSmoke, /runtime\/test\/doctor\.test\.ts/);
+  assert.match(installSmoke, /node npm\/bin\/nunch-skills\.mjs doctor --help/);
+});
+
 test('local development docs pass CLI arguments through pnpm without a literal separator', async () => {
   // Given
   const guide = await readFile(new URL('../../docs/local-development.md', import.meta.url), 'utf8');
