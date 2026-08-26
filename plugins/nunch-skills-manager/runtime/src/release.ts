@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
+import { execCommand } from './command.ts';
 import {
   authenticateReleaseManifest,
   parseReleaseManifest,
@@ -19,10 +20,10 @@ const execFileAsync = promisify(execFile);
 export async function runVerifiedUpdate(currentVersion: string): Promise<'updated' | 'up-to-date'> {
   const temporary = await mkdtemp(join(tmpdir(), 'nunch-skills-update-'));
   try {
-    const pack = await execFileAsync(
+    const pack = await execCommand(
       'npm',
       ['pack', '--ignore-scripts', '--json', '--pack-destination', temporary, '@nunch-dev/skills@latest'],
-      { encoding: 'utf8', timeout: 120_000 },
+      { timeout: 120_000 },
     );
     const packageFile = parsePackFilename(pack.stdout);
     const archive = join(temporary, packageFile);
