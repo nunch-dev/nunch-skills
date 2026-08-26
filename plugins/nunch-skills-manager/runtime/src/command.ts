@@ -60,16 +60,16 @@ export async function execCommand(command: string, args: string[], options: Comm
 }
 
 export class ExecRunner implements CommandRunner {
-  private platform: NodeJS.Platform;
+  private options: CommandOptions;
 
   constructor(override: CommandOptions = {}) {
-    this.platform = override.platform ?? process.platform;
+    this.options = override;
   }
 
   async run(command: string, args: string[], signal?: AbortSignal): Promise<string> {
     try {
       const result = await execCommand(command, args, {
-        platform: this.platform,
+        ...this.options,
         ...(signal === undefined ? {} : { signal }),
       });
       return result.stdout;

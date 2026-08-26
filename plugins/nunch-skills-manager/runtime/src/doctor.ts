@@ -1,18 +1,12 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import type { z } from 'zod';
-import type { pluginSchema } from './codex-schema.ts';
-import { CommandError } from './command.ts';
+import type { CommandRunner, pluginSchema } from './codex-schema.ts';
+import { CommandError, ExecRunner } from './command.ts';
 import { inspectDependencies } from './dependencies.ts';
 import type { LifecycleStore } from './store.ts';
 
-const execFileAsync = promisify(execFile);
-
 export type DoctorItem = { name: string; status: 'ok' | 'warning' | 'error'; detail?: string; fix?: string };
 
-export interface ExecutableProbe {
-  version(command: string, args: string[]): Promise<string>;
-}
+export type ExecutableProbe = CommandRunner;
 
 type DoctorProgress = (name: string, status: 'started' | 'completed' | 'failed', detail?: string) => void;
 export interface DoctorBackend {
@@ -24,7 +18,7 @@ type LifecycleDoctorInput = { backend: DoctorBackend; store: LifecycleStore };
 type DoctorPlatform = 'codex' | 'claude';
 
 export async function runDoctor(
-  probe: ExecutableProbe = new ProcessProbe(),
+  probe: ExecutableProbe = new ExecRunner({ timeout: 10_000 }),
   progress: DoctorProgress = () => undefined,
   platforms: DoctorPlatform[] = ['codex', 'claude'],
 ): Promise<DoctorItem[]> {
@@ -146,12 +140,6 @@ class DoctorFailure extends Error {
   name = 'DoctorFailure';
 }
 
-class ProcessProbe implements ExecutableProbe {
-  async version(command: string, args: string[]): Promise<string> {
-    return (await execFileAsync(command, args, { encoding: 'utf8', timeout: 10_000 })).stdout.trim();
-  }
-}
-
 async function executableCheck(
   probe: ExecutableProbe,
   command: string,
@@ -160,8 +148,9 @@ async function executableCheck(
   progress: DoctorProgress,
 ): Promise<DoctorItem> {
   progress(name, 'started');
-  return probe.version(command, args).then(
-    (detail) => {
+  return probe.run(command, args).then(
+    (output) => {
+      const detail = output.trim();
       progress(name, 'completed');
       return { name, status: 'ok', detail };
     },

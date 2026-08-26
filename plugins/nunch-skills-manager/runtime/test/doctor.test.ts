@@ -25,6 +25,7 @@ test('reports each executable independently', async () => {
       ['Claude Code CLI', 'ok'],
     ],
   );
+  assert.equal(report[0]?.detail, 'node 1.0.0');
   assert.equal(report[2]?.detail, '원인: Codex CLI 실행 실패 → 실행 파일을 찾을 수 없음');
 });
 
@@ -136,10 +137,10 @@ class FixtureProbe implements ExecutableProbe {
     this.events = events;
   }
 
-  async version(command: string): Promise<string> {
+  async run(command: string): Promise<string> {
     this.events.push(`${command}:probe`);
     if (command === 'codex') throw new Error('Codex CLI 실행 실패', { cause: new Error('실행 파일을 찾을 수 없음') });
-    return `${command} 1.0.0`;
+    return `${command} 1.0.0\n`;
   }
 }
 
@@ -147,7 +148,7 @@ class ConcurrentProbe implements ExecutableProbe {
   active = 0;
   maximumActive = 0;
 
-  async version(command: string): Promise<string> {
+  async run(command: string): Promise<string> {
     this.active += 1;
     this.maximumActive = Math.max(this.maximumActive, this.active);
     await new Promise<void>((resolve) => setImmediate(resolve));
