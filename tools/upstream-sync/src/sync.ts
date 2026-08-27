@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { basename, join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 
+import { z } from 'zod';
+
 import { parseConfig, resolveInside, type UpstreamSpec } from './config.ts';
 import { copyEntry, ensureRealpathConfinement } from './filesystem.ts';
 import { sanitizeSkills } from './frontmatter.ts';
@@ -12,6 +14,9 @@ import { applyTransaction, destinationExists, recoverTransaction } from './trans
 const execFileAsync = promisify(execFile);
 const versionPattern = /^[0-9A-Za-z][0-9A-Za-z.+-]*$/;
 const versionFieldPattern = /("version"\s*:\s*)"[^"]*"/g;
+const marketplaceSchema = z.looseObject({
+  plugins: z.array(z.looseObject({ name: z.string(), version: z.string() })),
+});
 
 type SyncOptions = { root: string; configPath: string; lockPath: string };
 type Prepared = { spec: UpstreamSpec; checkout: string; commit: string };
@@ -97,27 +102,47 @@ async function prepareVersions(preparation: Preparation, upstream: Prepared): Pr
   for (const target of versionSpec.targets) {
     const destination = resolveInside(preparation.root, target);
     await ensureRealpathConfinement(preparation.root, destination);
-    const copiedOperation = preparation.operations.find(
-      (operation) => destination === operation.destination || destination.startsWith(`${operation.destination}${sep}`),
-    );
-    const sourcePath =
-      copiedOperation === undefined
-        ? destination
-        : join(copiedOperation.candidate, relative(copiedOperation.destination, destination));
-    const source = await readFile(sourcePath, 'utf8');
-    const matches = [...source.matchAll(versionFieldPattern)];
-    if (matches.length !== 1) throw new SyncError(`manifest must contain exactly one version field: ${target}`);
-    const updated = source.replace(versionFieldPattern, `$1"${version}"`);
-    if (copiedOperation !== undefined) {
-      await writeFile(sourcePath, updated);
-      continue;
-    }
-    const candidate = join(preparation.candidates, `candidate-${preparation.operations.length}`);
-    await writeFile(candidate, updated);
-    preparation.operations.push(
-      await operationFor(destination, candidate, preparation.transactionRoot, preparation.operations.length),
-    );
+    await updatePreparedFile(preparation, destination, (source) => {
+      const matches = [...source.matchAll(versionFieldPattern)];
+      if (matches.length !== 1) throw new SyncError(`manifest must contain exactly one version field: ${target}`);
+      return source.replace(versionFieldPattern, `$1"${version}"`);
+    });
   }
+  for (const target of versionSpec.marketplaceTargets) {
+    const destination = resolveInside(preparation.root, target);
+    await ensureRealpathConfinement(preparation.root, destination);
+    await updatePreparedFile(preparation, destination, (source) => {
+      const marketplace = marketplaceSchema.parse(JSON.parse(source));
+      const entry = marketplace.plugins.find((plugin) => plugin.name === upstream.spec.name);
+      if (entry === undefined) throw new SyncError(`marketplace is missing ${upstream.spec.name}: ${target}`);
+      entry.version = version;
+      return `${JSON.stringify(marketplace, null, 2)}\n`;
+    });
+  }
+}
+
+async function updatePreparedFile(
+  preparation: Preparation,
+  destination: string,
+  update: (source: string) => string,
+): Promise<void> {
+  const preparedOperation = preparation.operations.find(
+    (operation) => destination === operation.destination || destination.startsWith(`${operation.destination}${sep}`),
+  );
+  const sourcePath =
+    preparedOperation === undefined
+      ? destination
+      : join(preparedOperation.candidate, relative(preparedOperation.destination, destination));
+  const updated = update(await readFile(sourcePath, 'utf8'));
+  if (preparedOperation !== undefined) {
+    await writeFile(sourcePath, updated);
+    return;
+  }
+  const candidate = join(preparation.candidates, `candidate-${preparation.operations.length}`);
+  await writeFile(candidate, updated);
+  preparation.operations.push(
+    await operationFor(destination, candidate, preparation.transactionRoot, preparation.operations.length),
+  );
 }
 
 async function sourceVersion(checkout: string, relative: string): Promise<string> {

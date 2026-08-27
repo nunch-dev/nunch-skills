@@ -35,6 +35,9 @@
         "targets": [
           "plugins/i-have-adhd/.codex-plugin/plugin.json",
           "plugins/i-have-adhd/.claude-plugin/plugin.json"
+        ],
+        "marketplaceTargets": [
+          ".claude-plugin/marketplace.json"
         ]
       }
     },
@@ -73,6 +76,9 @@
         "targets": [
           "plugins/humanize-korean/.codex-plugin/plugin.json",
           "plugins/humanize-korean/.claude-plugin/plugin.json"
+        ],
+        "marketplaceTargets": [
+          ".claude-plugin/marketplace.json"
         ]
       }
     }

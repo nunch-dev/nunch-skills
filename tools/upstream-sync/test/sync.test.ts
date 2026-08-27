@@ -34,11 +34,16 @@ test('syncs managed paths and preserves the manifest format', async () => {
   assert.match(await readFile(join(root, 'lock.json'), 'utf8'), /"example": "[0-9a-f]{40}"/);
 });
 
-test('propagates a version into a manifest nested within a copied directory', async () => {
+test('propagates a version into a copied manifest and the repository marketplace', async () => {
   // Given
   const root = await mkdtemp(join(tmpdir(), 'upstream-sync-test-'));
   const remote = await createRemote();
   await write(root, 'plugins/example/.codex-plugin/plugin.json', '{"version":"2.3.2","legacy":true}');
+  await write(
+    root,
+    '.claude-plugin/marketplace.json',
+    '{"name":"fixtures","plugins":[{"name":"example","version":"2.3.2","source":"./plugins/example"}]}',
+  );
   await write(
     root,
     'upstreams.json',
@@ -52,6 +57,7 @@ test('propagates a version into a manifest nested within a copied directory', as
           version: {
             source: 'manifest/plugin.json',
             targets: ['plugins/example/.codex-plugin/plugin.json'],
+            marketplaceTargets: ['.claude-plugin/marketplace.json'],
             appendCommit: true,
           },
         },
@@ -65,6 +71,10 @@ test('propagates a version into a manifest nested within a copied directory', as
   // Then
   const manifest = await readFile(join(root, 'plugins/example/.codex-plugin/plugin.json'), 'utf8');
   assert.match(manifest, /^\{"version":"2\.4\.0\+upstream\.[0-9a-f]{12}"\}$/);
+  assert.match(
+    await readFile(join(root, '.claude-plugin/marketplace.json'), 'utf8'),
+    /"name": "example",\n {6}"version": "2\.4\.0\+upstream\.[0-9a-f]{12}"/,
+  );
 });
 
 test('preserves the workspace when preflight fails', async () => {

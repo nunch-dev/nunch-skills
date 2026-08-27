@@ -14,6 +14,7 @@ const copySchema = z.strictObject({
 const versionSchema = z.strictObject({
   source: z.string(),
   targets: z.array(z.string()).min(1),
+  marketplaceTargets: z.array(z.string()).default([]),
   appendCommit: z.boolean(),
 });
 
@@ -39,6 +40,7 @@ export function parseConfig(raw: unknown): UpstreamConfig {
   const names = new Set<string>();
   const destinations: string[] = [];
   const versionTargets: string[] = [];
+  const marketplaceTargets: string[] = [];
 
   for (const upstream of config.upstreams) {
     const upstreamDestinations: string[] = [];
@@ -49,6 +51,7 @@ export function parseConfig(raw: unknown): UpstreamConfig {
       copy.destination = parseRelativePath('destination', copy.destination);
       ensureNoOverlap(copy.destination, destinations, 'destination');
       ensureNoOverlap(copy.destination, versionTargets, 'copy/version target');
+      ensureNoOverlap(copy.destination, marketplaceTargets, 'copy/marketplace target');
       destinations.push(copy.destination);
       upstreamDestinations.push(copy.destination);
     }
@@ -63,8 +66,21 @@ export function parseConfig(raw: unknown): UpstreamConfig {
         );
         if (!belongsToCopiedPath) ensureNoOverlap(parsed, destinations, 'copy/version target');
         ensureNoOverlap(parsed, versionTargets, 'version target');
+        ensureNoOverlap(parsed, marketplaceTargets, 'version/marketplace target');
         upstream.version.targets[index] = parsed;
         versionTargets.push(parsed);
+      }
+      for (let index = 0; index < upstream.version.marketplaceTargets.length; index += 1) {
+        const target = upstream.version.marketplaceTargets[index];
+        if (target === undefined) throw new ConfigError('marketplace target is missing');
+        const parsed = parseRelativePath('marketplace target', target);
+        ensureNoOverlap(parsed, destinations, 'copy/marketplace target');
+        ensureNoOverlap(parsed, versionTargets, 'version/marketplace target');
+        if (!marketplaceTargets.includes(parsed)) {
+          ensureNoOverlap(parsed, marketplaceTargets, 'marketplace target');
+          marketplaceTargets.push(parsed);
+        }
+        upstream.version.marketplaceTargets[index] = parsed;
       }
     }
   }

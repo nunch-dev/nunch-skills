@@ -63,7 +63,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --force-create "$SYNC_BRANCH"
-          git add .github/upstreams.lock.json plugins/i-have-adhd plugins/humanize-korean
+          git add .github/upstreams.lock.json .claude-plugin/marketplace.json plugins/i-have-adhd plugins/humanize-korean
           git commit -m "(upstream-sync) [chore]: 원격 스킬 동기화"
           git push --force origin "HEAD:$SYNC_BRANCH"
 
