@@ -10,13 +10,13 @@ Node.js 22 이상이 필요합니다.
 npx @nunch-dev/skills install
 ```
 
-설치 화면에서 사용할 플랫폼과 플러그인을 선택하세요.
+설치 화면에서 Codex, Claude Code 또는 둘 다를 선택하면 `nunch-skills` 플러그인 하나에 아래 스킬이 모두 설치됩니다.
 
 ## For AI
 
 아래 프롬프트를 AI에게 전달하면 설치부터 점검까지 맡길 수 있습니다.
 
-> nunch-skills를 설치해줘. 먼저 Codex, Claude Code 또는 둘 다 중 설치 대상을 물어보고, 설치할 플러그인을 선택받아 `npx @nunch-dev/skills install`로 설치한 뒤 선택한 플랫폼에 대해 doctor를 실행하고 결과를 알려줘.
+> nunch-skills를 설치해줘. 먼저 Codex, Claude Code 또는 둘 다 중 설치 대상을 물어보고, `npx @nunch-dev/skills install`로 전체 스킬 번들을 설치한 뒤 선택한 플랫폼에 대해 doctor를 실행하고 결과를 알려줘.
 
 ## Skills
 
@@ -30,7 +30,6 @@ npx @nunch-dev/skills install
 | `humanize-redo` | 최근 윤문 결과를 원하는 범위와 강도로 다시 다듬습니다. |
 | `i-have-adhd` | 답변을 행동 우선의 ADHD 친화적 형식으로 바꿉니다. |
 | `kaneo-skills` | 자연어 작업을 정리해 Kaneo Todo로 등록합니다. |
-| `nch-installer` | nunch-skills의 설치, 업데이트, 제거와 상태 점검을 관리합니다. |
 
 스킬별 사용법은 [스킬 문서](docs/skills/README.md)에서 확인할 수 있습니다. 개발에 참여하려면 [CONTRIBUTING.md](CONTRIBUTING.md), 로컬 실행은 [Local development and QA](docs/local-development.md), 배포는 [Release runbook](docs/release-runbook.md)을 참고하세요.
 

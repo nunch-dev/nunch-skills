@@ -34,4 +34,4 @@ $deep-interview 이 설치 도구의 요구사항을 인터뷰하면서 정리�
 - 자유 형식 판단은 구조화된 Refine 확인 전에는 확정하지 않습니다.
 - 코드·연구 evidence는 사용자 판단을 대신하지 않습니다.
 
-Source: [`plugins/deep-interview/skills/deep-interview/SKILL.md`](../../plugins/deep-interview/skills/deep-interview/SKILL.md)
+Source: [`plugins/nunch-skills/skills/deep-interview/SKILL.md`](../../plugins/nunch-skills/skills/deep-interview/SKILL.md)

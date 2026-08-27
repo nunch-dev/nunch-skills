@@ -24,6 +24,6 @@
 
 안전 확인, 충분한 설명 요청, 실제 ambiguity와 harness 규칙은 형식보다 우선합니다.
 
-Source: [`plugins/i-have-adhd/skills/i-have-adhd/SKILL.md`](../../plugins/i-have-adhd/skills/i-have-adhd/SKILL.md)
+Source: [`plugins/nunch-skills/skills/i-have-adhd/SKILL.md`](../../plugins/nunch-skills/skills/i-have-adhd/SKILL.md)
 
-License: [`plugins/i-have-adhd/LICENSE`](../../plugins/i-have-adhd/LICENSE)
+License: [`plugins/nunch-skills/licenses/i-have-adhd-LICENSE`](../../plugins/nunch-skills/licenses/i-have-adhd-LICENSE)

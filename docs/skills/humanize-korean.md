@@ -32,6 +32,6 @@ AI가 작성한 한국어에서 번역투, 기계적 병렬, 관용구, 피동�
 
 각 실행은 cwd의 `_workspace/<run_id>/`에 입력, 진단, rewrite, 검증과 최종 결과를 남깁니다. Python 3.11 이상이 필요합니다.
 
-Source: [`plugins/humanize-korean/skills/humanize-korean/SKILL.md`](../../plugins/humanize-korean/skills/humanize-korean/SKILL.md)
+Source: [`plugins/nunch-skills/skills/humanize-korean/SKILL.md`](../../plugins/nunch-skills/skills/humanize-korean/SKILL.md)
 
-License: [`plugins/humanize-korean/LICENSE`](../../plugins/humanize-korean/LICENSE)
+License: [`plugins/nunch-skills/licenses/humanize-korean-LICENSE`](../../plugins/nunch-skills/licenses/humanize-korean-LICENSE)

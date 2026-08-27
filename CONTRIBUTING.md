@@ -16,7 +16,7 @@ pnpm run check
 ## 변경 원칙
 
 - 한 변경에는 한 가지 목적만 담고, 동작이 바뀌면 관련 테스트와 문서를 함께 수정합니다.
-- 스킬 동작의 기준은 `plugins/<plugin>/skills/<skill>/SKILL.md`입니다. 생성된 bundle은 직접 수정하지 말고 `pnpm run build`로 갱신합니다.
+- 스킬 동작의 기준은 `plugins/nunch-skills/skills/<skill>/SKILL.md`입니다. 생성된 TypeScript bundle은 직접 수정하지 말고 `pnpm run build`로 갱신합니다.
 - 업스트림에서 동기화되는 파일을 수정하기 전에는 `.github/upstreams.json`의 관리 범위를 확인합니다.
 - 원격 tag, GitHub Release, npm publish는 일반 기여 절차에 포함되지 않으며 별도 승인이 필요합니다.
 - PR을 열기 전에 `pnpm run check`를 통과시키고 비밀 정보, 임시 파일, 디버그 산출물이 포함되지 않았는지 확인합니다.

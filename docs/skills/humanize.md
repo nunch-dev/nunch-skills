@@ -1,6 +1,6 @@
 # humanize
 
-> 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai), epoko77-ai, MIT License. 이 명령은 원본 프로젝트를 `humanize-korean` 플러그인으로 동기화해 제공합니다.
+> 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai), epoko77-ai, MIT License. 이 명령은 원본 프로젝트를 `nunch-skills` 번들의 `humanize-korean` 스킬로 동기화해 제공합니다.
 
 ## 개요
 
@@ -24,6 +24,6 @@
 
 결과에는 윤문본, 변경률·등급, 카테고리별 before/after와 주요 변경이 포함됩니다. 등급이 낮으면 `humanize-redo`로 2차 윤문할 수 있습니다.
 
-Source: [`plugins/humanize-korean/skills/humanize/SKILL.md`](../../plugins/humanize-korean/skills/humanize/SKILL.md)
+Source: [`plugins/nunch-skills/skills/humanize/SKILL.md`](../../plugins/nunch-skills/skills/humanize/SKILL.md)
 
-License: [`plugins/humanize-korean/LICENSE`](../../plugins/humanize-korean/LICENSE)
+License: [`plugins/nunch-skills/licenses/humanize-korean-LICENSE`](../../plugins/nunch-skills/licenses/humanize-korean-LICENSE)

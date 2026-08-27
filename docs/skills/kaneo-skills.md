@@ -24,4 +24,4 @@ workspace와 project가 각각 하나로 명확하고, Todo column이 존재하�
 
 Kaneo MCP 연결이 필요합니다. 성공 응답을 받지 못한 항목을 생성됐다고 보고하지 않습니다.
 
-Source: [`plugins/kaneo-skills/skills/kaneo-skills/SKILL.md`](../../plugins/kaneo-skills/skills/kaneo-skills/SKILL.md)
+Source: [`plugins/nunch-skills/skills/kaneo-skills/SKILL.md`](../../plugins/nunch-skills/skills/kaneo-skills/SKILL.md)

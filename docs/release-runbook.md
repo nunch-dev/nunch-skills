@@ -24,7 +24,7 @@ The root package is distributed under the MIT License. The release tarball must 
 
 ## Local preparation
 
-Before building artifacts, ensure the intended release commit is clean and that the root npm version, planned `vX.Y.Z` tag, and package metadata agree. A installer plugin version is independent of the npm package version, but any installer plugin change must also update its Codex manifest and release artifact inputs.
+Before building artifacts, ensure the intended release commit is clean and that the root npm version, bundled plugin version, planned `vX.Y.Z` tag, and package metadata agree. Any bundled plugin change must update both platform manifests and the release artifact inputs.
 
 Run the local validation suite from the repository root:
 
@@ -36,13 +36,14 @@ node npm/scripts/repro-build.mjs
 
 `check` runs the complete static/build/test/package gate. Before release, source `scripts/qa-sandbox.sh` and manually exercise the built CLI plus the applicable Codex or Claude installation flow in the throwaway homes. See [Local development and QA](local-development.md) for the exact commands.
 
-Also validate the installer plugin and its skill after documentation or manifest changes:
+Also validate the bundled plugin and every included skill after documentation or manifest changes:
 
 ```bash
 python3 /Users/nunch/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
-  plugins/nch-installer
-python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/nch-installer/skills/nch-installer
+  plugins/nunch-skills
+for skill in plugins/nunch-skills/skills/*; do
+  python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.py "$skill"
+done
 ```
 
 `docs-fairy`를 포함하는 release에서는 repository-owned CI contract 검사에 더해 격리된 실제 호출 gate도 통과해야 합니다.
@@ -51,7 +52,7 @@ python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.
 scripts/qa-docs-fairy-smoke.sh
 ```
 
-이 명령은 Codex와 Claude marketplace에서 `docs-fairy`를 발견·설치하고, 각 플랫폼에서 read-only 요청을 한 번 실행한 뒤 fixture가 바뀌지 않았는지 확인합니다. 구체적인 응답 문구나 생성 결과는 release 합격 조건이 아닙니다.
+이 명령은 Codex와 Claude marketplace에서 `nunch-skills` 번들을 발견·설치하고, 번들 안의 `docs-fairy`로 각 플랫폼에서 read-only 요청을 한 번 실행한 뒤 fixture가 바뀌지 않았는지 확인합니다. 구체적인 응답 문구나 생성 결과는 release 합격 조건이 아닙니다.
 
 The validation workflow runs the same source and package checks, compares two clean TypeScript bundle builds, generates a staged canonical manifest, and uploads a tarball plus `SHA256SUMS`. It never publishes. The separate `publish-npm.yml` workflow accepts only a manually selected, already-published stable GitHub Release.
 
@@ -79,7 +80,7 @@ Only attach a stable release to the npm `latest` dist-tag. SessionStart automati
 4. Download those assets from the published GitHub Release into a new directory. Verify GitHub's asset digests and run `sha256sum -c SHA256SUMS` without rewriting the files.
 5. After a separate npm approval, manually dispatch `publish-npm.yml` with the exact stable tag. The workflow checks out that tag, downloads the GitHub Release, validates its three-file surface, checksums, commit identity, canonical manifest, and embedded package manifest, then publishes the exact tarball through npm trusted publishing with automatic provenance.
 6. Wait for the workflow to succeed. The workflow must run `install --help` and `doctor --help` through the exact published version in an isolated npm cache. Download `@nunch-dev/skills@X.Y.Z` from npm and confirm its SHA-256 matches the GitHub Release tarball and `latest` points to the approved version.
-7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z install --no-tui --platform=codex --plugins=git-tools`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=codex`. Confirm the installer hook trust and installed release identity match the manifest.
-8. In a separate fresh temporary `CLAUDE_HOME` and `CLAUDE_CONFIG_DIR`, run `npx @nunch-dev/skills@X.Y.Z install --no-tui --platform=claude --plugins=git-tools`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=claude`. Confirm the installed plugin and marketplace source match the release.
+7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z install --no-tui --platform=codex --plugins=all`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=codex`. Confirm the `nunch-skills` hook trust and installed release identity match the manifest.
+8. In a separate fresh temporary `CLAUDE_HOME` and `CLAUDE_CONFIG_DIR`, run `npx @nunch-dev/skills@X.Y.Z install --no-tui --platform=claude --plugins=all`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=claude`. Confirm the installed `nunch-skills` plugin and marketplace source match the release.
 
 If any verification or post-publish check fails, stop. Do not republish the same version, retag, force-push, or replace artifacts. Investigate the immutable failure, prepare a new version, and obtain a new approval for the next remote publication.

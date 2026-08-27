@@ -30,4 +30,4 @@ Git 상태와 이력을 근거로 최소 상태 전이만 수행하는 primary G
 - hook/test failure, conflict, non-fast-forward를 우회하지 않습니다.
 - 무관한 dirty work와 기존 index 상태를 보존합니다.
 
-Source: [`plugins/git-tools/skills/git-tools/SKILL.md`](../../plugins/git-tools/skills/git-tools/SKILL.md)
+Source: [`plugins/nunch-skills/skills/git-tools/SKILL.md`](../../plugins/nunch-skills/skills/git-tools/SKILL.md)
