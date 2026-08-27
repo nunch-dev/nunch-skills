@@ -98,7 +98,7 @@ test('docs-fairy local release gate is executable shell', async () => {
   assert.notEqual(scriptStat.mode & 0o111, 0, 'release gate must be executable');
   assert.match(script, /--tools "Skill,Read,Glob,Grep"/);
   assert.match(script, /--output-format stream-json/);
-  assert.match(script, /block\.input\?\.skill === "docs-fairy:docs-fairy"/);
+  assert.match(script, /\["docs-fairy", "docs-fairy:docs-fairy"\]\.includes\(block\.input\?\.skill\)/);
   assert.match(script, /event\.type === "assistant" && block\.type === "text"/);
 
   const syntax = spawnSync('bash', ['-n', scriptPath], { encoding: 'utf8' });

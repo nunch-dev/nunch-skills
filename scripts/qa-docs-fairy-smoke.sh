@@ -115,7 +115,11 @@ for (const line of fs.readFileSync(eventsPath, "utf8").split("\n")) {
   if (line.trim() === "") continue;
   const event = JSON.parse(line);
   for (const block of event.message?.content ?? []) {
-    if (block.type === "tool_use" && block.name === "Skill" && block.input?.skill === "docs-fairy:docs-fairy") {
+    if (
+      block.type === "tool_use" &&
+      block.name === "Skill" &&
+      ["docs-fairy", "docs-fairy:docs-fairy"].includes(block.input?.skill)
+    ) {
       invoked = true;
     }
     if (event.type === "assistant" && block.type === "text") response.push(block.text);
