@@ -5,6 +5,7 @@
 | 스킬 | 용도 | 문서 |
 | --- | --- | --- |
 | `deep-interview` | 모호하고 재작업 비용이 큰 요청을 승인된 스펙으로 정리 | [보기](deep-interview.md) |
+| `docs-fairy` | 프로젝트 문서 생성·동기화·개선과 문서 사이트 구축 | [보기](docs-fairy.md) |
 | `git-tools` | 안전한 Git 조사·커밋·통합·원격·복구 | [보기](git-tools.md) |
 | `humanize-korean` | 한국어 AI 문체 탐지와 의미 보존 윤문 | [보기](humanize-korean.md) |
 | `humanize` | 윤문 파이프라인의 간단한 진입 명령 | [보기](humanize.md) |
