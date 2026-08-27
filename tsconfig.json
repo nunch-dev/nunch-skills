@@ -17,6 +17,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["npm/**/*.ts", "tools/**/*.ts", "plugins/nunch-skills-manager/runtime/**/*.ts"],
+  "include": ["npm/**/*.ts", "tools/**/*.ts", "plugins/nch-installer/runtime/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

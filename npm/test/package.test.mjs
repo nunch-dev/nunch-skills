@@ -33,10 +33,10 @@ test('npm pack --dry-run publishes only the declared package surface', async (co
     'README.md',
     'npm/bin/nunch-skills.mjs',
     'package.json',
-    'plugins/nunch-skills-manager/.codex-plugin/plugin.json',
-    'plugins/nunch-skills-manager/hooks/hooks.json',
-    'plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs',
-    'plugins/nunch-skills-manager/scripts/node-dispatch.ps1',
+    'plugins/nch-installer/.codex-plugin/plugin.json',
+    'plugins/nch-installer/hooks/hooks.json',
+    'plugins/nch-installer/runtime/nch-installer.mjs',
+    'plugins/nch-installer/scripts/node-dispatch.ps1',
     'tools/upstream-sync/dist/upstream-sync.mjs',
   ];
   if (await exists(new URL('../../release-manifest.json', import.meta.url))) {

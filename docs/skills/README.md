@@ -11,7 +11,7 @@
 | `humanize-redo` | 최근 윤문 결과의 부분·강도별 재실행 | [보기](humanize-redo.md) |
 | `i-have-adhd` | 행동 우선의 ADHD 친화적 응답 모드 | [보기](i-have-adhd.md) |
 | `kaneo-skills` | 자연어 작업을 Kaneo Todo로 등록 | [보기](kaneo-skills.md) |
-| `nunch-skills-manager` | 설치·업데이트·제거·doctor와 의존성 관리 | [보기](nunch-skills-manager.md) |
+| `nch-installer` | 설치·업데이트·제거·doctor와 의존성 관리 | [보기](nch-installer.md) |
 
 ## 공통 설치
 
@@ -19,4 +19,4 @@
 npx @nunch-dev/skills install
 ```
 
-설치 화면에서 플랫폼과 대상 plugin을 선택합니다. manager는 Codex 설치 시 자동 포함됩니다. 상태 점검은 `npx @nunch-dev/skills doctor`를 사용합니다.
+설치 화면에서 플랫폼과 대상 plugin을 선택합니다. installer는 Codex 설치 시 자동 포함됩니다. 상태 점검은 `npx @nunch-dev/skills doctor`를 사용합니다.

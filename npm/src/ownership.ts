@@ -1,11 +1,8 @@
 import { join } from 'node:path';
-import type { LifecyclePreState } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
-import {
-  addResource,
-  type LifecycleState,
-  removeResource,
-} from '../../plugins/nunch-skills-manager/runtime/src/state.ts';
-import { LifecycleStore } from '../../plugins/nunch-skills-manager/runtime/src/store.ts';
+import { installerName } from '../../plugins/nch-installer/runtime/src/installer-identity.ts';
+import type { LifecyclePreState } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
+import { addResource, type LifecycleState, removeResource } from '../../plugins/nch-installer/runtime/src/state.ts';
+import { LifecycleStore } from '../../plugins/nch-installer/runtime/src/store.ts';
 import type { CliOperation } from './public-cli.ts';
 
 type OwnershipInput = {
@@ -13,7 +10,7 @@ type OwnershipInput = {
   operation: Exclude<CliOperation, 'cancel' | 'settings' | 'doctor'>;
   plugins: string[];
   preState: LifecyclePreState;
-  includeManager?: boolean;
+  includeInstaller?: boolean;
 };
 
 type UninstallExecution = {
@@ -41,7 +38,7 @@ export function selectedUninstallPlugins(state: LifecycleState, selected: string
 }
 
 export function uninstallExecution(state: LifecycleState, selected: string[]): UninstallExecution {
-  const fullTeardown = selected.includes('nunch-skills-manager');
+  const fullTeardown = selected.includes(installerName);
   if (!fullTeardown) {
     return { plugins: selected, removeTrust: false, removeMarketplace: false, fullTeardown: false };
   }
@@ -60,10 +57,11 @@ export function uninstallExecution(state: LifecycleState, selected: string[]): U
 }
 
 export function applyOwnershipResult(input: OwnershipInput): LifecycleState {
-  const { state, operation, plugins, preState } = input;
+  const includeInstaller = input.includeInstaller ?? true;
+  const state = input.state;
+  const { operation, plugins, preState } = input;
   if (operation === 'install') {
-    const includeManager = input.includeManager ?? true;
-    const pluginNames = includeManager ? ['nunch-skills-manager', ...plugins] : plugins;
+    const pluginNames = includeInstaller ? [installerName, ...plugins] : plugins;
     let next = state;
     for (const name of pluginNames) {
       const key = `${name}@nunch-skills`;
@@ -84,18 +82,18 @@ export function applyOwnershipResult(input: OwnershipInput): LifecycleState {
       ownership: marketplaceOwnership,
       ...(marketplaceOwnership === 'created' ? {} : { preStateFingerprint: 'present' }),
     });
-    if (!includeManager) return next;
-    const existingTrust = state.resources.find((r) => r.kind === 'trust' && r.name === 'manager-session-start');
+    if (!includeInstaller) return next;
+    const existingTrust = state.resources.find((r) => r.kind === 'trust' && r.name === 'installer-session-start');
     const trustOwnership = existingTrust?.ownership ?? (preState.trust ? 'pre-existing' : 'created');
     return addResource(next, {
       kind: 'trust',
-      name: 'manager-session-start',
+      name: 'installer-session-start',
       ownership: trustOwnership,
       ...(trustOwnership === 'created' ? {} : { preStateFingerprint: 'present' }),
     });
   }
   if (operation === 'uninstall') {
-    if (plugins.includes('nunch-skills-manager')) {
+    if (plugins.includes(installerName)) {
       return { ...state, resources: state.resources.filter((resource) => resource.ownership !== 'created') };
     }
     let next = state;

@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import type { ClaudeBackend } from '../../plugins/nunch-skills-manager/runtime/src/claude.ts';
-import type { CodexBackend } from '../../plugins/nunch-skills-manager/runtime/src/codex.ts';
-import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
-import { runDoctor, runLifecycleDoctor } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
-import { LifecycleService, type ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
+import type { ClaudeBackend } from '../../plugins/nch-installer/runtime/src/claude.ts';
+import type { CodexBackend } from '../../plugins/nch-installer/runtime/src/codex.ts';
+import type { DoctorItem } from '../../plugins/nch-installer/runtime/src/doctor.ts';
+import { runDoctor, runLifecycleDoctor } from '../../plugins/nch-installer/runtime/src/doctor.ts';
+import { LifecycleService, type ProgressEvent } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
 import {
   recoverLifecycleTransaction,
   runLifecycleTransaction,
-} from '../../plugins/nunch-skills-manager/runtime/src/lifecycle-transaction.ts';
-import { acquireLock, LifecycleStore } from '../../plugins/nunch-skills-manager/runtime/src/store.ts';
+} from '../../plugins/nch-installer/runtime/src/lifecycle-transaction.ts';
+import { acquireLock, LifecycleStore } from '../../plugins/nch-installer/runtime/src/store.ts';
 import { targetLabel } from './clack-ui.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from './ownership.ts';
 import type { CliOperation } from './public-cli.ts';
@@ -23,7 +23,7 @@ type CodexTargetRuntime = {
   createBackend: (allowRepin: boolean) => CodexBackend;
   dataRoot: string;
   releaseCommit: string;
-  includeManager: true;
+  includeInstaller: true;
 };
 
 type ClaudeTargetRuntime = {
@@ -31,7 +31,7 @@ type ClaudeTargetRuntime = {
   createBackend: (allowRepin: boolean) => ClaudeBackend;
   dataRoot: string;
   releaseCommit: string;
-  includeManager: false;
+  includeInstaller: false;
 };
 
 export type TargetRuntime = CodexTargetRuntime | ClaudeTargetRuntime;
@@ -147,7 +147,7 @@ async function queryInstalledPlugins(runtime: TargetRuntime): Promise<{ name: st
 
 async function executeForTarget(input: LifecycleOperationInput, runtime: TargetRuntime): Promise<void> {
   const { operation, plugins, progress } = input;
-  const { target, createBackend, dataRoot, releaseCommit, includeManager } = runtime;
+  const { target, createBackend, dataRoot, releaseCommit, includeInstaller } = runtime;
   const prefix = targetLabel(target);
   const startedAt = Date.now();
   let result: 'success' | 'failure' = 'success';
@@ -165,7 +165,7 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
           ? uninstallExecution(state, selectedPlugins)
           : { plugins: selectedPlugins, removeTrust: false, removeMarketplace: false, fullTeardown: false };
       fullTeardown = uninstall.fullTeardown;
-      const service = new LifecycleService(backend, (event) => progress(event, prefix), { includeManager });
+      const service = new LifecycleService(backend, (event) => progress(event, prefix), { includeInstaller });
       await runLifecycleTransaction(
         {
           store,
@@ -197,7 +197,7 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
             operation,
             plugins: operation === 'uninstall' ? uninstall.plugins : selectedPlugins,
             preState,
-            includeManager,
+            includeInstaller,
           });
         },
       );

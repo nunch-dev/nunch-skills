@@ -136,7 +136,7 @@ function fakeDependencies(): FakeDependencies {
     choosePlatform: async () => 'codex',
     choosePlugins: async () => [],
     availablePlugins: async () => ['git-tools', 'humanize-korean'],
-    installedPlugins: async () => ['nunch-skills-manager', 'git-tools'],
+    installedPlugins: async () => ['nch-installer', 'git-tools'],
     execute: async (execution) => {
       executions.push(execution);
     },

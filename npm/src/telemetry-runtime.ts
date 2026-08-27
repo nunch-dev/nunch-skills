@@ -1,10 +1,10 @@
 import { join } from 'node:path';
 
-import { PostHogSink, Telemetry } from '../../plugins/nunch-skills-manager/runtime/src/telemetry.ts';
+import { PostHogSink, Telemetry } from '../../plugins/nch-installer/runtime/src/telemetry.ts';
 import {
   appendTelemetryDiagnostic,
   loadTelemetryState,
-} from '../../plugins/nunch-skills-manager/runtime/src/telemetry-state.ts';
+} from '../../plugins/nch-installer/runtime/src/telemetry-state.ts';
 import type { CliOperation } from './public-cli.ts';
 import { cliVersion } from './runtime-config.ts';
 

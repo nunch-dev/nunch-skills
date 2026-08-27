@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const ARTIFACT_PATHS = [
   'npm/bin/nunch-skills.mjs',
-  'plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs',
+  'plugins/nch-installer/runtime/nch-installer.mjs',
   'tools/upstream-sync/dist/upstream-sync.mjs',
 ];
 

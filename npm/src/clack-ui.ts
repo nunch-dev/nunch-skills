@@ -1,11 +1,11 @@
 import * as clack from '@clack/prompts';
-import type { ProgressEvent } from '../../plugins/nunch-skills-manager/runtime/src/lifecycle.ts';
+import type { ProgressEvent } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
 import type { InstallPlatform, InstallTarget, PublicCliDependencies } from './public-cli.ts';
 
 const phaseLabels: Record<ProgressEvent['phase'], string> = {
   marketplace: '마켓플레이스 확인',
   plugins: '스킬 처리',
-  trust: 'Manager hook 신뢰 확인',
+  trust: 'Installer hook 신뢰 확인',
   verify: '상태 검증',
   rollback: '이전 상태 복구',
 };
@@ -13,7 +13,7 @@ const doctorLabels: Record<string, string> = {
   dependencies: '실행 의존성',
   integrity: '릴리스 무결성',
   transaction: '중단된 작업',
-  trust: 'Manager hook 신뢰',
+  trust: 'Installer hook 신뢰',
   ownership: '설치 소유권',
   'cli-version': 'Nunch Skills CLI',
   'installed:codex': 'Codex 설치 스킬',

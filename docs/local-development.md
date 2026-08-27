@@ -49,7 +49,7 @@ pnpm run dev:cli doctor --verbose --platform=codex
 
 `qa-sandbox.sh`는 `CODEX_HOME`, `CLAUDE_HOME`, `CLAUDE_CONFIG_DIR`, XDG 경로를 하나의 임시 디렉터리 아래로 지정합니다. 경로는 `NUNCH_SKILLS_QA_SANDBOX`에서 확인할 수 있습니다.
 
-개발 체크아웃에는 `release-manifest.json`이 없으므로 Codex install은 manager hook 신뢰 단계에서 fail closed 합니다. 이것은 의도된 동작입니다. 샌드박스에서는 Claude 플랫폼 설치와 Codex 마켓플레이스·plugin 단계까지 확인할 수 있고, hook 신뢰 등록까지 검증하려면 GitHub Release 배포 후 npm 패키지 경로(`npx @nunch-dev/skills install`)로 진행하세요.
+개발 체크아웃에는 `release-manifest.json`이 없으므로 Codex install은 installer hook 신뢰 단계에서 fail closed 합니다. 이것은 의도된 동작입니다. 샌드박스에서는 Claude 플랫폼 설치와 Codex 마켓플레이스·plugin 단계까지 확인할 수 있고, hook 신뢰 등록까지 검증하려면 GitHub Release 배포 후 npm 패키지 경로(`npx @nunch-dev/skills install`)로 진행하세요.
 
 build 결과가 실제 배포용 launcher에서도 같은지 확인합니다.
 ```bash

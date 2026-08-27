@@ -53,10 +53,10 @@
       "category": "Productivity"
     },
     {
-      "name": "nunch-skills-manager",
+      "name": "nch-installer",
       "source": {
         "source": "local",
-        "path": "./plugins/nunch-skills-manager"
+        "path": "./plugins/nch-installer"
       },
       "policy": {
         "installation": "AVAILABLE",

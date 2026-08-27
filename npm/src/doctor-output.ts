@@ -1,4 +1,4 @@
-import type { DoctorItem } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
+import type { DoctorItem } from '../../plugins/nch-installer/runtime/src/doctor.ts';
 
 type DoctorSummary = {
   total: number;
@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
   dependencies: '실행 의존성',
   integrity: '릴리스 무결성',
   transaction: '중단된 작업',
-  trust: 'Manager hook 신뢰',
+  trust: 'Installer hook 신뢰',
   ownership: '설치 소유권',
   'cli-version': 'Nunch Skills CLI',
   'installed:codex': 'Codex 설치 스킬',

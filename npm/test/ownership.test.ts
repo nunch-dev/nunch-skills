@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addResource, createLifecycleState } from '../../plugins/nunch-skills-manager/runtime/src/state.ts';
+import { addResource, createLifecycleState } from '../../plugins/nch-installer/runtime/src/state.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from '../src/ownership.ts';
 
 test('records pre-existing marketplace and trust without promoting ownership', () => {
@@ -14,7 +14,7 @@ test('records pre-existing marketplace and trust without promoting ownership', (
     operation: 'install',
     plugins: ['git-tools'],
     preState: {
-      plugins: ['nunch-skills-manager'],
+      plugins: ['nch-installer'],
       marketplace: true,
       trust: true,
     },
@@ -30,7 +30,7 @@ test('full teardown plans only resources recorded as created', () => {
   let state = createLifecycleState();
   state = addResource(state, {
     kind: 'plugin',
-    name: 'nunch-skills-manager@nunch-skills',
+    name: 'nch-installer@nunch-skills',
     ownership: 'created',
   });
   state = addResource(state, {
@@ -39,14 +39,14 @@ test('full teardown plans only resources recorded as created', () => {
     ownership: 'pre-existing',
     preStateFingerprint: '0.2.1',
   });
-  state = addResource(state, { kind: 'trust', name: 'manager-session-start', ownership: 'created' });
+  state = addResource(state, { kind: 'trust', name: 'installer-session-start', ownership: 'created' });
   state = addResource(state, { kind: 'marketplace', name: 'nunch-skills', ownership: 'created' });
 
   // When
-  const plan = uninstallExecution(state, ['nunch-skills-manager']);
+  const plan = uninstallExecution(state, ['nch-installer']);
 
   // Then
-  assert.deepEqual(plan.plugins, ['nunch-skills-manager']);
+  assert.deepEqual(plan.plugins, ['nch-installer']);
   assert.equal(plan.removeTrust, true);
   assert.equal(plan.removeMarketplace, false);
 });
@@ -61,7 +61,7 @@ test('selects uninstall plugins only when recorded for the target', () => {
   });
 
   // When
-  const selected = selectedUninstallPlugins(state, ['git-tools', 'nunch-skills-manager']);
+  const selected = selectedUninstallPlugins(state, ['git-tools', 'nch-installer']);
 
   // Then
   assert.deepEqual(selected, ['git-tools']);

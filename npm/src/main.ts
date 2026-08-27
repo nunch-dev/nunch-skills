@@ -1,13 +1,10 @@
 import { join } from 'node:path';
 
-import { ClaudeBackend } from '../../plugins/nunch-skills-manager/runtime/src/claude.ts';
-import { CodexBackend } from '../../plugins/nunch-skills-manager/runtime/src/codex.ts';
-import { ExecRunner } from '../../plugins/nunch-skills-manager/runtime/src/command.ts';
-import { runDoctor } from '../../plugins/nunch-skills-manager/runtime/src/doctor.ts';
-import {
-  loadTelemetryState,
-  setTelemetryEnabled,
-} from '../../plugins/nunch-skills-manager/runtime/src/telemetry-state.ts';
+import { ClaudeBackend } from '../../plugins/nch-installer/runtime/src/claude.ts';
+import { CodexBackend } from '../../plugins/nch-installer/runtime/src/codex.ts';
+import { ExecRunner } from '../../plugins/nch-installer/runtime/src/command.ts';
+import { runDoctor } from '../../plugins/nch-installer/runtime/src/doctor.ts';
+import { loadTelemetryState, setTelemetryEnabled } from '../../plugins/nch-installer/runtime/src/telemetry-state.ts';
 import { catalogPlugins } from './catalog.ts';
 import { bindUiDependencies, ClackUi } from './clack-ui.ts';
 import { formatDoctorReport } from './doctor-output.ts';
@@ -44,7 +41,7 @@ export async function main(): Promise<number> {
     availablePlugins: async () =>
       catalogPlugins()
         .map((plugin) => plugin.name)
-        .filter((name) => name !== 'nunch-skills-manager'),
+        .filter((name) => name !== 'nch-installer'),
     installedPlugins: async (targets) => {
       const allPlugins = new Set<string>();
       for (const target of targets) {
@@ -94,7 +91,7 @@ export async function main(): Promise<number> {
               }),
             dataRoot: codexDataRoot,
             releaseCommit: release.commit,
-            includeManager: true,
+            includeInstaller: true,
           });
         } else {
           const claudeDataRoot = dataRootForTarget('claude');
@@ -109,7 +106,7 @@ export async function main(): Promise<number> {
               }),
             dataRoot: claudeDataRoot,
             releaseCommit: release.commit,
-            includeManager: false,
+            includeInstaller: false,
           });
         }
       }
@@ -192,7 +189,7 @@ async function runInternalUpdate(): Promise<number> {
       }),
     dataRoot,
     releaseCommit: commit,
-    includeManager: true,
+    includeInstaller: true,
   };
   try {
     await executeOperation({

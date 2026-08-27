@@ -16,10 +16,10 @@ import {
 
 const PACKAGE_NAME = '@nunch-dev/skills';
 const MARKETPLACE_PATH = '.agents/plugins/marketplace.json';
-const PLUGIN_PATH = 'plugins/nunch-skills-manager/.codex-plugin/plugin.json';
-const HOOK_PATH = 'plugins/nunch-skills-manager/hooks/hooks.json';
-const SCRIPT_PATHS = ['plugins/nunch-skills-manager/scripts/node-dispatch.ps1'];
-const RUNTIME_PATH = 'plugins/nunch-skills-manager/runtime/nunch-skills-manager.mjs';
+const PLUGIN_PATH = 'plugins/nch-installer/.codex-plugin/plugin.json';
+const HOOK_PATH = 'plugins/nch-installer/hooks/hooks.json';
+const SCRIPT_PATHS = ['plugins/nch-installer/scripts/node-dispatch.ps1'];
+const RUNTIME_PATH = 'plugins/nch-installer/runtime/nch-installer.mjs';
 
 async function readStageFile(staging, path) {
   if (!isSafeRelativePath(path)) {
@@ -100,9 +100,9 @@ function pluginCatalog(gitFiles) {
     .sort((left, right) => left.name.localeCompare(right.name));
   if (
     new Set(plugins.map((plugin) => plugin.name)).size !== plugins.length ||
-    !plugins.some((plugin) => plugin.name === 'nunch-skills-manager')
+    !plugins.some((plugin) => plugin.name === 'nch-installer')
   ) {
-    throw new ReleaseManifestError('plugin catalog must contain unique names and nunch-skills-manager');
+    throw new ReleaseManifestError('plugin catalog must contain unique names and nch-installer');
   }
   return plugins;
 }

@@ -12,11 +12,11 @@ vX.Y.Z
 <full 40-character commit SHA>
 ```
 
-The generated `release-manifest.json` binds that identity to the package file allowlist and SHA-256 digests of the marketplace, manager manifest, hook definition, Node dispatcher, public CLI bundle, manager runtime, and upstream-sync bundle. A release must fail closed when any value differs.
+The generated `release-manifest.json` binds that identity to the package file allowlist and SHA-256 digests of the marketplace, installer manifest, hook definition, Node dispatcher, public CLI bundle, installer runtime, and upstream-sync bundle. A release must fail closed when any value differs.
 
 ## Bootstrap trust boundary
 
-The first `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, or `bunx @nunch-dev/skills` invocation necessarily runs npm-delivered launcher and package code before dual-source verification can begin. This is distinct from ongoing SessionStart updates: the already-trusted manager downloads metadata and a tarball as data, verifies npm and Git sources, and does not execute candidate code before the verification succeeds.
+The first `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, or `bunx @nunch-dev/skills` invocation necessarily runs npm-delivered launcher and package code before dual-source verification can begin. This is distinct from ongoing SessionStart updates: the already-trusted installer downloads metadata and a tarball as data, verifies npm and Git sources, and does not execute candidate code before the verification succeeds.
 
 Treat initial npm publication as a security boundary. Before the first public release, confirm `@nunch-dev` scope authority, package ownership, npm account authentication controls, public access, provenance, and registry integrity handling. Keep the package allowlist narrow and never add lifecycle `postinstall` mutation. These controls reduce the first-run trust risk; they do not claim that first-run npm code was independently verified before it ran.
 
@@ -24,7 +24,7 @@ The root package is distributed under the MIT License. The release tarball must 
 
 ## Local preparation
 
-Before building artifacts, ensure the intended release commit is clean and that the root npm version, planned `vX.Y.Z` tag, and package metadata agree. A manager plugin version is independent of the npm package version, but any manager plugin change must also update its Codex manifest and release artifact inputs.
+Before building artifacts, ensure the intended release commit is clean and that the root npm version, planned `vX.Y.Z` tag, and package metadata agree. A installer plugin version is independent of the npm package version, but any installer plugin change must also update its Codex manifest and release artifact inputs.
 
 Run the local validation suite from the repository root:
 
@@ -36,13 +36,13 @@ node npm/scripts/repro-build.mjs
 
 `check` runs the complete static/build/test/package gate. Before release, source `scripts/qa-sandbox.sh` and manually exercise the built CLI plus the applicable Codex or Claude installation flow in the throwaway homes. See [Local development and QA](local-development.md) for the exact commands.
 
-Also validate the manager plugin and its skill after documentation or manifest changes:
+Also validate the installer plugin and its skill after documentation or manifest changes:
 
 ```bash
 python3 /Users/nunch/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
-  plugins/nunch-skills-manager
+  plugins/nch-installer
 python3 /Users/nunch/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  plugins/nunch-skills-manager/skills/nunch-skills-manager
+  plugins/nch-installer/skills/nch-installer
 ```
 
 `docs-fairy`를 포함하는 release에서는 repository-owned CI contract 검사에 더해 격리된 실제 호출 gate도 통과해야 합니다.
@@ -79,6 +79,6 @@ Only attach a stable release to the npm `latest` dist-tag. SessionStart automati
 4. Download those assets from the published GitHub Release into a new directory. Verify GitHub's asset digests and run `sha256sum -c SHA256SUMS` without rewriting the files.
 5. After a separate npm approval, manually dispatch `publish-npm.yml` with the exact stable tag. The workflow checks out that tag, downloads the GitHub Release, validates its three-file surface, checksums, commit identity, canonical manifest, and embedded package manifest, then publishes the exact tarball through npm trusted publishing with automatic provenance.
 6. Wait for the workflow to succeed. Download `@nunch-dev/skills@X.Y.Z` from npm and confirm its SHA-256 matches the GitHub Release tarball and `latest` points to the approved version.
-7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z install --platform=codex`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=codex`. Confirm the manager hook trust and installed release identity match the manifest.
+7. In a fresh temporary `CODEX_HOME`, run `npx @nunch-dev/skills@X.Y.Z install --platform=codex`, then run `npx @nunch-dev/skills@X.Y.Z doctor --verbose --platform=codex`. Confirm the installer hook trust and installed release identity match the manifest.
 
 If any verification or post-publish check fails, stop. Do not republish the same version, retag, force-push, or replace artifacts. Investigate the immutable failure, prepare a new version, and obtain a new approval for the next remote publication.
