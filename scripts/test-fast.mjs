@@ -8,7 +8,7 @@ export function testFastGroups() {
     {
       name: 'typescript-runtime',
       args: ['--experimental-strip-types', '--test'],
-      patterns: ['npm/test/*.test.ts', 'plugins/nch-installer/runtime/test/*.test.ts'],
+      patterns: ['npm/test/*.test.ts', 'plugins/nunch-skills/runtime/test/*.test.ts'],
     },
     {
       name: 'upstream-sync',

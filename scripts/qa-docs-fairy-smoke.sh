@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FIXTURE_ROOT="$REPOSITORY_ROOT/plugins/docs-fairy/evals/fixtures/smoke-project"
-SMOKE_CONFIG="$REPOSITORY_ROOT/plugins/docs-fairy/evals/smoke.json"
+FIXTURE_ROOT="$REPOSITORY_ROOT/plugins/nunch-skills/evals/fixtures/smoke-project"
+SMOKE_CONFIG="$REPOSITORY_ROOT/plugins/nunch-skills/evals/smoke.json"
 HOST_CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 HOST_CLAUDE_CONFIG_DIR="${CLAUDE_CONFIG_DIR-}"
 HOST_CLAUDE_CONFIG_DIR_WAS_SET="${CLAUDE_CONFIG_DIR+x}"
@@ -52,15 +52,15 @@ codex plugin marketplace add "$REPOSITORY_ROOT" --json \
   >"$EVIDENCE_ROOT/codex-marketplace-add.json"
 codex plugin list --marketplace "$CODEX_MARKETPLACE" --available --json \
   >"$EVIDENCE_ROOT/codex-plugin-list.json"
-grep -q 'docs-fairy' "$EVIDENCE_ROOT/codex-plugin-list.json"
-codex plugin add "docs-fairy@$CODEX_MARKETPLACE" --json \
+grep -q 'nunch-skills' "$EVIDENCE_ROOT/codex-plugin-list.json"
+codex plugin add "nunch-skills@$CODEX_MARKETPLACE" --json \
   >"$EVIDENCE_ROOT/codex-plugin-add.json"
 
 claude plugin marketplace add "$REPOSITORY_ROOT" --scope user \
   >"$EVIDENCE_ROOT/claude-marketplace-add.txt"
 claude plugin list --available --json >"$EVIDENCE_ROOT/claude-plugin-list.json"
-grep -q 'docs-fairy' "$EVIDENCE_ROOT/claude-plugin-list.json"
-claude plugin install "docs-fairy@$CLAUDE_MARKETPLACE" --scope user \
+grep -q 'nunch-skills' "$EVIDENCE_ROOT/claude-plugin-list.json"
+claude plugin install "nunch-skills@$CLAUDE_MARKETPLACE" --scope user \
   >"$EVIDENCE_ROOT/claude-plugin-install.txt"
 
 CODEX_COMMAND=(
@@ -82,7 +82,7 @@ CLAUDE_COMMAND=(
   claude --print
   --no-session-persistence
   --permission-mode dontAsk
-  --plugin-dir "$REPOSITORY_ROOT/plugins/docs-fairy"
+  --plugin-dir "$REPOSITORY_ROOT/plugins/nunch-skills"
   --tools "Skill,Read,Glob,Grep"
   --output-format stream-json
   --verbose
@@ -118,7 +118,7 @@ for (const line of fs.readFileSync(eventsPath, "utf8").split("\n")) {
     if (
       block.type === "tool_use" &&
       block.name === "Skill" &&
-      ["docs-fairy", "docs-fairy:docs-fairy"].includes(block.input?.skill)
+      ["docs-fairy", "nunch-skills:docs-fairy"].includes(block.input?.skill)
     ) {
       invoked = true;
     }

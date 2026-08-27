@@ -1,4 +1,4 @@
-import type { DoctorItem } from '../../plugins/nch-installer/runtime/src/doctor.ts';
+import type { DoctorItem } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
 
 type DoctorSummary = {
   total: number;

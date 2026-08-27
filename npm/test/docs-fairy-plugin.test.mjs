@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const PLUGIN_ROOT = resolve(REPOSITORY_ROOT, 'plugins/docs-fairy');
+const PLUGIN_ROOT = resolve(REPOSITORY_ROOT, 'plugins/nunch-skills');
 const SKILL_ROOT = resolve(PLUGIN_ROOT, 'skills/docs-fairy');
 
 const readJson = async (path) => JSON.parse(await readFile(path, 'utf8'));
@@ -20,27 +20,27 @@ async function pathExists(path) {
   }
 }
 
-test('docs-fairy is published by both marketplace manifests', async () => {
+test('docs-fairy is published inside the shared plugin on both marketplaces', async () => {
   const codexManifest = await readJson(resolve(PLUGIN_ROOT, '.codex-plugin/plugin.json'));
   const claudeManifest = await readJson(resolve(PLUGIN_ROOT, '.claude-plugin/plugin.json'));
   const codexMarketplace = await readJson(resolve(REPOSITORY_ROOT, '.agents/plugins/marketplace.json'));
   const claudeMarketplace = await readJson(resolve(REPOSITORY_ROOT, '.claude-plugin/marketplace.json'));
 
-  assert.equal(codexManifest.name, 'docs-fairy');
+  assert.equal(codexManifest.name, 'nunch-skills');
   assert.equal(claudeManifest.name, codexManifest.name);
   assert.equal(claudeManifest.version, codexManifest.version);
   assert.ok(codexManifest.interface.defaultPrompt.length <= 3);
 
-  const codexEntry = codexMarketplace.plugins.find(({ name }) => name === 'docs-fairy');
+  const codexEntry = codexMarketplace.plugins.find(({ name }) => name === 'nunch-skills');
   assert.deepEqual(codexEntry, {
-    name: 'docs-fairy',
-    source: { source: 'local', path: './plugins/docs-fairy' },
+    name: 'nunch-skills',
+    source: { source: 'local', path: './plugins/nunch-skills' },
     policy: { installation: 'AVAILABLE', authentication: 'ON_INSTALL' },
     category: 'Developer Tools',
   });
 
-  const claudeEntry = claudeMarketplace.plugins.find(({ name }) => name === 'docs-fairy');
-  assert.equal(claudeEntry.source, './plugins/docs-fairy');
+  const claudeEntry = claudeMarketplace.plugins.find(({ name }) => name === 'nunch-skills');
+  assert.equal(claudeEntry.source, './plugins/nunch-skills');
   assert.equal(claudeEntry.version, claudeManifest.version);
 });
 
@@ -98,7 +98,7 @@ test('docs-fairy local release gate is executable shell', async () => {
   assert.notEqual(scriptStat.mode & 0o111, 0, 'release gate must be executable');
   assert.match(script, /--tools "Skill,Read,Glob,Grep"/);
   assert.match(script, /--output-format stream-json/);
-  assert.match(script, /\["docs-fairy", "docs-fairy:docs-fairy"\]\.includes\(block\.input\?\.skill\)/);
+  assert.match(script, /\["docs-fairy", "nunch-skills:docs-fairy"\]\.includes\(block\.input\?\.skill\)/);
   assert.match(script, /event\.type === "assistant" && block\.type === "text"/);
 
   const syntax = spawnSync('bash', ['-n', scriptPath], { encoding: 'utf8' });

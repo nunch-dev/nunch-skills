@@ -16,7 +16,7 @@ const shared = {
 
 const artifacts = [
   'npm/bin/nunch-skills.mjs',
-  'plugins/nch-installer/runtime/nch-installer.mjs',
+  'plugins/nunch-skills/runtime/nch-installer.mjs',
   'tools/upstream-sync/dist/upstream-sync.mjs',
 ];
 
@@ -29,8 +29,8 @@ await Promise.all([
   }),
   build({
     ...shared,
-    entryPoints: ['plugins/nch-installer/runtime/src/entry.ts'],
-    outfile: 'plugins/nch-installer/runtime/nch-installer.mjs',
+    entryPoints: ['plugins/nunch-skills/runtime/src/entry.ts'],
+    outfile: 'plugins/nunch-skills/runtime/nch-installer.mjs',
     banner: { js: '#!/usr/bin/env node' },
   }),
   build({

@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import type { ClaudeBackend } from '../../plugins/nch-installer/runtime/src/claude.ts';
-import type { CodexBackend } from '../../plugins/nch-installer/runtime/src/codex.ts';
-import type { DoctorItem } from '../../plugins/nch-installer/runtime/src/doctor.ts';
-import { runDoctor, runLifecycleDoctor } from '../../plugins/nch-installer/runtime/src/doctor.ts';
-import { LifecycleService, type ProgressEvent } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
+import type { ClaudeBackend } from '../../plugins/nunch-skills/runtime/src/claude.ts';
+import type { CodexBackend } from '../../plugins/nunch-skills/runtime/src/codex.ts';
+import type { DoctorItem } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
+import { runDoctor, runLifecycleDoctor } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
+import { LifecycleService, type ProgressEvent } from '../../plugins/nunch-skills/runtime/src/lifecycle.ts';
 import {
   recoverLifecycleTransaction,
   runLifecycleTransaction,
-} from '../../plugins/nch-installer/runtime/src/lifecycle-transaction.ts';
-import { acquireLock, LifecycleStore } from '../../plugins/nch-installer/runtime/src/store.ts';
+} from '../../plugins/nunch-skills/runtime/src/lifecycle-transaction.ts';
+import { acquireLock, LifecycleStore } from '../../plugins/nunch-skills/runtime/src/store.ts';
 import { targetLabel } from './clack-ui.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from './ownership.ts';
 import type { CliOperation } from './public-cli.ts';
@@ -30,7 +30,7 @@ type ClaudeTargetRuntime = {
   createBackend: (allowRepin: boolean) => ClaudeBackend;
   dataRoot: string;
   releaseCommit: string;
-  includeInstaller: false;
+  includeInstaller: true;
 };
 
 export type TargetRuntime = CodexTargetRuntime | ClaudeTargetRuntime;

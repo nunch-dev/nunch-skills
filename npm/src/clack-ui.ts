@@ -1,5 +1,5 @@
 import * as clack from '@clack/prompts';
-import type { ProgressEvent } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
+import type { ProgressEvent } from '../../plugins/nunch-skills/runtime/src/lifecycle.ts';
 import type { InstallPlatform, InstallTarget, PublicCliDependencies } from './public-cli.ts';
 
 const phaseLabels: Record<ProgressEvent['phase'], string> = {

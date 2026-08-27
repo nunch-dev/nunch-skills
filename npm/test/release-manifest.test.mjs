@@ -36,9 +36,9 @@ async function releaseFixture(context, { largeRuntime = false } = {}) {
     'README.md',
     'npm/bin/nunch-skills.mjs',
     '.agents/plugins/marketplace.json',
-    'plugins/nch-installer/.codex-plugin/plugin.json',
-    'plugins/nch-installer/hooks/hooks.json',
-    'plugins/nch-installer/scripts/node-dispatch.ps1',
+    'plugins/nunch-skills/.codex-plugin/plugin.json',
+    'plugins/nunch-skills/hooks/hooks.json',
+    'plugins/nunch-skills/scripts/node-dispatch.ps1',
     RUNTIME_PATH,
   ];
   const packageJSON = `${JSON.stringify({ name: PACKAGE_NAME, version: '1.2.3', files: packageFiles })}\n`;
@@ -51,32 +51,24 @@ async function releaseFixture(context, { largeRuntime = false } = {}) {
   }
   const marketplace = `${JSON.stringify({
     name: 'nunch-skills',
-    plugins: [
-      { name: 'git-tools', source: { source: 'local', path: './plugins/git-tools' } },
-      { name: 'nch-installer', source: { source: 'local', path: './plugins/nch-installer' } },
-    ],
+    plugins: [{ name: 'nunch-skills', source: { source: 'local', path: './plugins/nunch-skills' } }],
   })}\n`;
   await writeFixtureFile(repository, '.agents/plugins/marketplace.json', marketplace);
   await writeFixtureFile(staging, '.agents/plugins/marketplace.json', marketplace);
   await writeFixtureFile(
     repository,
-    'plugins/git-tools/.codex-plugin/plugin.json',
-    '{"name":"git-tools","version":"0.2.1"}\n',
-  );
-  await writeFixtureFile(
-    repository,
-    'plugins/nch-installer/.codex-plugin/plugin.json',
-    '{"name":"nch-installer","version":"1.2.3"}\n',
+    'plugins/nunch-skills/.codex-plugin/plugin.json',
+    '{"name":"nunch-skills","version":"1.2.3"}\n',
   );
   await writeFixtureFile(
     staging,
-    'plugins/nch-installer/.codex-plugin/plugin.json',
-    '{"name":"nch-installer","version":"1.2.3"}\n',
+    'plugins/nunch-skills/.codex-plugin/plugin.json',
+    '{"name":"nunch-skills","version":"1.2.3"}\n',
   );
-  await writeFixtureFile(repository, 'plugins/nch-installer/hooks/hooks.json', 'hook\n');
-  await writeFixtureFile(staging, 'plugins/nch-installer/hooks/hooks.json', 'hook\n');
-  await writeFixtureFile(repository, 'plugins/nch-installer/scripts/node-dispatch.ps1', 'powershell\n');
-  await writeFixtureFile(staging, 'plugins/nch-installer/scripts/node-dispatch.ps1', 'powershell\n');
+  await writeFixtureFile(repository, 'plugins/nunch-skills/hooks/hooks.json', 'hook\n');
+  await writeFixtureFile(staging, 'plugins/nunch-skills/hooks/hooks.json', 'hook\n');
+  await writeFixtureFile(repository, 'plugins/nunch-skills/scripts/node-dispatch.ps1', 'powershell\n');
+  await writeFixtureFile(staging, 'plugins/nunch-skills/scripts/node-dispatch.ps1', 'powershell\n');
 
   git(repository, ['init', '--quiet']);
   git(repository, ['config', 'user.name', 'Release Test']);
@@ -114,10 +106,7 @@ test('release manifest is deterministic and generated outside the pinned Git tre
   assert.equal(first.manifest.git.commit, fixture.commit);
   assert.equal(first.manifest.git.tag, 'v1.2.3');
   assert.equal(first.manifest.runtime.path, RUNTIME_PATH);
-  assert.deepEqual(first.manifest.plugins, [
-    { name: 'git-tools', version: '0.2.1' },
-    { name: 'nch-installer', version: '1.2.3' },
-  ]);
+  assert.deepEqual(first.manifest.plugins, [{ name: 'nunch-skills', version: '1.2.3' }]);
   assert.equal(git(fixture.repository, ['ls-tree', '--name-only', 'HEAD', 'release-manifest.json']), '');
   assert.deepEqual(await readFile(first.output), first.bytes);
 });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addResource, createLifecycleState } from '../../plugins/nch-installer/runtime/src/state.ts';
+import { addResource, createLifecycleState } from '../../plugins/nunch-skills/runtime/src/state.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from '../src/ownership.ts';
 
 test('records pre-existing marketplace and trust without promoting ownership', () => {
@@ -14,7 +14,7 @@ test('records pre-existing marketplace and trust without promoting ownership', (
     operation: 'install',
     plugins: ['git-tools'],
     preState: {
-      plugins: ['nch-installer'],
+      plugins: ['nunch-skills'],
       marketplace: true,
       trust: true,
     },
@@ -30,7 +30,7 @@ test('full teardown plans only resources recorded as created', () => {
   let state = createLifecycleState();
   state = addResource(state, {
     kind: 'plugin',
-    name: 'nch-installer@nunch-skills',
+    name: 'nunch-skills@nunch-skills',
     ownership: 'created',
   });
   state = addResource(state, {
@@ -43,10 +43,10 @@ test('full teardown plans only resources recorded as created', () => {
   state = addResource(state, { kind: 'marketplace', name: 'nunch-skills', ownership: 'created' });
 
   // When
-  const plan = uninstallExecution(state, ['nch-installer']);
+  const plan = uninstallExecution(state, ['nunch-skills']);
 
   // Then
-  assert.deepEqual(plan.plugins, ['nch-installer']);
+  assert.deepEqual(plan.plugins, ['nunch-skills']);
   assert.equal(plan.removeTrust, true);
   assert.equal(plan.removeMarketplace, false);
 });
@@ -61,8 +61,29 @@ test('selects uninstall plugins only when recorded for the target', () => {
   });
 
   // When
-  const selected = selectedUninstallPlugins(state, ['git-tools', 'nch-installer']);
+  const selected = selectedUninstallPlugins(state, ['git-tools', 'nunch-skills']);
 
   // Then
   assert.deepEqual(selected, ['git-tools']);
+});
+
+test('update replaces legacy plugin ownership with the bundled plugin', () => {
+  // Given
+  let state = createLifecycleState();
+  state = addResource(state, { kind: 'plugin', name: 'git-tools@nunch-skills', ownership: 'created' });
+  state = addResource(state, { kind: 'plugin', name: 'nch-installer@nunch-skills', ownership: 'created' });
+
+  // When
+  const result = applyOwnershipResult({
+    state,
+    operation: 'update',
+    plugins: [],
+    preState: { plugins: ['git-tools', 'nch-installer'], marketplace: true, trust: true },
+  });
+
+  // Then
+  assert.deepEqual(
+    result.resources.filter((resource) => resource.kind === 'plugin'),
+    [{ kind: 'plugin', name: 'nunch-skills@nunch-skills', ownership: 'created' }],
+  );
 });

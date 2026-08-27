@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 import packageManifest from '../../package.json' with { type: 'json' };
-import { verifyPackagedRelease } from '../../plugins/nch-installer/runtime/src/release.ts';
-import type { ReleaseManifest } from '../../plugins/nch-installer/runtime/src/release-manifest.ts';
+import { verifyPackagedRelease } from '../../plugins/nunch-skills/runtime/src/release.ts';
+import type { ReleaseManifest } from '../../plugins/nunch-skills/runtime/src/release-manifest.ts';
 
 const execFileAsync = promisify(execFile);
 

@@ -1,0 +1,27 @@
+{
+  "name": "nunch-skills",
+  "version": "0.1.5",
+  "description": "Install the complete Nunch skill collection as one plugin for Codex and Claude Code.",
+  "author": {
+    "name": "Nunch Dev",
+    "url": "https://github.com/nunch-dev"
+  },
+  "homepage": "https://github.com/nunch-dev/nunch-skills",
+  "repository": "https://github.com/nunch-dev/nunch-skills",
+  "license": "MIT",
+  "keywords": ["skills", "productivity", "developer-tools", "korean"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Nunch Skills",
+    "shortDescription": "The complete Nunch skill collection",
+    "longDescription": "Install every Nunch skill together, including structured interviews, documentation, Git workflows, Korean rewriting, ADHD-friendly output, Kaneo issue creation, and lifecycle management.",
+    "developerName": "Nunch Dev",
+    "category": "Developer Tools",
+    "capabilities": ["Instructions", "Hooks", "Lifecycle Management"],
+    "defaultPrompt": [
+      "Show me which Nunch skills are available.",
+      "Run the nunch-skills lifecycle doctor.",
+      "Use the best Nunch skill for this task."
+    ]
+  }
+}

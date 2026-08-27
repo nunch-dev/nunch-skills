@@ -1,9 +1,9 @@
 import { join } from 'node:path';
 
-import { ClaudeBackend } from '../../plugins/nch-installer/runtime/src/claude.ts';
-import { CodexBackend } from '../../plugins/nch-installer/runtime/src/codex.ts';
-import { ExecRunner } from '../../plugins/nch-installer/runtime/src/command.ts';
-import { runDoctor } from '../../plugins/nch-installer/runtime/src/doctor.ts';
+import { ClaudeBackend } from '../../plugins/nunch-skills/runtime/src/claude.ts';
+import { CodexBackend } from '../../plugins/nunch-skills/runtime/src/codex.ts';
+import { ExecRunner } from '../../plugins/nunch-skills/runtime/src/command.ts';
+import { runDoctor } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
 import { catalogPlugins } from './catalog.ts';
 import { bindUiDependencies, ClackUi } from './clack-ui.ts';
 import { formatDoctorReport } from './doctor-output.ts';
@@ -36,10 +36,7 @@ export async function main(): Promise<number> {
   const codexDataRoot = join(codexHome, 'plugins', 'data', 'nunch-skills');
 
   const dependencies = bindUiDependencies(ui, {
-    availablePlugins: async () =>
-      catalogPlugins()
-        .map((plugin) => plugin.name)
-        .filter((name) => name !== 'nch-installer'),
+    availablePlugins: async () => catalogPlugins().map((plugin) => plugin.name),
     installedPlugins: async (targets) => {
       const allPlugins = new Set<string>();
       for (const target of targets) {
@@ -104,7 +101,7 @@ export async function main(): Promise<number> {
               }),
             dataRoot: claudeDataRoot,
             releaseCommit: release.commit,
-            includeInstaller: false,
+            includeInstaller: true,
           });
         }
       }

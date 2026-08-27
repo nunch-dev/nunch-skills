@@ -28,10 +28,10 @@
     "release-manifest.json",
     ".agents/plugins/marketplace.json",
     "npm/bin/nunch-skills.mjs",
-    "plugins/nch-installer/.codex-plugin/plugin.json",
-    "plugins/nch-installer/hooks/hooks.json",
-    "plugins/nch-installer/runtime/nch-installer.mjs",
-    "plugins/nch-installer/scripts/node-dispatch.ps1",
+    "plugins/nunch-skills/.codex-plugin/plugin.json",
+    "plugins/nunch-skills/hooks/hooks.json",
+    "plugins/nunch-skills/runtime/nch-installer.mjs",
+    "plugins/nunch-skills/scripts/node-dispatch.ps1",
     "tools/upstream-sync/dist/upstream-sync.mjs"
   ],
   "scripts": {
@@ -39,7 +39,7 @@
     "dev:cli": "node --experimental-strip-types npm/src/entry.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check . --error-on-warnings",
-    "test": "node --test npm/test/*.test.mjs && node --experimental-strip-types --test npm/test/*.test.ts tools/upstream-sync/test/*.test.ts plugins/nch-installer/runtime/test/*.test.ts",
+    "test": "node --test npm/test/*.test.mjs && node --experimental-strip-types --test npm/test/*.test.ts tools/upstream-sync/test/*.test.ts plugins/nunch-skills/runtime/test/*.test.ts",
     "test:fast": "node scripts/test-fast.mjs",
     "test:upstream-sync": "node --experimental-strip-types --test tools/upstream-sync/test/*.test.ts",
     "pack:check": "node npm/scripts/pack-check.mjs",

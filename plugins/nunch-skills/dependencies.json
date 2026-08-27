@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "executables": [
+    {
+      "name": "git",
+      "requirement": "Git",
+      "candidates": ["git"],
+      "versionArgs": ["--version"],
+      "versionPrefix": "git version ",
+      "minimumVersion": "0.0.0"
+    },
+    {
+      "name": "python3",
+      "requirement": "Python 3.11+",
+      "candidates": ["python3", "python"],
+      "versionArgs": ["--version"],
+      "versionPrefix": "Python ",
+      "minimumVersion": "3.11"
+    },
+    {
+      "name": "uv",
+      "requirement": "uv",
+      "candidates": ["uv"],
+      "versionArgs": ["--version"],
+      "versionPrefix": "uv ",
+      "minimumVersion": "0.0.0"
+    }
+  ],
+  "manual": [
+    {
+      "name": "Kaneo MCP"
+    }
+  ]
+}

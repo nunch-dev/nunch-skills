@@ -42,7 +42,7 @@ test('runs deep-interview Python tests on Linux and Windows', async () => {
   assert.match(workflow, /actions\/setup-python@[0-9a-f]{40}/);
   assert.match(workflow, /astral-sh\/setup-uv@[0-9a-f]{40}/);
   assert.match(workflow, /uv run --python 3\.11 --with pytest pytest -q/);
-  assert.match(workflow, /deep-interview\/skills\/deep-interview\/tests/);
+  assert.match(workflow, /nunch-skills\/skills\/deep-interview\/tests/);
 });
 
 test('local development docs pass CLI arguments through pnpm without a literal separator', async () => {

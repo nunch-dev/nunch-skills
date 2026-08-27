@@ -6,40 +6,21 @@
       "ref": "main",
       "copies": [
         {
-          "source": ".codex-plugin",
-          "destination": "plugins/i-have-adhd/.codex-plugin"
-        },
-        {
-          "source": ".claude-plugin",
-          "destination": "plugins/i-have-adhd/.claude-plugin"
-        },
-        {
-          "source": "skills",
-          "destination": "plugins/i-have-adhd/skills",
+          "source": "skills/i-have-adhd",
+          "destination": "plugins/nunch-skills/skills/i-have-adhd",
           "removeFrontmatter": [
             "disable-model-invocation"
           ]
         },
         {
           "source": "LICENSE",
-          "destination": "plugins/i-have-adhd/LICENSE"
+          "destination": "plugins/nunch-skills/licenses/i-have-adhd-LICENSE"
         },
         {
           "source": "logo.png",
-          "destination": "plugins/i-have-adhd/logo.png"
+          "destination": "plugins/nunch-skills/assets/i-have-adhd-logo.png"
         }
-      ],
-      "version": {
-        "source": ".codex-plugin/plugin.json",
-        "appendCommit": true,
-        "targets": [
-          "plugins/i-have-adhd/.codex-plugin/plugin.json",
-          "plugins/i-have-adhd/.claude-plugin/plugin.json"
-        ],
-        "marketplaceTargets": [
-          ".claude-plugin/marketplace.json"
-        ]
-      }
+      ]
     },
     {
       "name": "humanize-korean",
@@ -47,40 +28,42 @@
       "ref": "main",
       "copies": [
         {
-          "source": ".claude-plugin",
-          "destination": "plugins/humanize-korean/.claude-plugin"
-        },
-        {
           "source": "agents",
-          "destination": "plugins/humanize-korean/agents"
+          "destination": "plugins/nunch-skills/agents"
         },
         {
           "source": "scripts",
-          "destination": "plugins/humanize-korean/scripts"
+          "destination": "plugins/nunch-skills/scripts/humanize-korean"
         },
         {
-          "source": "skills",
-          "destination": "plugins/humanize-korean/skills",
+          "source": "skills/humanize",
+          "destination": "plugins/nunch-skills/skills/humanize",
           "removeFrontmatter": [
-            "disable-model-invocation"
+            "disable-model-invocation",
+            "argument-hint"
+          ]
+        },
+        {
+          "source": "skills/humanize-korean",
+          "destination": "plugins/nunch-skills/skills/humanize-korean",
+          "removeFrontmatter": [
+            "disable-model-invocation",
+            "version"
+          ]
+        },
+        {
+          "source": "skills/humanize-redo",
+          "destination": "plugins/nunch-skills/skills/humanize-redo",
+          "removeFrontmatter": [
+            "disable-model-invocation",
+            "argument-hint"
           ]
         },
         {
           "source": "LICENSE",
-          "destination": "plugins/humanize-korean/LICENSE"
+          "destination": "plugins/nunch-skills/licenses/humanize-korean-LICENSE"
         }
-      ],
-      "version": {
-        "source": ".claude-plugin/plugin.json",
-        "appendCommit": true,
-        "targets": [
-          "plugins/humanize-korean/.codex-plugin/plugin.json",
-          "plugins/humanize-korean/.claude-plugin/plugin.json"
-        ],
-        "marketplaceTargets": [
-          ".claude-plugin/marketplace.json"
-        ]
-      }
+      ]
     }
   ]
 }

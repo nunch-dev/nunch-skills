@@ -15,10 +15,10 @@
       "npm/test/**/*.{mjs,ts}",
       "tools/upstream-sync/src/**/*.ts",
       "tools/upstream-sync/test/**/*.ts",
-      "plugins/nch-installer/.codex-plugin/plugin.json",
-      "plugins/nch-installer/hooks/hooks.json",
-      "plugins/nch-installer/runtime/src/**/*.ts",
-      "plugins/nch-installer/runtime/test/**/*.ts"
+      "plugins/nunch-skills/.codex-plugin/plugin.json",
+      "plugins/nunch-skills/hooks/hooks.json",
+      "plugins/nunch-skills/runtime/src/**/*.ts",
+      "plugins/nunch-skills/runtime/test/**/*.ts"
     ]
   },
   "formatter": {

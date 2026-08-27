@@ -1,45 +1,10 @@
 {
   "plugins": [
     {
-      "name": "deep-interview",
-      "version": "0.1.1",
-      "source": "./plugins/deep-interview",
-      "description": "Clarify ambiguous work through a structured interview.",
-      "category": "productivity"
-    },
-    {
-      "name": "kaneo-skills",
-      "version": "0.1.1",
-      "source": "./plugins/kaneo-skills",
-      "description": "Create well-scoped Korean Kaneo issues.",
-      "category": "productivity"
-    },
-    {
-      "name": "humanize-korean",
-      "version": "2.3.2+upstream.0ac1e84f9233",
-      "source": "./plugins/humanize-korean",
-      "description": "Make AI-written Korean sound natural while preserving meaning.",
-      "category": "writing"
-    },
-    {
-      "name": "i-have-adhd",
-      "version": "0.2.0+upstream.cbe69fb83c08",
-      "source": "./plugins/i-have-adhd",
-      "description": "Use action-first, ADHD-friendly response formatting.",
-      "category": "productivity"
-    },
-    {
-      "name": "git-tools",
-      "version": "0.2.1",
-      "source": "./plugins/git-tools",
-      "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
-      "category": "development"
-    },
-    {
-      "name": "docs-fairy",
-      "version": "0.1.0",
-      "source": "./plugins/docs-fairy",
-      "description": "Generate, sync, and improve docs with evidence-based diagnosis and Starlight sites.",
+      "name": "nunch-skills",
+      "version": "0.1.5",
+      "source": "./plugins/nunch-skills",
+      "description": "Install the complete Nunch skill collection as one plugin.",
       "category": "development"
     }
   ],

@@ -1,8 +1,8 @@
 import { join } from 'node:path';
-import { installerName } from '../../plugins/nch-installer/runtime/src/installer-identity.ts';
-import type { LifecyclePreState } from '../../plugins/nch-installer/runtime/src/lifecycle.ts';
-import { addResource, type LifecycleState, removeResource } from '../../plugins/nch-installer/runtime/src/state.ts';
-import { LifecycleStore } from '../../plugins/nch-installer/runtime/src/store.ts';
+import { installerName } from '../../plugins/nunch-skills/runtime/src/installer-identity.ts';
+import type { LifecyclePreState } from '../../plugins/nunch-skills/runtime/src/lifecycle.ts';
+import { addResource, type LifecycleState, removeResource } from '../../plugins/nunch-skills/runtime/src/state.ts';
+import { LifecycleStore } from '../../plugins/nunch-skills/runtime/src/store.ts';
 import type { CliOperation } from './public-cli.ts';
 
 type OwnershipInput = {
@@ -61,7 +61,7 @@ export function applyOwnershipResult(input: OwnershipInput): LifecycleState {
   const state = input.state;
   const { operation, plugins, preState } = input;
   if (operation === 'install') {
-    const pluginNames = includeInstaller ? [installerName, ...plugins] : plugins;
+    const pluginNames = includeInstaller ? [...new Set([installerName, ...plugins])] : plugins;
     let next = state;
     for (const name of pluginNames) {
       const key = `${name}@nunch-skills`;
@@ -99,6 +99,21 @@ export function applyOwnershipResult(input: OwnershipInput): LifecycleState {
     let next = state;
     for (const name of plugins) next = removeResource(next, 'plugin', `${name}@nunch-skills`);
     return next;
+  }
+  if (operation === 'update' && includeInstaller) {
+    const pluginResources = state.resources.filter((resource) => resource.kind === 'plugin');
+    if (pluginResources.length === 0) return state;
+    const ownership = pluginResources.some((resource) => resource.ownership === 'created') ? 'created' : 'pre-existing';
+    const withoutLegacyPlugins = {
+      ...state,
+      resources: state.resources.filter((resource) => resource.kind !== 'plugin'),
+    };
+    return addResource(withoutLegacyPlugins, {
+      kind: 'plugin',
+      name: `${installerName}@nunch-skills`,
+      ownership,
+      ...(ownership === 'created' ? {} : { preStateFingerprint: installerName }),
+    });
   }
   return state;
 }
