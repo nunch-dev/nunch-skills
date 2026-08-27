@@ -87,6 +87,7 @@ jobs:
         uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9
         with:
           version: "0.11.8"
+          enable-cache: false
       - name: Run deep-interview tests
         run: >-
           uv run --python 3.11 --with pytest pytest -q
