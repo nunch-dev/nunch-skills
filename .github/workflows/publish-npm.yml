@@ -93,3 +93,10 @@ jobs:
 
       - name: Publish to npm with trusted publishing
         run: npm publish "${{ steps.release.outputs.tarball }}" --access public --tag latest --provenance
+
+      - name: Verify published launcher subcommands
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          version=${RELEASE_TAG#v}
+          node npm/scripts/post-publish-smoke.mjs "@nunch-dev/skills@$version"

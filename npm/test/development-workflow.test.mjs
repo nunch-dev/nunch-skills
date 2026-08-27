@@ -57,3 +57,11 @@ test('local development docs pass CLI arguments through pnpm without a literal s
   for (const command of directCommands) assert.doesNotMatch(command, /dev:cli -- /);
   assert.match(guide, /pnpm run dev:cli doctor --status --platform=codex/);
 });
+
+test('published npm artifacts run a post-publish launcher smoke check', async () => {
+  // Given
+  const workflow = await readFile(new URL('../../.github/workflows/publish-npm.yml', import.meta.url), 'utf8');
+
+  // When / Then
+  assert.match(workflow, /node npm\/scripts\/post-publish-smoke\.mjs/);
+});

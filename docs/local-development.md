@@ -29,6 +29,8 @@ typecheck → lint → build → test → pack:check
 
 PR에서는 `.github/workflows/ci.yml`이 빠른 테스트, 정적 검사, build/package 검사를 별도 job으로 실행합니다.
 
+`pack:check`는 실제 npm tarball을 만든 뒤 격리된 임시 디렉터리에서 그 tarball의 `install --help`와 `doctor --help`를 실행합니다. package surface가 있어도 launcher가 오래되었거나 실행되지 않는 문제를 이 단계에서 차단합니다.
+
 ## CLI 직접 실행
 
 TypeScript 소스를 바로 실행하면 build 없이 명령 동작을 확인할 수 있습니다.
