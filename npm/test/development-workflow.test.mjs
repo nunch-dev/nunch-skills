@@ -65,3 +65,13 @@ test('published npm artifacts run a post-publish launcher smoke check', async ()
   // When / Then
   assert.match(workflow, /node npm\/scripts\/post-publish-smoke\.mjs/);
 });
+
+test('retries the published launcher smoke while the exact npm version propagates', async () => {
+  // Given
+  const workflow = await readFile(new URL('../../.github/workflows/publish-npm.yml', import.meta.url), 'utf8');
+
+  // When / Then
+  assert.match(workflow, /for attempt in \{1\.\.24\}/);
+  assert.match(workflow, /if node npm\/scripts\/post-publish-smoke\.mjs/);
+  assert.match(workflow, /sleep 5/);
+});

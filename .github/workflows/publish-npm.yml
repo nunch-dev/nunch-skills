@@ -99,4 +99,10 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           version=${RELEASE_TAG#v}
-          node npm/scripts/post-publish-smoke.mjs "@nunch-dev/skills@$version"
+          for attempt in {1..24}; do
+            if node npm/scripts/post-publish-smoke.mjs "@nunch-dev/skills@$version"; then
+              exit 0
+            fi
+            test "$attempt" -lt 24
+            sleep 5
+          done
