@@ -10,7 +10,7 @@ Codex의 release-pinned nunch-skills 설치·업데이트·제거·무결성 검
 npx @nunch-dev/skills install
 ```
 
-omo와 같은 `install|setup`, `update`, `uninstall`, `doctor`, `settings` subcommand를 제공합니다. 대화형 설치는 플랫폼과 leaf plugin을 선택하고, `--no-tui --platform=<codex|claude|both> --plugins=<목록|all|none>`은 자동화용 설치를 실행합니다. Codex에는 installer가 설치되며 삭제는 created resource full teardown으로만 가능합니다. Claude Code에는 선택한 leaf plugin만 설치되고 marketplace 출처는 `github:nunch-dev/nunch-skills`로 확인합니다.
+omo와 같은 `install|setup`, `update`, `uninstall`, `doctor` subcommand를 제공합니다. 대화형 설치는 플랫폼과 leaf plugin을 선택하고, `--no-tui --platform=<codex|claude|both> --plugins=<목록|all|none>`은 자동화용 설치를 실행합니다. Codex에는 installer가 설치되며 삭제는 created resource full teardown으로만 가능합니다. Claude Code에는 선택한 leaf plugin만 설치되고 marketplace 출처는 `github:nunch-dev/nunch-skills`로 확인합니다.
 
 ## Release 검증
 

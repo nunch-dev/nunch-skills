@@ -23,7 +23,6 @@ export interface PublicCliDependencies {
   execute(execution: CliExecution): Promise<void>;
   writeError(message: string): void;
   writeOutput(message: string): void;
-  configureTelemetry(): Promise<void>;
   confirm?(message: string): Promise<boolean>;
 }
 
@@ -111,14 +110,6 @@ function createProgram(input: PublicCliInput, dependencies: PublicCliDependencie
         targets,
         doctor: { mode, json: options.json ?? false },
       });
-      program.setOptionValue('exitCode', 0);
-    });
-
-  program
-    .command('settings')
-    .description('telemetry 설정')
-    .action(async () => {
-      await dependencies.configureTelemetry();
       program.setOptionValue('exitCode', 0);
     });
 

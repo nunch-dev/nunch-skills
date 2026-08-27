@@ -7,7 +7,7 @@ description: Manage the release-pinned nunch-skills lifecycle and diagnose its r
 
 Use the release-pinned lifecycle CLI for user-requested nunch-skills installation, update, removal, or integrity checks. Read [Lifecycle CLI](references/lifecycle-cli.md) before invoking a lifecycle command or explaining hook trust.
 
-Do not treat `npx` download as permission to change Codex configuration. Use the explicit `install|setup`, `update`, `uninstall`, `doctor`, or `settings` subcommand the user requested. Interactive mutation commands show their selected scope; `install --no-tui` is allowed only when `--platform` and `--plugins` make the scope explicit. Uninstall always previews created-only targets and requires interactive confirmation.
+Do not treat `npx` download as permission to change Codex configuration. Use the explicit `install|setup`, `update`, `uninstall`, or `doctor` subcommand the user requested. Interactive mutation commands show their selected scope; `install --no-tui` is allowed only when `--platform` and `--plugins` make the scope explicit. Uninstall always previews created-only targets and requires interactive confirmation.
 
 The lifecycle CLI verifies the npm tarball, immutable Git tag and commit, manifest allowlist, installer hook, dispatcher, and TypeScript runtime before a release-pinned trust change. If verification fails, keep existing state unchanged. Do not workaround a failure by editing Codex hook trust state; explain that the user may inspect the installer hook through `/hooks` only after understanding the mismatch.
 

@@ -85,3 +85,14 @@ test('exposes the minimal local verification commands', async () => {
   assert.equal(manifest.scripts['qa:local'], undefined);
   assert.equal(manifest.scripts['qa:all'], undefined);
 });
+
+test('does not ship the removed telemetry client', async () => {
+  // Given
+  const manifest = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+
+  // When
+  const dependency = manifest.dependencies['posthog-node'];
+
+  // Then
+  assert.equal(dependency, undefined);
+});

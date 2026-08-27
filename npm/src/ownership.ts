@@ -7,7 +7,7 @@ import type { CliOperation } from './public-cli.ts';
 
 type OwnershipInput = {
   state: LifecycleState;
-  operation: Exclude<CliOperation, 'cancel' | 'settings' | 'doctor'>;
+  operation: Exclude<CliOperation, 'doctor'>;
   plugins: string[];
   preState: LifecyclePreState;
   includeInstaller?: boolean;

@@ -16,7 +16,6 @@ import { targetLabel } from './clack-ui.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from './ownership.ts';
 import type { CliOperation } from './public-cli.ts';
 import { cliVersion } from './runtime-config.ts';
-import { captureTelemetry } from './telemetry-runtime.ts';
 
 type CodexTargetRuntime = {
   target: 'codex';
@@ -122,12 +121,8 @@ async function executeDoctorOperation(input: OperationInput): Promise<void> {
     installationReport,
     lifecycleReport,
   ]);
-  const report = [
-    ...executables,
-    { name: 'cli-version', status: 'ok' as const, detail: cliVersion },
-    ...installations,
-    ...lifecycle,
-  ];
+  const cliVersionItem: DoctorItem = { name: 'cli-version', status: 'ok', detail: cliVersion };
+  const report = [...executables, cliVersionItem, ...installations, ...lifecycle];
   await input.doctorReport?.(report, performance.now() - startedAt);
   if (report.some((item) => item.status === 'error')) throw new DoctorErrorsFound('doctor found lifecycle errors');
 }
@@ -149,68 +144,59 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
   const { operation, plugins, progress } = input;
   const { target, createBackend, dataRoot, releaseCommit, includeInstaller } = runtime;
   const prefix = targetLabel(target);
-  const startedAt = Date.now();
-  let result: 'success' | 'failure' = 'success';
   let fullTeardown = false;
+  const lock = await acquireLock(join(dataRoot, 'lifecycle.lock'), Date.now(), 600_000);
   try {
-    const lock = await acquireLock(join(dataRoot, 'lifecycle.lock'), Date.now(), 600_000);
     const store = new LifecycleStore(join(dataRoot, 'lifecycle.json'));
-    try {
-      const backend = createBackend(operation === 'update');
-      const state = await recoverLifecycleTransaction(store, backend);
-      const preState = await backend.inspectPreState();
-      const selectedPlugins = operation === 'uninstall' ? selectedUninstallPlugins(state, plugins) : plugins;
-      const uninstall =
-        operation === 'uninstall'
-          ? uninstallExecution(state, selectedPlugins)
-          : { plugins: selectedPlugins, removeTrust: false, removeMarketplace: false, fullTeardown: false };
-      fullTeardown = uninstall.fullTeardown;
-      const service = new LifecycleService(backend, (event) => progress(event, prefix), { includeInstaller });
-      await runLifecycleTransaction(
-        {
-          store,
-          backend,
+    const backend = createBackend(operation === 'update');
+    const state = await recoverLifecycleTransaction(store, backend);
+    const preState = await backend.inspectPreState();
+    const selectedPlugins = operation === 'uninstall' ? selectedUninstallPlugins(state, plugins) : plugins;
+    const uninstall =
+      operation === 'uninstall'
+        ? uninstallExecution(state, selectedPlugins)
+        : { plugins: selectedPlugins, removeTrust: false, removeMarketplace: false, fullTeardown: false };
+    fullTeardown = uninstall.fullTeardown;
+    const service = new LifecycleService(backend, (event) => progress(event, prefix), { includeInstaller });
+    await runLifecycleTransaction(
+      {
+        store,
+        backend,
+        operation,
+        release: { version: cliVersion, commit: releaseCommit },
+        operationId: randomUUID(),
+        startedAt: new Date().toISOString(),
+      },
+      async (current) => {
+        switch (operation) {
+          case 'install':
+            await service.install(selectedPlugins);
+            break;
+          case 'update':
+            await service.update();
+            break;
+          case 'uninstall':
+            await service.uninstall(uninstall.plugins, {
+              removeTrust: uninstall.removeTrust,
+              removeMarketplace: uninstall.removeMarketplace,
+            });
+            break;
+          default:
+            assertNever(operation);
+        }
+        return applyOwnershipResult({
+          state: current,
           operation,
-          release: { version: cliVersion, commit: releaseCommit },
-          operationId: randomUUID(),
-          startedAt: new Date().toISOString(),
-        },
-        async (current) => {
-          switch (operation) {
-            case 'install':
-              await service.install(selectedPlugins);
-              break;
-            case 'update':
-              await service.update();
-              break;
-            case 'uninstall':
-              await service.uninstall(uninstall.plugins, {
-                removeTrust: uninstall.removeTrust,
-                removeMarketplace: uninstall.removeMarketplace,
-              });
-              break;
-            default:
-              assertNever(operation);
-          }
-          return applyOwnershipResult({
-            state: current,
-            operation,
-            plugins: operation === 'uninstall' ? uninstall.plugins : selectedPlugins,
-            preState,
-            includeInstaller,
-          });
-        },
-      );
-    } finally {
-      await lock.release();
-    }
-    if (fullTeardown) await rm(dataRoot, { recursive: true, force: true });
-  } catch (error) {
-    result = 'failure';
-    throw error;
+          plugins: operation === 'uninstall' ? uninstall.plugins : selectedPlugins,
+          preState,
+          includeInstaller,
+        });
+      },
+    );
   } finally {
-    if (!fullTeardown) await captureTelemetry(operation, plugins, result, Date.now() - startedAt, dataRoot);
+    await lock.release();
   }
+  if (fullTeardown) await rm(dataRoot, { recursive: true, force: true });
 }
 
 function assertNever(value: never): never {

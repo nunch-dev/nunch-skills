@@ -4,7 +4,6 @@ import { ClaudeBackend } from '../../plugins/nch-installer/runtime/src/claude.ts
 import { CodexBackend } from '../../plugins/nch-installer/runtime/src/codex.ts';
 import { ExecRunner } from '../../plugins/nch-installer/runtime/src/command.ts';
 import { runDoctor } from '../../plugins/nch-installer/runtime/src/doctor.ts';
-import { loadTelemetryState, setTelemetryEnabled } from '../../plugins/nch-installer/runtime/src/telemetry-state.ts';
 import { catalogPlugins } from './catalog.ts';
 import { bindUiDependencies, ClackUi } from './clack-ui.ts';
 import { formatDoctorReport } from './doctor-output.ts';
@@ -35,7 +34,6 @@ export async function main(): Promise<number> {
   if (usesInteractiveUi) ui.intro();
   const codexHome = codexHomePath();
   const codexDataRoot = join(codexHome, 'plugins', 'data', 'nunch-skills');
-  const telemetryPath = join(codexDataRoot, 'telemetry.json');
 
   const dependencies = bindUiDependencies(ui, {
     availablePlugins: async () =>
@@ -120,15 +118,10 @@ export async function main(): Promise<number> {
         },
         runtimes,
         doctorReport: async (report, duration) => {
-          const doctor = execution.doctor ?? { mode: 'default' as const, json: false };
+          const doctor: NonNullable<CliExecution['doctor']> = execution.doctor ?? { mode: 'default', json: false };
           process.stdout.write(`${formatDoctorReport(report, doctor.mode, doctor.json, duration)}\n`);
         },
       });
-    },
-    configureTelemetry: async () => {
-      const current = await loadTelemetryState(telemetryPath, false);
-      const enabled = await ui.confirm(current.enabled ? 'telemetry를 비활성화할까요?' : 'telemetry를 활성화할까요?');
-      if (enabled) await setTelemetryEnabled(telemetryPath, !current.enabled);
     },
   });
   try {
@@ -153,20 +146,14 @@ export function shouldUseInteractiveUi(input: { argv: string[]; stdinTty: boolea
     return false;
   }
   const command = input.argv[0];
-  return (
-    command === 'install' ||
-    command === 'setup' ||
-    command === 'update' ||
-    command === 'uninstall' ||
-    command === 'settings'
-  );
+  return command === 'install' || command === 'setup' || command === 'update' || command === 'uninstall';
 }
 
 function successMessage(command: string | undefined): string {
   if (command === 'install' || command === 'setup') return '설치가 완료되었습니다';
   if (command === 'update') return '업데이트가 완료되었습니다';
   if (command === 'uninstall') return '삭제가 완료되었습니다';
-  return '설정을 저장했습니다';
+  return '작업이 완료되었습니다';
 }
 
 async function runInternalUpdate(): Promise<number> {

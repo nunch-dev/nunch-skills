@@ -125,6 +125,18 @@ test('JSON doctor output takes precedence over terminal rendering', async () => 
   ]);
 });
 
+test('rejects the removed settings command', async () => {
+  // Given
+  const dependencies = fakeDependencies();
+
+  // When
+  const code = await runPublicCli({ argv: ['settings'], stdinTty: false, stdoutTty: false }, dependencies);
+
+  // Then
+  assert.equal(code, 1);
+  assert.deepEqual(dependencies.executions, []);
+});
+
 type FakeDependencies = PublicCliDependencies & { executions: CliExecution[]; output: string[] };
 
 function fakeDependencies(): FakeDependencies {
@@ -141,7 +153,6 @@ function fakeDependencies(): FakeDependencies {
       executions.push(execution);
     },
     confirm: async () => true,
-    configureTelemetry: async () => undefined,
     writeError: (message) => output.push(message),
     writeOutput: (message) => output.push(message),
   };
