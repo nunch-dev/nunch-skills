@@ -1,6 +1,6 @@
 {
   "name": "humanize-korean",
-  "version": "2.3.2+nunch.dep1",
+  "version": "2.3.2+upstream.0ac1e84f9233",
   "description": "Rewrite AI-generated Korean text so it reads naturally while preserving meaning.",
   "author": {
     "name": "epoko77-ai",

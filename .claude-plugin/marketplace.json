@@ -1,4 +1,48 @@
 {
+  "plugins": [
+    {
+      "name": "deep-interview",
+      "version": "0.1.1",
+      "source": "./plugins/deep-interview",
+      "description": "Clarify ambiguous work through a structured interview.",
+      "category": "productivity"
+    },
+    {
+      "name": "kaneo-skills",
+      "version": "0.1.1",
+      "source": "./plugins/kaneo-skills",
+      "description": "Create well-scoped Korean Kaneo issues.",
+      "category": "productivity"
+    },
+    {
+      "name": "humanize-korean",
+      "version": "2.3.2+upstream.0ac1e84f9233",
+      "source": "./plugins/humanize-korean",
+      "description": "Make AI-written Korean sound natural while preserving meaning.",
+      "category": "writing"
+    },
+    {
+      "name": "i-have-adhd",
+      "version": "0.2.0+upstream.cbe69fb83c08",
+      "source": "./plugins/i-have-adhd",
+      "description": "Use action-first, ADHD-friendly response formatting.",
+      "category": "productivity"
+    },
+    {
+      "name": "git-tools",
+      "version": "0.2.1",
+      "source": "./plugins/git-tools",
+      "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
+      "category": "development"
+    },
+    {
+      "name": "docs-fairy",
+      "version": "0.1.0",
+      "source": "./plugins/docs-fairy",
+      "description": "Generate, sync, and improve docs with evidence-based diagnosis and Starlight sites.",
+      "category": "development"
+    }
+  ],
   "name": "nunch-skills",
   "owner": {
     "name": "Nunch Dev",
@@ -6,49 +50,5 @@
   },
   "metadata": {
     "description": "Cross-platform agent skills for Codex and Claude Code."
-  },
-  "plugins": [
-    {
-      "name": "deep-interview",
-      "source": "./plugins/deep-interview",
-      "description": "Clarify ambiguous work through a structured interview.",
-      "version": "0.1.1",
-      "category": "productivity"
-    },
-    {
-      "name": "kaneo-skills",
-      "source": "./plugins/kaneo-skills",
-      "description": "Create well-scoped Korean Kaneo issues.",
-      "version": "0.1.1",
-      "category": "productivity"
-    },
-    {
-      "name": "humanize-korean",
-      "source": "./plugins/humanize-korean",
-      "description": "Make AI-written Korean sound natural while preserving meaning.",
-      "version": "2.3.2+nunch.dep1",
-      "category": "writing"
-    },
-    {
-      "name": "i-have-adhd",
-      "source": "./plugins/i-have-adhd",
-      "description": "Use action-first, ADHD-friendly response formatting.",
-      "version": "0.2.0",
-      "category": "productivity"
-    },
-    {
-      "name": "git-tools",
-      "source": "./plugins/git-tools",
-      "description": "Use Git porcelain safely with atomic Korean commits, history evidence, and recovery.",
-      "version": "0.2.1",
-      "category": "development"
-    },
-    {
-      "name": "docs-fairy",
-      "source": "./plugins/docs-fairy",
-      "description": "Generate, sync, and improve docs with evidence-based diagnosis and Starlight sites.",
-      "version": "0.1.0",
-      "category": "development"
-    }
-  ]
+  }
 }
