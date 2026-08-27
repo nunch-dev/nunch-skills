@@ -41,6 +41,7 @@ export function parseConfig(raw: unknown): UpstreamConfig {
   const versionTargets: string[] = [];
 
   for (const upstream of config.upstreams) {
+    const upstreamDestinations: string[] = [];
     if (names.has(upstream.name)) throw new ConfigError(`duplicate upstream name ${upstream.name}`);
     names.add(upstream.name);
     for (const copy of upstream.copies) {
@@ -49,6 +50,7 @@ export function parseConfig(raw: unknown): UpstreamConfig {
       ensureNoOverlap(copy.destination, destinations, 'destination');
       ensureNoOverlap(copy.destination, versionTargets, 'copy/version target');
       destinations.push(copy.destination);
+      upstreamDestinations.push(copy.destination);
     }
     if (upstream.version !== undefined) {
       upstream.version.source = parseRelativePath('version source', upstream.version.source);
@@ -56,7 +58,10 @@ export function parseConfig(raw: unknown): UpstreamConfig {
         const target = upstream.version.targets[index];
         if (target === undefined) throw new ConfigError('version target is missing');
         const parsed = parseRelativePath('version target', target);
-        ensureNoOverlap(parsed, destinations, 'copy/version target');
+        const belongsToCopiedPath = upstreamDestinations.some(
+          (destination) => parsed === destination || parsed.startsWith(`${destination}${sep}`),
+        );
+        if (!belongsToCopiedPath) ensureNoOverlap(parsed, destinations, 'copy/version target');
         ensureNoOverlap(parsed, versionTargets, 'version target');
         upstream.version.targets[index] = parsed;
         versionTargets.push(parsed);

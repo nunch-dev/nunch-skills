@@ -34,6 +34,39 @@ test('syncs managed paths and preserves the manifest format', async () => {
   assert.match(await readFile(join(root, 'lock.json'), 'utf8'), /"example": "[0-9a-f]{40}"/);
 });
 
+test('propagates a version into a manifest nested within a copied directory', async () => {
+  // Given
+  const root = await mkdtemp(join(tmpdir(), 'upstream-sync-test-'));
+  const remote = await createRemote();
+  await write(root, 'plugins/example/.codex-plugin/plugin.json', '{"version":"2.3.2","legacy":true}');
+  await write(
+    root,
+    'upstreams.json',
+    JSON.stringify({
+      upstreams: [
+        {
+          name: 'example',
+          repository: remote,
+          ref: 'main',
+          copies: [{ source: 'manifest', destination: 'plugins/example/.codex-plugin' }],
+          version: {
+            source: 'manifest/plugin.json',
+            targets: ['plugins/example/.codex-plugin/plugin.json'],
+            appendCommit: true,
+          },
+        },
+      ],
+    }),
+  );
+
+  // When
+  await syncConfigured({ root, configPath: join(root, 'upstreams.json'), lockPath: join(root, 'lock.json') });
+
+  // Then
+  const manifest = await readFile(join(root, 'plugins/example/.codex-plugin/plugin.json'), 'utf8');
+  assert.match(manifest, /^\{"version":"2\.4\.0\+upstream\.[0-9a-f]{12}"\}$/);
+});
+
 test('preserves the workspace when preflight fails', async () => {
   // Given
   const root = await mkdtemp(join(tmpdir(), 'upstream-sync-test-'));

@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { lstat, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { basename, join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 
 import { parseConfig, resolveInside, type UpstreamSpec } from './config.ts';
@@ -16,6 +16,7 @@ const versionFieldPattern = /("version"\s*:\s*)"[^"]*"/g;
 type SyncOptions = { root: string; configPath: string; lockPath: string };
 type Prepared = { spec: UpstreamSpec; checkout: string; commit: string };
 type Operation = { destination: string; candidate: string; backup: string; hadDestination: boolean };
+type Preparation = { root: string; candidates: string; transactionRoot: string; operations: Operation[] };
 
 class SyncError extends Error {
   name = 'SyncError';
@@ -32,10 +33,11 @@ export async function syncConfigured(options: SyncOptions): Promise<void> {
     const prepared: Prepared[] = [];
     for (const upstream of config.upstreams) prepared.push(await prepareUpstream(checkoutRoot, upstream));
     const operations: Operation[] = [];
+    const preparation: Preparation = { root, candidates: candidateRoot, transactionRoot, operations };
     const commits: Record<string, string> = {};
     for (const upstream of prepared) {
-      await prepareCopies(root, candidateRoot, transactionRoot, upstream, operations);
-      await prepareVersions(root, candidateRoot, transactionRoot, upstream, operations);
+      await prepareCopies(preparation, upstream);
+      await prepareVersions(preparation, upstream);
       commits[upstream.spec.name] = upstream.commit;
     }
     const lockCandidate = join(candidateRoot, `candidate-${operations.length}`);
@@ -75,44 +77,46 @@ async function prepareUpstream(checkoutRoot: string, spec: UpstreamSpec): Promis
   }
 }
 
-async function prepareCopies(
-  root: string,
-  candidates: string,
-  tx: string,
-  upstream: Prepared,
-  operations: Operation[],
-): Promise<void> {
+async function prepareCopies(preparation: Preparation, upstream: Prepared): Promise<void> {
   for (const copy of upstream.spec.copies) {
-    const destination = resolveInside(root, copy.destination);
-    await ensureRealpathConfinement(root, destination);
-    const index = operations.length;
-    const candidate = join(candidates, `candidate-${index}`);
+    const destination = resolveInside(preparation.root, copy.destination);
+    await ensureRealpathConfinement(preparation.root, destination);
+    const index = preparation.operations.length;
+    const candidate = join(preparation.candidates, `candidate-${index}`);
     await copyEntry(resolveInside(upstream.checkout, copy.source), candidate);
     await sanitizeSkills(candidate, copy.removeFrontmatter ?? []);
-    operations.push(await operationFor(destination, candidate, tx, index));
+    preparation.operations.push(await operationFor(destination, candidate, preparation.transactionRoot, index));
   }
 }
 
-async function prepareVersions(
-  root: string,
-  candidates: string,
-  tx: string,
-  upstream: Prepared,
-  operations: Operation[],
-): Promise<void> {
+async function prepareVersions(preparation: Preparation, upstream: Prepared): Promise<void> {
   const versionSpec = upstream.spec.version;
   if (versionSpec === undefined) return;
   const upstreamVersion = await sourceVersion(upstream.checkout, versionSpec.source);
   const version = versionSpec.appendCommit ? buildVersion(upstreamVersion, upstream.commit) : upstreamVersion;
   for (const target of versionSpec.targets) {
-    const destination = resolveInside(root, target);
-    await ensureRealpathConfinement(root, destination);
-    const source = await readFile(destination, 'utf8');
+    const destination = resolveInside(preparation.root, target);
+    await ensureRealpathConfinement(preparation.root, destination);
+    const copiedOperation = preparation.operations.find(
+      (operation) => destination === operation.destination || destination.startsWith(`${operation.destination}${sep}`),
+    );
+    const sourcePath =
+      copiedOperation === undefined
+        ? destination
+        : join(copiedOperation.candidate, relative(copiedOperation.destination, destination));
+    const source = await readFile(sourcePath, 'utf8');
     const matches = [...source.matchAll(versionFieldPattern)];
     if (matches.length !== 1) throw new SyncError(`manifest must contain exactly one version field: ${target}`);
-    const candidate = join(candidates, `candidate-${operations.length}`);
-    await writeFile(candidate, source.replace(versionFieldPattern, `$1"${version}"`));
-    operations.push(await operationFor(destination, candidate, tx, operations.length));
+    const updated = source.replace(versionFieldPattern, `$1"${version}"`);
+    if (copiedOperation !== undefined) {
+      await writeFile(sourcePath, updated);
+      continue;
+    }
+    const candidate = join(preparation.candidates, `candidate-${preparation.operations.length}`);
+    await writeFile(candidate, updated);
+    preparation.operations.push(
+      await operationFor(destination, candidate, preparation.transactionRoot, preparation.operations.length),
+    );
   }
 }
 
