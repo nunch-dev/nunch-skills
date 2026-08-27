@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tier 1 구조 게이트 — 4축 통합 결정적 사후 검증 (LLM 콜 0).
+"""Tier 1 구조 게이트 — 5축 통합 결정적 사후 검증 (LLM 콜 0).
 
 `verify_change_rate.py`(문자율 단축 게이트)의 확장판. 문자 diff는 구조
 편집에 눈이 없다 — 실측에서 change_rate 2.77% 뒤에 문장 터치율 29.7%,
@@ -8,7 +8,7 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
 문자율의 사각지대를 보완한다. 기존 verify_change_rate.py는 그대로 두고
 (하위 호환), 신규 게이트는 이 파일이 담당한다.
 
-4축 + 리포트:
+5축 + 리포트:
     P0 문자율   — change_rate() vs WARN 30% / ABORT 50% (기존과 동일 판정)
     P1 목표달성 — before z > +2.0인 어휘 S1 지표가 after에서 z <= +1.0으로
                   내려왔는가. 미달(> +2.0)·과교정(< -1.5)은 WARN.
@@ -17,10 +17,14 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
     P4 터치율  — 원문 문장 중 after에 그대로 없는 비율 + 수치 소실 관찰.
                  게이트 아님, 보고만 (수치 소실은 문장 병합·표기 통합의
                  정상 부산물일 수 있어 exit code에 기여하지 않는다).
+    P5 서법    — 당위("~해야 한다")·추측("~할 수 있다") 표지 총수가 줄면 WARN.
+                 줄었다 = 필자가 요구·유보한 것을 단정으로 바꿨을 가능성.
+                 I-4 처방은 '이동'만 허용하므로 총수가 보존돼야 정상이다.
+                 늘어나는 것은 대상 아님(당위 주입은 P3 golden 소관).
 
 Exit code (verify_change_rate.py와 의미 동일):
     0 — 수렴 (전 축 통과)
-    1 — 경고 (문자율 30~50% / 목표 미달·과교정 / 전멸 / golden FAIL)
+    1 — 경고 (문자율 30~50% / 목표 미달·과교정 / 전멸 / golden FAIL / 서법 감소)
     2 — 중단 (문자율 >= 50%). 윤문본 채택 금지 — 최우선.
     3 — 실행 오류 (입력 파일 없음 등). 게이트 판정 불가.
 
@@ -36,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re as _re
 import os
 import re
 import sys
@@ -107,6 +112,36 @@ def sentence_touch_rate(before: str, after: str) -> tuple[float, int, int]:
     return touched / len(before_sents), touched, len(before_sents)
 
 
+# ── P5 서법 보존 ───────────────────────────────────────────────────
+# 실행자 자기 점검은 신뢰할 수 없다: A/B 실측에서 "게이트 롤백 0건"이라
+# 보고했으나 의무 표지가 실제로 줄어든 사례가 2건 있었다(6→5, 9→8).
+# 당위·추측 표지의 '총수'를 결정적으로 세어 서법 변경을 잡는다.
+#
+# 원칙: 표지가 줄면 = 필자가 요구·유보한 것을 단정으로 바꿨을 가능성.
+#       I-4 처방은 '이동'만 허용하므로 총수가 보존돼야 정상이다.
+#       늘어나는 것은 게이트 대상이 아니다(원문에 없던 당위 주입은
+#       P3 golden의 상투구 축이 별도로 본다).
+DEONTIC_RE = _re.compile(
+    r"[가-힣]야\s*(?:한다|합니다|했다|하며|하고|할)"
+    r"|[가-힣]\s*필요가\s*있다"
+    r"|요구된다"
+    r"|하지\s*않으면\s*안\s*[되돼]"
+)
+HEDGE_RE = _re.compile(
+    r"수\s*(?:있다|있습니다|있을)"
+    r"|것으로\s*(?:보인다|보입니다|전망)"
+    r"|가능성이\s*(?:있다|높다)"
+    r"|[을ㄹ]\s*수도"
+)
+# 감소 허용 폭 — 문장 병합 등 정상 처리에서 1건은 흔들릴 수 있다.
+MODALITY_TOLERANCE = 0
+
+
+def count_modality(text: str) -> tuple[int, int]:
+    """(당위 표지 수, 완곡 표지 수)."""
+    return len(DEONTIC_RE.findall(text)), len(HEDGE_RE.findall(text))
+
+
 def judge_s1_targets(
     z_before: dict, z_after: dict
 ) -> tuple[list[dict], bool]:
@@ -143,7 +178,7 @@ def judge_s1_targets(
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Tier 1 구조 게이트 (4축 통합)")
+    p = argparse.ArgumentParser(description="Tier 1 구조 게이트 (5축 통합)")
     p.add_argument("--before", required=True, help="원문 경로 (01_input.txt)")
     p.add_argument("--after", required=True, help="윤문본 경로 (final.md)")
     p.add_argument("--genre", default="essay", help="essay/column/report/blog/abstract")
@@ -242,6 +277,22 @@ def main(argv: list[str] | None = None) -> int:
     if dropped:
         print(f"[P4 수치소실] 관찰: {dropped} "
               f"(문장 병합·표기 통합이면 정상 — exit 미반영, 확인 요망)")
+
+    # --- P5 서법 보존 (당위·추측 표지 총수) -------------------------------
+    deo_b, hed_b = count_modality(before)
+    deo_a, hed_a = count_modality(after)
+    deo_lost = deo_b - deo_a
+    hed_lost = hed_b - hed_a
+    modality_fail = deo_lost > MODALITY_TOLERANCE or hed_lost > MODALITY_TOLERANCE
+    warn = warn or modality_fail
+    report["modality"] = {
+        "deontic": {"before": deo_b, "after": deo_a},
+        "hedge": {"before": hed_b, "after": hed_a},
+        "verdict": ("FAIL — 서법 표지 감소(당위·추측을 단정으로 바꿨을 수 있음)"
+                    if modality_fail else "OK"),
+    }
+    print(f"[P5 서법] 당위 {deo_b} → {deo_a} / 완곡 {hed_b} → {hed_a} — "
+          f"{report['modality']['verdict']}")
 
     # --- 통합 판정 --------------------------------------------------------
     if abort:

@@ -1,12 +1,9 @@
 {
   "name": "i-have-adhd",
-  "version": "0.2.0",
-  "description": "Shape Claude Code output for an ADHD reader with action-first steps, visible progress, and no tangents.",
+  "version": "0.2.0+upstream.cbe69fb83c08",
+  "description": "Shape Claude Code output for an ADHD reader: lead with the next action, number steps, suppress tangents, restate state, make wins visible.",
   "author": {
     "name": "Ayoub G.",
     "url": "https://github.com/ayghri"
-  },
-  "homepage": "https://github.com/ayghri/i-have-adhd",
-  "repository": "https://github.com/ayghri/i-have-adhd",
-  "license": "MIT"
+  }
 }
