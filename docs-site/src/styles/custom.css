@@ -1,0 +1,150 @@
+:root {
+	--nch-surface-primary: #1c1b1a;
+	--nch-surface-raised: #242321;
+	--nch-surface-subtle: #2d2b28;
+	--nch-text-primary: #f3f0ea;
+	--nch-text-secondary: #b8b1a7;
+	--nch-border: #3e3b37;
+	--nch-accent: #78b7e8;
+	--nch-accent-hover: #9bcdf2;
+	--nch-space-1: 0.25rem;
+	--nch-space-2: 0.5rem;
+	--nch-space-3: 0.75rem;
+	--nch-space-4: 1rem;
+	--nch-space-6: 1.5rem;
+	--nch-space-8: 2rem;
+	--nch-space-12: 3rem;
+	--sl-color-accent-low: #243847;
+	--sl-color-accent: var(--nch-accent);
+	--sl-color-accent-high: #d9edfc;
+	--sl-color-bg: var(--nch-surface-primary);
+	--sl-color-bg-nav: color-mix(in srgb, var(--nch-surface-primary) 94%, transparent);
+	--sl-color-bg-sidebar: var(--nch-surface-subtle);
+	--sl-color-gray-1: var(--nch-text-primary);
+	--sl-color-gray-2: var(--nch-text-secondary);
+	--sl-color-gray-5: var(--nch-border);
+	--sl-content-width: 52rem;
+	--sl-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+	--sl-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+:root[data-theme='light'] {
+	--nch-surface-primary: #fbfaf8;
+	--nch-surface-raised: #ffffff;
+	--nch-surface-subtle: #f4f1ec;
+	--nch-text-primary: #262421;
+	--nch-text-secondary: #68635c;
+	--nch-border: #e4dfd7;
+	--nch-accent: #1769aa;
+	--nch-accent-hover: #0f4f83;
+	--sl-color-accent-low: #e4f2fc;
+	--sl-color-accent: var(--nch-accent);
+	--sl-color-accent-high: #0b3f6a;
+	--sl-color-bg: var(--nch-surface-primary);
+	--sl-color-bg-nav: color-mix(in srgb, var(--nch-surface-primary) 94%, transparent);
+	--sl-color-bg-sidebar: var(--nch-surface-subtle);
+	--sl-color-gray-1: var(--nch-text-primary);
+	--sl-color-gray-2: var(--nch-text-secondary);
+	--sl-color-gray-5: var(--nch-border);
+}
+
+body {
+	color: var(--nch-text-primary);
+	font-family: var(--sl-font);
+	line-height: 1.7;
+}
+
+.hero h1 {
+	font-size: 3rem;
+	letter-spacing: -0.035em;
+	line-height: 1.1;
+}
+
+header.header {
+	backdrop-filter: blur(12px);
+	border-bottom-color: var(--nch-border);
+}
+
+.sidebar-pane {
+	border-inline-end-color: var(--nch-border);
+}
+
+.sl-markdown-content :is(h1, h2, h3) {
+	color: var(--nch-text-primary);
+	letter-spacing: -0.02em;
+}
+
+.sl-markdown-content :is(p, li, td, th) {
+	overflow-wrap: break-word;
+	word-break: keep-all;
+}
+
+.pagefind-ui__result-title,
+.pagefind-ui__result-excerpt {
+	overflow-wrap: break-word;
+	word-break: keep-all;
+}
+
+.sl-markdown-content table :is(th, td):first-child {
+	min-width: 9.5rem;
+}
+
+.sl-markdown-content table td:first-child code {
+	white-space: nowrap;
+}
+
+.sl-markdown-content h1 {
+	font-size: 2.25rem;
+	line-height: 1.2;
+}
+
+.sl-markdown-content h2 {
+	font-size: 1.65rem;
+	line-height: 1.3;
+}
+
+.sl-markdown-content h3 {
+	font-size: 1.25rem;
+	line-height: 1.4;
+}
+
+.sl-markdown-content a {
+	color: var(--nch-accent);
+	text-decoration-color: color-mix(in srgb, var(--nch-accent) 45%, transparent);
+	text-underline-offset: var(--nch-space-1);
+}
+
+.sl-markdown-content a:hover {
+	color: var(--nch-accent-hover);
+}
+
+.sl-markdown-content :not(pre) > code {
+	background: var(--nch-surface-subtle);
+	border: 1px solid var(--nch-border);
+	border-radius: var(--nch-space-1);
+	padding: 0.08em 0.3em;
+}
+
+.card {
+	background: var(--nch-surface-raised);
+	border-color: var(--nch-border);
+	border-radius: var(--nch-space-3);
+	box-shadow: none;
+}
+
+.card:hover {
+	border-color: color-mix(in srgb, var(--nch-accent) 55%, var(--nch-border));
+}
+
+:focus-visible {
+	outline-color: var(--nch-accent);
+	outline-offset: 0.2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		transition-duration: 0.01ms !important;
+	}
+}
