@@ -2,21 +2,13 @@
 
 Codex와 Claude Code에서 함께 사용할 수 있는 개인용 스킬 모음입니다.
 
-## For human
+## Install
 
 Node.js 22 이상이 필요합니다.
 
 ```bash
 npx @nunch-dev/skills install
 ```
-
-설치 화면에서 Codex, Claude Code 또는 둘 다를 선택하면 `nunch-skills` 플러그인 하나에 아래 스킬이 모두 설치됩니다.
-
-## For AI
-
-아래 프롬프트를 AI에게 전달하면 설치부터 점검까지 맡길 수 있습니다.
-
-> nunch-skills를 설치해줘. 먼저 Codex, Claude Code 또는 둘 다 중 설치 대상을 물어보고, `npx @nunch-dev/skills install`로 전체 스킬 번들을 설치한 뒤 선택한 플랫폼에 대해 doctor를 실행하고 결과를 알려줘.
 
 ## Skills
 
