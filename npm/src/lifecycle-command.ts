@@ -6,12 +6,18 @@ import type { ClaudeBackend } from '../../plugins/nunch-skills/runtime/src/claud
 import type { CodexBackend } from '../../plugins/nunch-skills/runtime/src/codex.ts';
 import type { DoctorItem } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
 import { runDoctor, runLifecycleDoctor } from '../../plugins/nunch-skills/runtime/src/doctor.ts';
-import { LifecycleService, type ProgressEvent } from '../../plugins/nunch-skills/runtime/src/lifecycle.ts';
+import {
+  type LifecyclePreState,
+  LifecycleService,
+  type ProgressEvent,
+} from '../../plugins/nunch-skills/runtime/src/lifecycle.ts';
 import {
   recoverLifecycleTransaction,
   runLifecycleTransaction,
 } from '../../plugins/nunch-skills/runtime/src/lifecycle-transaction.ts';
+import type { LifecycleState } from '../../plugins/nunch-skills/runtime/src/state.ts';
 import { acquireLock, LifecycleStore } from '../../plugins/nunch-skills/runtime/src/store.ts';
+import { compareInstalledVersion } from '../../plugins/nunch-skills/runtime/src/update-policy.ts';
 import { targetLabel } from './clack-ui.ts';
 import { applyOwnershipResult, selectedUninstallPlugins, uninstallExecution } from './ownership.ts';
 import type { CliOperation } from './public-cli.ts';
@@ -48,6 +54,35 @@ type OperationInput = {
 
 export class DoctorErrorsFound extends Error {
   name = 'DoctorErrorsFound';
+}
+
+export class InstallConflictError extends Error {
+  name = 'InstallConflictError';
+}
+
+export function resolveInstallOperation(
+  state: LifecycleState,
+  preState: LifecyclePreState,
+  requestedVersion: string,
+): LifecycleOperation {
+  if (preState.plugins.length === 0) return 'install';
+  const installedVersion = state.lastKnownGood?.version;
+  if (installedVersion === undefined) {
+    throw new InstallConflictError(
+      'existing Nunch plugins have no trusted lifecycle state; run doctor before reinstalling',
+    );
+  }
+  const order = compareInstalledVersion(installedVersion, requestedVersion);
+  switch (order) {
+    case 'older':
+      return 'update';
+    case 'same':
+      return 'install';
+    case 'newer':
+      throw new InstallConflictError(`refusing release downgrade from ${installedVersion} to ${requestedVersion}`);
+    default:
+      return assertNever(order);
+  }
 }
 
 export async function executeOperation(input: OperationInput): Promise<void> {
@@ -148,9 +183,12 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
   const lock = await acquireLock(join(dataRoot, 'lifecycle.lock'), Date.now(), 600_000);
   try {
     const store = new LifecycleStore(join(dataRoot, 'lifecycle.json'));
-    const backend = createBackend(operation === 'update');
-    const state = await recoverLifecycleTransaction(store, backend);
-    const preState = await backend.inspectPreState();
+    const inspectionBackend = createBackend(false);
+    const state = await recoverLifecycleTransaction(store, inspectionBackend);
+    const preState = await inspectionBackend.inspectPreState();
+    const effectiveOperation =
+      operation === 'install' ? resolveInstallOperation(state, preState, cliVersion) : operation;
+    const backend = createBackend(effectiveOperation === 'update');
     const selectedPlugins = operation === 'uninstall' ? selectedUninstallPlugins(state, plugins) : plugins;
     const uninstall =
       operation === 'uninstall'
@@ -162,13 +200,13 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
       {
         store,
         backend,
-        operation,
+        operation: effectiveOperation,
         release: { version: cliVersion, commit: releaseCommit },
         operationId: randomUUID(),
         startedAt: new Date().toISOString(),
       },
       async (current) => {
-        switch (operation) {
+        switch (effectiveOperation) {
           case 'install':
             await service.install(selectedPlugins);
             break;
@@ -182,11 +220,11 @@ async function executeForTarget(input: LifecycleOperationInput, runtime: TargetR
             });
             break;
           default:
-            assertNever(operation);
+            assertNever(effectiveOperation);
         }
         return applyOwnershipResult({
           state: current,
-          operation,
+          operation: operation === 'install' ? 'install' : effectiveOperation,
           plugins: operation === 'uninstall' ? uninstall.plugins : selectedPlugins,
           preState,
           includeInstaller,

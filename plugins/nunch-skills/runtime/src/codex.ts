@@ -12,6 +12,12 @@ import { installerName, installerTrustId, legacyInstallerTrustId } from './insta
 import type { LifecycleBackend, LifecyclePreState } from './lifecycle.ts';
 import { inspectTrustHash, TrustEditor, verifyInstallerPayload } from './trust.ts';
 
+const trustedMarketplaceRemotes = new Set([
+  'https://github.com/nunch-dev/nunch-skills',
+  'git@github.com:nunch-dev/nunch-skills',
+  'ssh://git@github.com/nunch-dev/nunch-skills',
+]);
+
 export class CodexBackend implements LifecycleBackend {
   options: BackendOptions;
 
@@ -94,6 +100,7 @@ export class CodexBackend implements LifecycleBackend {
     const existing = marketplaces.find((marketplace) => marketplace.name === this.options.marketplace);
     if (existing !== undefined) {
       if (existing.root === undefined) throw new CommandError('marketplace root is missing');
+      await this.verifyMarketplaceCheckout(existing.root);
       const commit = (await this.options.runner.run('git', ['-C', existing.root, 'rev-parse', 'HEAD'])).trim();
       if (commit === this.options.releaseCommit) return;
       if (this.options.allowRepin !== true) throw new CommandError('marketplace commit differs from release');
@@ -199,5 +206,16 @@ export class CodexBackend implements LifecycleBackend {
     const raw = await this.options.runner.run(this.options.codexCommand, ['plugin', 'marketplace', 'list', '--json']);
     return marketplaceSchema.parse(JSON.parse(raw)).marketplaces.find((item) => item.name === this.options.marketplace)
       ?.root;
+  }
+
+  private async verifyMarketplaceCheckout(root: string): Promise<void> {
+    const remote = (await this.options.runner.run('git', ['-C', root, 'remote', 'get-url', 'origin']))
+      .trim()
+      .replace(/\.git$/, '');
+    if (!trustedMarketplaceRemotes.has(remote)) {
+      throw new CommandError('marketplace source differs from nunch-dev/nunch-skills');
+    }
+    const status = (await this.options.runner.run('git', ['-C', root, 'status', '--porcelain'])).trim();
+    if (status.length > 0) throw new CommandError('marketplace has local changes');
   }
 }

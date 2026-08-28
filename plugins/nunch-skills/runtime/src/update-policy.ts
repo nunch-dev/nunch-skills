@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { lifecycleStateSchema } from './state.ts';
 
 const stableSemver = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
+type InstalledVersionOrder = 'older' | 'same' | 'newer';
 
 export async function installedReleaseVersion(codexHome: string): Promise<string> {
   try {
@@ -30,6 +31,24 @@ export function isStrictStableUpgrade(current: string, candidate: string): boole
     if (candidatePart !== currentPart) return candidatePart > currentPart;
   }
   return false;
+}
+
+export function compareInstalledVersion(installed: string, requested: string): InstalledVersionOrder {
+  const left = stableParts(installed);
+  const right = stableParts(requested);
+  if (left === undefined || right === undefined) {
+    throw new UpdatePolicyError('installed and requested releases must use stable SemVer');
+  }
+  for (let index = 0; index < 3; index += 1) {
+    const installedPart = left[index];
+    const requestedPart = right[index];
+    if (installedPart === undefined || requestedPart === undefined) {
+      throw new UpdatePolicyError('stable SemVer has an invalid component count');
+    }
+    if (installedPart < requestedPart) return 'older';
+    if (installedPart > requestedPart) return 'newer';
+  }
+  return 'same';
 }
 
 class UpdatePolicyError extends Error {

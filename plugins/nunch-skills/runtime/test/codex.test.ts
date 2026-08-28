@@ -117,6 +117,8 @@ test('rejects an existing marketplace pinned to another commit', async () => {
   // Given
   const runner = new RecordingRunner([
     '{"marketplaces":[{"name":"nunch-skills","root":"/tmp/nch-marketplace"}]}',
+    'https://github.com/nunch-dev/nunch-skills.git',
+    '',
     `${'b'.repeat(40)}\n`,
   ]);
   const backend = new CodexBackend({
@@ -128,6 +130,36 @@ test('rejects an existing marketplace pinned to another commit', async () => {
 
   // When / Then
   await assert.rejects(() => backend.ensureMarketplace(), /commit/);
+});
+
+test('refuses to repin an existing marketplace from another Git remote', async () => {
+  // Given
+  const runner = new MarketplaceRunner('https://github.com/attacker/nunch-skills.git', '');
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+    allowRepin: true,
+  });
+
+  // When / Then
+  await assert.rejects(() => backend.ensureMarketplace(), /source/);
+});
+
+test('refuses to repin a marketplace with local changes', async () => {
+  // Given
+  const runner = new MarketplaceRunner('https://github.com/nunch-dev/nunch-skills.git', ' M local-file');
+  const backend = new CodexBackend({
+    runner,
+    codexCommand: 'codex',
+    marketplace: 'nunch-skills',
+    releaseCommit: 'a'.repeat(40),
+    allowRepin: true,
+  });
+
+  // When / Then
+  await assert.rejects(() => backend.ensureMarketplace(), /local changes/);
 });
 
 test('rejects release verification without a verified manifest', async () => {
@@ -160,5 +192,28 @@ class RecordingRunner implements CommandRunner {
     const output = this.outputs.shift();
     if (output === undefined) throw new Error('missing test output');
     return output;
+  }
+}
+
+class MarketplaceRunner implements CommandRunner {
+  remote: string;
+  status: string;
+
+  constructor(remote: string, status: string) {
+    this.remote = remote;
+    this.status = status;
+  }
+
+  async run(command: string, args: string[]): Promise<string> {
+    if (command === 'codex') {
+      if (args[1] === 'marketplace' && args[2] === 'list') {
+        return '{"marketplaces":[{"name":"nunch-skills","root":"/tmp/nch-marketplace"}]}';
+      }
+      return '{}';
+    }
+    if (args[2] === 'remote') return this.remote;
+    if (args[2] === 'status') return this.status;
+    if (args[2] === 'rev-parse') return `${'b'.repeat(40)}\n`;
+    return '{}';
   }
 }

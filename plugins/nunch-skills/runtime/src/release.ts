@@ -18,8 +18,15 @@ import { isStrictStableUpgrade } from './update-policy.ts';
 const execFileAsync = promisify(execFile);
 
 export async function runVerifiedUpdate(currentVersion: string): Promise<'updated' | 'up-to-date'> {
-  const temporary = await mkdtemp(join(tmpdir(), 'nch-update-'));
+  let temporary: string | undefined;
   try {
+    const metadata = await execCommand('npm', ['view', '@nunch-dev/skills@latest', 'version', '--json'], {
+      timeout: 30_000,
+    });
+    const latest: unknown = JSON.parse(metadata.stdout);
+    if (typeof latest !== 'string') throw new ReleaseVerificationError('npm latest version metadata is invalid');
+    if (!isStrictStableUpgrade(currentVersion, latest)) return 'up-to-date';
+    temporary = await mkdtemp(join(tmpdir(), 'nch-update-'));
     const pack = await execCommand(
       'npm',
       ['pack', '--ignore-scripts', '--json', '--pack-destination', temporary, '@nunch-dev/skills@latest'],
@@ -32,7 +39,7 @@ export async function runVerifiedUpdate(currentVersion: string): Promise<'update
       timeout: 30_000,
     });
     const parsed = parseReleaseManifest(JSON.parse(manifestBytes.stdout));
-    if (!isStrictStableUpgrade(currentVersion, parsed.npm.version)) return 'up-to-date';
+    if (parsed.npm.version !== latest) throw new ReleaseVerificationError('npm latest version changed during update');
     const gitRoot = join(temporary, 'git');
     await execFileAsync(
       'git',
@@ -68,7 +75,7 @@ export async function runVerifiedUpdate(currentVersion: string): Promise<'update
   } catch (error) {
     throw new ReleaseVerificationError('verified update failed', { cause: error });
   } finally {
-    await rm(temporary, { recursive: true, force: true });
+    if (temporary !== undefined) await rm(temporary, { recursive: true, force: true });
   }
 }
 

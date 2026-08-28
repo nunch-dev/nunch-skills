@@ -4,7 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { installedReleaseVersion, isStrictStableUpgrade, shouldCheck } from '../src/update-policy.ts';
+import {
+  compareInstalledVersion,
+  installedReleaseVersion,
+  isStrictStableUpgrade,
+  shouldCheck,
+} from '../src/update-policy.ts';
 
 test('reads the npm release version from the lifecycle ledger', async () => {
   // Given
@@ -33,6 +38,14 @@ test('accepts only a strictly newer stable release', () => {
   assert.equal(isStrictStableUpgrade('0.1.2', '0.1.2'), false);
   assert.equal(isStrictStableUpgrade('0.1.2', '0.1.3-beta.1'), false);
   assert.equal(isStrictStableUpgrade('0.1.2', '0.1.1'), false);
+});
+
+test('orders installed stable versions against the requested release', () => {
+  // Given / When / Then
+  assert.equal(compareInstalledVersion('0.1.6', '0.2.0'), 'older');
+  assert.equal(compareInstalledVersion('0.2.0', '0.2.0'), 'same');
+  assert.equal(compareInstalledVersion('0.3.0', '0.2.0'), 'newer');
+  assert.throws(() => compareInstalledVersion('0.2.0-beta.1', '0.2.0'), /stable SemVer/);
 });
 
 test('retries failed checks sooner than successful checks', () => {

@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/runtime/nch-installer.mjs\" hook session-start",
-            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${PLUGIN_ROOT}\\scripts\\node-dispatch.ps1\" \"${PLUGIN_ROOT}\\runtime\\nch-installer.mjs\" hook session-start",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/runtime/nch-installer.mjs\" hook session-start",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}\\scripts\\node-dispatch.ps1\" \"${CLAUDE_PLUGIN_ROOT}\\runtime\\nch-installer.mjs\" hook session-start",
             "timeout": 15,
             "statusMessage": "nunch-skills 업데이트 확인 중"
           }

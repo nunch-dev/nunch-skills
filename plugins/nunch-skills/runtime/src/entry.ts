@@ -29,6 +29,10 @@ async function main(): Promise<number> {
 async function runHook(): Promise<number> {
   try {
     const adhdContext = await loadIHaveAdhdContext();
+    if (process.env['PLUGIN_ROOT'] === undefined) {
+      writeHookOutput(adhdContext === undefined ? [] : [adhdContext]);
+      return 0;
+    }
     let state = await readUpdateState();
     const notice = state.pendingNotice ?? state.lastError;
     if (notice !== undefined) {
