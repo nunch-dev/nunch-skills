@@ -1,6 +1,6 @@
 ---
 name: docs-fairy
-description: "프로젝트 문서를 근거 기반으로 생성·기록·동기화·감사·개선·번역하고 Starlight 문서 사이트를 구축합니다. README, 설계·API·CLI 문서, CHANGELOG, 런북, ADR, 프로젝트 기록과 코드 변경 후 문서 갱신에 사용하세요. 코드 주석, 커밋·PR 텍스트, 외부 문서 조회, 구현·디버깅에는 사용하지 않습니다."
+description: "프로젝트 문서를 근거 기반으로 생성·기록·동기화·감사·개선·번역하고 Starlight 문서 사이트를 구축·배포 준비합니다. README, 설계·API·CLI 문서, CHANGELOG, 런북, ADR, 프로젝트 기록과 코드 변경 후 문서 갱신에 사용하세요. 코드 주석, 커밋·PR 텍스트, 외부 자료의 단순 검색·요약, 일반 코드 구현·디버깅에는 사용하지 않습니다."
 metadata:
   user-invocable: true
 ---
@@ -8,6 +8,8 @@ metadata:
 # Docs Fairy
 
 문서 요청의 primary policy입니다. 검증된 근거만 문서에 적고, 사용자가 승인한 범위만 변경합니다.
+
+직접 수정하는 범위는 문서 파일과 docs-site의 콘텐츠·구현·설정·패키지 구성입니다. 일반 애플리케이션 코드, 다른 패키지 구현, 비문서용 저장소 설정은 수정하지 않고 필요한 해소 방법만 안내합니다. 기술부채 이슈 생성은 `git-tools`의 역할로 라우팅하며, 이슈·assignee·label·milestone을 직접 변경하지 않습니다.
 
 ## 핵심 계약: 요청 범위 확인 → 근거 조사 → 변경
 
@@ -20,7 +22,7 @@ metadata:
 
 승인을 받았다는 이유로 진단에 없던 항목까지 수정하지 않습니다.
 
-넓은 조사에서 발견한 변경 후보는 [진단 보고 형식](references/diagnosis-report.md)으로 먼저 보고합니다. 불일치, 필수 누락, 선택적 보강을 구분하고 모든 항목에 코드 위치나 커밋 근거를 붙입니다.
+넓은 조사에서 발견한 변경 후보는 [진단 보고 형식](references/diagnosis-report.md)으로 먼저 보고합니다. 불일치, 필수 누락, 선택적 보강을 구분하고 모든 항목에 코드 위치나 커밋 근거를 붙입니다. 해소되지 않은 기술부채를 기록하거나 완료 상태에 남길 때는 [기술부채 기록과 해소 가이드](references/technical-debt.md)를 함께 읽습니다.
 
 ### 수정 후 결과 보고
 
@@ -45,6 +47,8 @@ metadata:
 | `SITE` | 문서 사이트 구축, Starlight/VitePress, 기존 사이트에 문서 통합 | [문서 사이트](references/site-starlight.md) |
 
 작업이 여러 mode에 걸치면 primary 하나를 정하고 실제로 필요한 reference만 추가로 읽습니다. 예를 들어 "문서 사이트 만들고 API 레퍼런스도 채워줘"는 `SITE`가 primary, `GENERATE`가 보조입니다.
+
+`SITE`에서 배포·hosting·GitHub Pages·공개 URL·deployment-ready를 요청하면 [문서 사이트 배포](references/site-deployment.md)를 추가로 읽습니다. 배포 대상을 먼저 확인하고, provider의 변동 가능한 설정은 실행 시점의 공식 문서로 검증합니다. repository 설정·workflow 준비는 실제 원격 배포·secret 접근·domain/DNS 변경 권한을 포함하지 않습니다.
 
 ### 자동 한국어 윤문
 

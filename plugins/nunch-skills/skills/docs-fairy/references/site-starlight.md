@@ -1,8 +1,20 @@
 # 문서 사이트 (SITE)
 
-프로젝트 문서를 독립적인 웹 문서 사이트로 제공합니다. 기본 프레임워크는 **Starlight**(Astro 기반)입니다. 사용자가 VitePress 등 다른 프레임워크를 지정하면 그 공식 문서를 조사해 같은 원칙으로 진행합니다.
+프로젝트 문서를 독립적인 웹 문서 사이트로 제공합니다. 이 reference는 사이트 구축과 `local-complete`를 담당합니다. 기본 프레임워크는 **Starlight**(Astro 기반)입니다. 사용자가 VitePress 등 다른 프레임워크를 지정하면 그 공식 문서를 조사해 같은 원칙으로 진행합니다.
 
 프레임워크 scaffold 명령과 설정 스키마는 자주 바뀝니다. 아래 내용과 실제 동작이 다르면 공식 문서(https://starlight.astro.build)를 우선하고, 문서 조회 도구(Context7 등)가 있으면 최신 버전을 확인합니다.
+
+배포·hosting·GitHub Pages·공개 URL을 요청하면 [문서 사이트 배포](site-deployment.md)를 추가로 읽습니다. 설정과 workflow만 준비한 상태는 `config-prepared`, 실제 원격 배포와 공개 URL 검증까지 마친 상태만 `deployment-ready`입니다.
+
+## 완료 상태
+
+`local-complete`는 다음 조건을 모두 만족한 상태입니다.
+
+- 사이트 package의 production build와 package-local 품질 gate가 통과했다.
+- production preview에서 대표 사용자 흐름을 직접 검증했다.
+- 남은 warning과 기술부채를 숨기지 않고 보고했다.
+
+production preview를 실행하지 못했거나 대표 흐름이 실패했다면 기술부채로 낮춰 기록하더라도 `local-complete`라고 선언하지 않습니다. 독립 package는 자체 gate가 있으면 충분하며 root workspace·`check`·CI 편입은 필수 조건이 아닙니다. 대신 독립 package라는 사실과 root gate 참여 여부를 결과에 남깁니다.
 
 ## 상황 판단
 
@@ -59,7 +71,7 @@
 4. 템플릿이 만든 영어 예제 콘텐츠(`src/content/docs/` 하위)는 삭제하고 실제 문서로 대체합니다. 예제 페이지가 남은 채 배포되는 것이 흔한 사고입니다.
 5. 기존 마크다운 문서(README, docs/*.md)가 있으면 이관합니다 (아래 '콘텐츠 이관').
 6. dev 서버로 빠르게 확인한 뒤 프로덕션 빌드와 preview에서 수동 브라우저 검수를 수행합니다. Pagefind 기반 검색처럼 빌드 산출물에서만 온전히 동작하는 기능은 dev 서버 결과로 대체하지 않습니다. 빌드와 수동 검수 없이 "완료"라고 하지 않습니다.
-7. 새 사이트 패키지가 루트 workspace에 포함되는지, 루트 `check`나 CI가 사이트 빌드를 실행하는지 확인합니다. 사용자가 저장소 전체 통합을 요청했다면 연결하고, 아니라면 임의로 CI를 바꾸지 말고 현재 참여 여부를 완료 보고에 남깁니다.
+7. 새 사이트 package가 루트 workspace·`check`·CI에 참여하는지 확인합니다. 독립 package가 자체 build와 package-local gate를 갖췄다면 root 편입을 `local-complete` 조건으로 강제하지 않습니다. 사용자가 저장소 전체 통합을 요청한 경우에만 연결하고, 그 외에는 현재 참여 여부를 완료 보고에 남깁니다.
 
 ### 수동 브라우저 검수
 
@@ -99,9 +111,19 @@
 
 - **검증 상태**: 프로덕션 build·preview 수동 검수 결과, 루트 workspace/`check`/CI 참여 여부, 남은 build warning과 배포 URL 상태.
 
+- **완료 상태**: 아래 세 상태를 각각 `충족`·`미충족`·`요청 안 됨`으로 표시합니다. `config-prepared`는 완료 단계가 아닌 중간 보고 상태입니다.
+
+  | 상태 | 판정 기준 |
+  |---|---|
+  | `local-complete` | package-local production build와 production preview 대표 흐름 통과 |
+  | `config-prepared` | 선택한 provider의 로컬 설정과 workflow 준비 완료. 실제 배포 완료를 뜻하지 않음 |
+  | `deployment-ready` | 원격 배포 완료 후 공개 URL에서 대표 흐름 검증 통과 |
+
 build warning은 숨기지 않고 영향과 함께 보고합니다. `site` 또는 배포 URL이 없어 sitemap 생성을 건너뛰었다면 URL을 지어내지 말고 미설정 상태로 남깁니다.
 
-배포(CI, GitHub Pages 등) 설정은 이 스킬의 기본 범위가 아닙니다. 사용자가 요청하면 진행하되 별도 승인을 받습니다.
+해소되지 않은 warning·SSOT drift·운영 부담을 남길 때는 [기술부채 기록과 해소 가이드](technical-debt.md)에 따라 영향과 적극적인 해소 경로를 함께 보고합니다. build나 production preview처럼 `local-complete`의 hard gate를 실패한 항목은 기술부채로 기록했다는 이유로 통과 처리하지 않습니다.
+
+배포 설정을 요청하면 [문서 사이트 배포](site-deployment.md)의 target-first 절차를 따릅니다. repository 설정·workflow 준비와 실제 원격 배포·secret 접근·domain/DNS 변경은 서로 다른 승인 gate입니다.
 
 ## B. 기존 사이트에 통합
 
@@ -117,7 +139,7 @@ build warning은 숨기지 않고 영향과 함께 보고합니다. `site` 또�
 - 파일당 페이지 1개가 기본. 거대한 단일 문서는 논리 단위로 분할을 제안합니다.
 - 각 페이지에 frontmatter 추가: `title`(H1과 중복되므로 본문 H1은 제거), `description`.
 - 상대 링크(`./other.md`)를 사이트 경로로 변환하고, 이미지 등 자산을 함께 이관합니다.
-- 완료 전에 문서의 **정본(SSOT)** 과 동기화 방식을 확정합니다. 기본 제안은 사이트 문서를 정본으로 두고 GitHub에서 바로 읽을 가치가 있는 원본은 요약 + 사이트 링크 stub으로 남기는 방식입니다. 원본을 정본으로 유지한다면 결정적 생성·동기화 절차를 둡니다. 중복 유지를 선택하면 동기화 책임과 갱신 절차를 문서화합니다. 관리되지 않는 두 사본을 남긴 채 완료하지 않으며, edit link는 정본을 가리켜야 합니다.
+- 완료 전에 문서의 **정본(SSOT)** 과 동기화 방식을 확인합니다. 기본 제안은 사이트 문서를 정본으로 두고 GitHub에서 바로 읽을 가치가 있는 원본은 요약 + 사이트 링크 stub으로 남기는 방식입니다. 원본을 정본으로 유지한다면 결정적 생성·동기화 절차를 둡니다. 중복 유지를 선택하면 동기화 책임과 갱신 절차를 문서화합니다. 즉시 해소하지 못해도 `local-complete`는 가능하지만, [기술부채 기록과 해소 가이드](technical-debt.md)에 따라 영향·목표 상태·해소 절차·검증·종료 기준을 기록해야 합니다. edit link가 정본이 아닌 사본을 가리키는지도 같은 부채에 포함합니다.
 
 ## 다국어 문서
 
