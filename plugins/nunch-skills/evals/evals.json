@@ -128,6 +128,47 @@
         "No humanize-korean workspace, summary block, placeholder, or partial artifact appears in the repository or final README",
         "All commands, options, paths, and environment variables remain verified against src/cli.js"
       ]
+    },
+    {
+      "id": 9,
+      "name": "bundled-skill-catalog",
+      "prompt": "이 플러그인에 들어 있는 각 스킬이 무엇을 하고 언제 쓰는지 설명하는 사용자 문서를 만들어줘.",
+      "expected_output": "배포 대상 스킬을 빠짐없이 확인하고 선택용 색인과 스킬별 사용자 관점 설명을 제공하며 wrapper·primary 관계와 확인된 제약을 숨기지 않는 한국어 문서",
+      "assertions": [
+        "The documented skill inventory exactly matches the skills shipped by the plugin; no source-only or missing skill is presented as available",
+        "The index lets a user compare each skill's use case, observable result, and detailed documentation link",
+        "Each skill page explains when to use it, when not to use it, a supported invocation example, its user-visible flow, relevant safety or permission boundaries, dependencies, and a source link without copying the full SKILL.md",
+        "Wrapper commands such as humanize and humanize-redo are distinguished from the primary humanize-korean workflow",
+        "Contradictions between a wrapper and its underlying workflow are reported as verified documentation findings instead of silently choosing one behavior",
+        "Commands, paths, dependencies, and invocation forms are verified against manifests and skill sources"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "local-humanize-preflight-fallback",
+      "prompt": "로컬 workspace와 설치된 플러그인에 humanize-korean이 각각 있어. 실행 가능한 쪽을 골라 이 한국어 README를 다듬어줘.",
+      "expected_output": "허용된 로컬 후보를 먼저 확인하되 전처리기와 gate가 실제로 시작되는 후보만 선택하고, 실패 후보를 수정·설치하지 않은 채 다음 후보 또는 검증된 초안으로 안전하게 fallback",
+      "assertions": [
+        "Candidate discovery is limited to the user-provided path, declared workspace roots, and current skill roots instead of recursively scanning the home directory",
+        "Each candidate is interpreted from its own SKILL.md and its preprocessor and final gate are tested with non-mutating startup or import checks before use",
+        "A candidate is not selected solely because its directory, version, or scripts exist",
+        "A failed candidate is reported concisely and left unchanged; the workflow tries the next authorized candidate without installing anything",
+        "If no candidate passes preflight, the verified pre-humanization README is retained and the documentation task still completes"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "starlight-collision-ssot-and-preview",
+      "prompt": "이미 docs 폴더에 원본 마크다운이 있는 프로젝트에 Starlight 문서 사이트를 만들어줘. 검색까지 실제로 확인해줘.",
+      "expected_output": "원본 docs를 덮어쓰지 않는 경로에 사이트를 만들고 정본·동기화 정책과 저장소 gate 참여 여부를 확정한 뒤 프로덕션 preview에서 핵심 상호작용을 검수한 결과",
+      "assertions": [
+        "The existing non-empty docs directory is preserved and the site is scaffolded at a non-colliding path that follows repository conventions",
+        "The final state has an explicit canonical documentation source and either stubs, deterministic synchronization, or an accepted documented duplicate-owner workflow; unmanaged duplicate copies are not left behind",
+        "Edit links point to the canonical source",
+        "Production build succeeds and the production preview is manually exercised for home navigation, sidebar links, search results, and theme switching",
+        "Korean prose, tables, search excerpts, code, paths, and identifiers are checked for wrapping or clipping on the project-supported viewports",
+        "The completion report states whether the docs package participates in the root workspace, root check, and CI, and reports deployment URL or build warnings without inventing configuration"
+      ]
     }
   ]
 }

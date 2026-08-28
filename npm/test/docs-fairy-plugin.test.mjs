@@ -79,7 +79,7 @@ test('docs-fairy release smoke has one real read-only fixture', async () => {
   assert.equal(smoke.release_blocking, true);
   assert.deepEqual(smoke.platforms, ['codex', 'claude']);
   assert.equal(manual.release_blocking, false);
-  assert.equal(manual.evals.length, 9);
+  assert.equal(manual.evals.length, 12);
   assert.equal(
     manual.evals.some((scenario) => 'files' in scenario),
     false,
