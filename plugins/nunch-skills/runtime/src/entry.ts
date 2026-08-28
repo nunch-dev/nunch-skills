@@ -1,7 +1,8 @@
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { z } from 'zod';
 import { dependencyNotice } from './dependency-notice.ts';
 import { runVerifiedUpdate } from './release.ts';
@@ -15,6 +16,7 @@ const updateStateSchema = z.strictObject({
   lastError: z.string().optional(),
 });
 type UpdateState = z.infer<typeof updateStateSchema>;
+const execFileAsync = promisify(execFile);
 
 async function main(): Promise<number> {
   const [command, subcommand] = process.argv.slice(2);
@@ -26,6 +28,7 @@ async function main(): Promise<number> {
 
 async function runHook(): Promise<number> {
   try {
+    const adhdContext = await loadIHaveAdhdContext();
     let state = await readUpdateState();
     const notice = state.pendingNotice ?? state.lastError;
     if (notice !== undefined) {
@@ -36,7 +39,10 @@ async function runHook(): Promise<number> {
       process.env['NUNCH_SKILLS_AUTO_UPDATE_DISABLED'] === '1' ||
       !shouldCheck(state.lastStatus, state.lastAttemptAt, Date.now())
     ) {
-      if (notice !== undefined) writeHookOutput(notice);
+      writeHookOutput([
+        ...(adhdContext === undefined ? [] : [adhdContext]),
+        ...(notice === undefined ? [] : [`[nunch-skills] ${notice}`]),
+      ]);
       return 0;
     }
     const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'run'], {
@@ -46,11 +52,14 @@ async function runHook(): Promise<number> {
     });
     child.unref();
     await saveUpdateState({ lastAttemptAt: Date.now(), lastStatus: 'started' });
-    writeHookOutput(
-      notice === undefined
-        ? 'Automatic update started in the background.'
-        : `${notice} Automatic update started in the background.`,
-    );
+    writeHookOutput([
+      ...(adhdContext === undefined ? [] : [adhdContext]),
+      `[nunch-skills] ${
+        notice === undefined
+          ? 'Automatic update started in the background.'
+          : `${notice} Automatic update started in the background.`
+      }`,
+    ]);
   } catch {
     await saveUpdateState({ lastAttemptAt: Date.now(), lastStatus: 'failed' }).catch((saveError: unknown) => {
       if (saveError instanceof Error) return;
@@ -95,9 +104,28 @@ async function readUpdateState(): Promise<UpdateState> {
   }
 }
 
-function writeHookOutput(message: string): void {
+async function loadIHaveAdhdContext(): Promise<string | undefined> {
+  const hook = fileURLToPath(new URL('../hooks/i-have-adhd-always-on.mjs', import.meta.url));
+  try {
+    const result = await execFileAsync(process.execPath, [hook], {
+      encoding: 'utf8',
+      env: process.env,
+      timeout: 10_000,
+    });
+    const context = result.stdout.trim();
+    return context.length === 0 ? undefined : context;
+  } catch (error) {
+    if (error instanceof Error) return undefined;
+    throw error;
+  }
+}
+
+function writeHookOutput(messages: string[]): void {
+  if (messages.length === 0) return;
   process.stdout.write(
-    `${JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: `[nunch-skills] ${message}` } })}\n`,
+    `${JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: messages.join('\n\n') },
+    })}\n`,
   );
 }
 

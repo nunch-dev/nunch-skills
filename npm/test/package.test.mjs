@@ -35,6 +35,7 @@ test('npm pack --dry-run publishes only the declared package surface', async (co
     'package.json',
     'plugins/nunch-skills/.codex-plugin/plugin.json',
     'plugins/nunch-skills/hooks/hooks.json',
+    'plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs',
     'plugins/nunch-skills/runtime/nch-installer.mjs',
     'plugins/nunch-skills/scripts/node-dispatch.ps1',
     'tools/upstream-sync/dist/upstream-sync.mjs',

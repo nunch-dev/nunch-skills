@@ -104,6 +104,7 @@ test('authenticates the npm manifest against the complete Git release', async ()
     'npm/bin/nunch-skills.mjs',
     'plugins/nunch-skills/.codex-plugin/plugin.json',
     'plugins/nunch-skills/hooks/hooks.json',
+    'plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs',
     'plugins/nunch-skills/runtime/nch-installer.mjs',
     'plugins/nunch-skills/scripts/node-dispatch.ps1',
   ];

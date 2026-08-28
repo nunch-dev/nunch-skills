@@ -44,7 +44,10 @@ const marketplacePath = '.agents/plugins/marketplace.json';
 const pluginPath = 'plugins/nunch-skills/.codex-plugin/plugin.json';
 const hookPath = 'plugins/nunch-skills/hooks/hooks.json';
 const runtimePath = 'plugins/nunch-skills/runtime/nch-installer.mjs';
-const scriptPaths = ['plugins/nunch-skills/scripts/node-dispatch.ps1'];
+const scriptPaths = [
+  'plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs',
+  'plugins/nunch-skills/scripts/node-dispatch.ps1',
+];
 
 export type ReleaseManifest = z.infer<typeof manifestSchema>;
 type ReleaseFile = z.infer<typeof fileSchema>;

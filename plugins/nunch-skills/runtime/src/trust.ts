@@ -19,7 +19,7 @@ const hookIdentitySchema = z.strictObject({
       }),
     )
     .length(1),
-  matcher: z.literal('^startup$'),
+  matcher: z.literal('startup|resume|clear|compact'),
 });
 
 const hashPattern = /^sha256:[0-9a-f]{64}$/;
@@ -29,7 +29,7 @@ const hookFileSchema = z.strictObject({
     SessionStart: z
       .array(
         z.strictObject({
-          matcher: z.literal('^startup$'),
+          matcher: z.literal('startup|resume|clear|compact'),
           hooks: z
             .array(
               z.strictObject({

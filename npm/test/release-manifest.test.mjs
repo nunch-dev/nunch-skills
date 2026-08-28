@@ -38,6 +38,7 @@ async function releaseFixture(context, { largeRuntime = false } = {}) {
     '.agents/plugins/marketplace.json',
     'plugins/nunch-skills/.codex-plugin/plugin.json',
     'plugins/nunch-skills/hooks/hooks.json',
+    'plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs',
     'plugins/nunch-skills/scripts/node-dispatch.ps1',
     RUNTIME_PATH,
   ];

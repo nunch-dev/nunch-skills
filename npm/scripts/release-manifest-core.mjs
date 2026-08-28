@@ -18,7 +18,10 @@ const PACKAGE_NAME = '@nunch-dev/skills';
 const MARKETPLACE_PATH = '.agents/plugins/marketplace.json';
 const PLUGIN_PATH = 'plugins/nunch-skills/.codex-plugin/plugin.json';
 const HOOK_PATH = 'plugins/nunch-skills/hooks/hooks.json';
-const SCRIPT_PATHS = ['plugins/nunch-skills/scripts/node-dispatch.ps1'];
+const SCRIPT_PATHS = [
+  'plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs',
+  'plugins/nunch-skills/scripts/node-dispatch.ps1',
+];
 const RUNTIME_PATH = 'plugins/nunch-skills/runtime/nch-installer.mjs';
 
 async function readStageFile(staging, path) {

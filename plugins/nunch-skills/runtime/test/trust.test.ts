@@ -22,7 +22,7 @@ test('hashes the canonical platform hook identity', () => {
         type: 'command',
       },
     ],
-    matcher: '^startup$',
+    matcher: 'startup|resume|clear|compact',
   };
 
   // When
@@ -59,7 +59,7 @@ test('rejects trust when the installed installer payload is tampered', async () 
     hooks: {
       SessionStart: [
         {
-          matcher: '^startup$',
+          matcher: 'startup|resume|clear|compact',
           hooks: [
             {
               type: 'command',

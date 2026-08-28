@@ -19,6 +19,10 @@
         {
           "source": "logo.png",
           "destination": "plugins/nunch-skills/assets/i-have-adhd-logo.png"
+        },
+        {
+          "source": "hooks/always-on.mjs",
+          "destination": "plugins/nunch-skills/hooks/i-have-adhd-always-on.mjs"
         }
       ]
     },
