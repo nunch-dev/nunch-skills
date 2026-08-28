@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "skill_name": "kaneo-skills",
+  "release_blocking": false,
+  "purpose": "실제 Kaneo 테스트 인스턴스에서 destination·시작 column·중복·subtask·partial success 계약을 검증합니다.",
+  "evals": [
+    {
+      "id": 300,
+      "name": "single-alias-clear-path",
+      "prompt": "$kaneo-skills로 로그인 오류 재현 작업을 명확히 맞는 project에 등록해줘.",
+      "expected_output": "workspace·project·To Do alias가 각각 하나이고 중복이 없으면 실제 slug로 한국어 issue 생성",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.clear-path.destination", "classification": "mandatory", "text": "workspace와 의미상 맞는 기존 project가 각각 정확히 하나일 때만 자동 진행한다." },
+        { "stable_id": "workflow.kaneo.clear-path.actual-slug", "classification": "mandatory", "text": "Todo·To Do·할 일 중 정확히 하나의 name이 일치하면 API가 반환한 실제 slug를 사용한다." },
+        { "stable_id": "workflow.kaneo.clear-path.priority-required", "classification": "mandatory", "text": "사용자가 priority를 주지 않았어도 task 생성 payload에 priority: no-priority를 포함한다." },
+        { "stable_id": "workflow.kaneo.clear-path.success-result", "classification": "mandatory", "text": "API 성공 결과와 task id·number를 확인한 issue만 생성됐다고 보고한다." },
+        { "stable_id": "workflow.kaneo.clear-path.identifier-contract", "classification": "mandatory", "text": "응답에 완성된 identifier가 없으면 확인한 project slug와 반환 number만 API 계약에 따라 결합한다." }
+      ]
+    },
+    {
+      "id": 301,
+      "name": "missing-start-column",
+      "prompt": "시작 column이 Backlog와 Done뿐인 project에 이 작업을 등록해줘.",
+      "expected_output": "alias 일치가 0개이므로 first non-final column을 추측하지 않고 mutation 전 질문",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.column.zero-match-stop", "classification": "mandatory", "text": "Todo·To Do·할 일 일치가 0개이면 어떤 issue도 생성하지 않는다." },
+        { "stable_id": "workflow.kaneo.column.no-first-non-final", "classification": "mandatory", "text": "첫 번째 non-final column을 default로 사용하지 않는다." }
+      ]
+    },
+    {
+      "id": 302,
+      "name": "multiple-start-columns",
+      "prompt": "Todo와 할 일 column이 둘 다 있는 project에 작업을 등록해줘.",
+      "expected_output": "alias 일치가 여러 개이므로 position이 빠른 column을 고르지 않고 후보를 보여준 뒤 질문",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.column.multiple-match-stop", "classification": "mandatory", "text": "alias가 여러 개 일치하면 mutation 전에 중단한다." },
+        { "stable_id": "workflow.kaneo.column.show-real-candidates", "classification": "mandatory", "text": "각 후보의 실제 name·slug·position을 보여주고 하나를 선택하도록 요청한다." }
+      ]
+    },
+    {
+      "id": 303,
+      "name": "plausible-duplicate",
+      "prompt": "이미 비슷한 로그인 실패 조사 issue가 있는 project에 로그인 오류 조사 작업을 등록해줘.",
+      "expected_output": "문구가 달라도 같은 outcome인 후보를 보여주고 create·reuse·revise 중 선택 전에는 생성하지 않음",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.duplicate.semantic-check", "classification": "mandatory", "text": "title keyword뿐 아니라 underlying problem과 outcome이 같은 후보를 확인한다." },
+        { "stable_id": "workflow.kaneo.duplicate.approval-stop", "classification": "mandatory", "text": "가능성 있는 중복이 있으면 사용자 선택 전에 새 issue를 생성하지 않는다." }
+      ]
+    },
+    {
+      "id": 304,
+      "name": "parent-subtask-relation",
+      "prompt": "인증 개선 parent 아래에 재현, 수정, 회귀 테스트를 subtask로 만들어줘.",
+      "expected_output": "구조 확인 후 parent와 child를 생성하고 parent source·child target의 subtask relation 연결",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.subtask.confirm-structure", "classification": "mandatory", "text": "여러 outcome의 parent/subtask 제안을 mutation 전에 확인받는다." },
+        { "stable_id": "workflow.kaneo.subtask.parent-first", "classification": "mandatory", "text": "parent를 먼저 만들고 각 child를 실제 시작 slug의 normal task로 만든다." },
+        { "stable_id": "workflow.kaneo.subtask.direction", "classification": "mandatory", "text": "parent id를 sourceTaskId, child id를 targetTaskId, subtask를 relationType으로 전송한다." }
+      ]
+    },
+    {
+      "id": 305,
+      "name": "relation-partial-success",
+      "prompt": "확정한 parent와 child 두 개를 생성하되 relation 호출 하나가 실패하는 상황을 처리해줘.",
+      "expected_output": "성공한 issue와 relation, orphan child, 실패 단계를 정확히 보고하고 mutation을 blind retry하지 않음",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.partial.stop-on-failure", "classification": "mandatory", "text": "첫 실패 지점에서 mutation을 중단하고 같은 호출을 자동 재시도하지 않는다." },
+        { "stable_id": "workflow.kaneo.partial.report-successes", "classification": "mandatory", "text": "성공한 issue identifier와 relation을 정확히 보고한다." },
+        { "stable_id": "workflow.kaneo.partial.report-orphan", "classification": "mandatory", "text": "생성됐지만 relation이 없는 child와 안전한 다음 행동을 명시한다." }
+      ]
+    }
+  ]
+}
