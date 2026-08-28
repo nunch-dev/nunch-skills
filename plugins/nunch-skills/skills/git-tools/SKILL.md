@@ -34,6 +34,8 @@ Git 요청의 primary policy입니다. 현재 저장소 상태와 실제 diff를
 
 작업이 여러 mode에 걸치면 primary leaf 하나를 정하고 실제로 필요한 보조 leaf만 추가로 읽습니다. 모든 Git 설명을 한꺼번에 로드하지 않습니다. 전체 지원 범위와 risk tier는 [Command coverage](references/command-coverage.md)에서 확인합니다.
 
+공통 권한과 승인 규칙은 [공통 안전 계약](references/safety.md)만 규범으로 소유합니다. Mode reference와 command coverage 표가 권한 조건을 반복하거나 다르게 정의하면 안 되며, 명령별 precondition·postcondition·recovery 차이만 추가합니다.
+
 Skill release를 검증할 때는 [Validation Gate](references/validation.md)를 따릅니다.
 
 ## 읽기 전용 조사
@@ -61,6 +63,14 @@ Write operation은 다음 조건을 모두 만족해야 완료입니다.
 - 관련 verification이 통과했거나 실행하지 못한 이유를 보고했습니다.
 - 실패 시 abort, reflog OID 또는 보존된 임시 자원으로 복구할 수 있습니다.
 - 임시 index, worktree와 disposable 자원을 정리하고 최종 `git status`를 확인했습니다.
+
+## 대표 경계 예시
+
+- **일반 branch push**: 사용자가 exact remote·branch를 지정하고 fetch 결과가 fast-forward이며 외부 side effect가 없다고 확인되면 OID·refspec preview 후 실행합니다.
+- **위험 remote write**: tag push, force, delete, overwrite, non-fast-forward 또는 CI/CD·release·배포 연결이 있거나 연결 여부를 확인할 수 없으면 실행 직전에 두 번째 확인을 받습니다.
+- **Destructive local write**: `reset --hard`, `clean`, 변경을 폐기하는 `restore`는 사용자가 exact command를 요청했어도 손실 범위와 recovery point를 보여주고 다시 확인합니다.
+- **Atomic commit**: 요청과 무관한 staged hunk·file만 staged 상태로 보존합니다. 요청 범위 staged patch는 commit에 소비하며 같은 file의 hunk 소유가 모호하면 질문합니다.
+- **검증 실패**: test·typecheck·lint·hook이 실패하면 candidate를 복구 가능하게 보존하고 중단합니다. 별도 요청 없이 code·test·config를 수정하지 않습니다.
 
 ## 완료 보고
 

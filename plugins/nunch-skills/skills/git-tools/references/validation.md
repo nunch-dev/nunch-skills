@@ -11,7 +11,8 @@ Skill wording 검사는 실제 Git state-transition 검증을 대체하지 않�
    - read-only status/history evidence
    - mixed changes atomic grouping과 unrelated state 보존
    - destructive local operation의 second-confirmation stop
-   - 모든 remote write의 fetch/OID preview와 second-confirmation stop
+   - exact branch fast-forward/new branch의 preview 후 실행과 external side-effect 부재 확인
+   - external side effect·unknown, force·delete·overwrite·non-fast-forward, tag·notes·special ref의 second-confirmation stop
    - ambiguous conflict, hook/test failure와 non-fast-forward stop
    - abort/reflog/temporary worktree cleanup
 5. 이번 release에서 변경된 leaf의 happy/failure scenario

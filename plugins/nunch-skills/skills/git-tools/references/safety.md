@@ -9,7 +9,8 @@ Git write workflow가 공유하는 source of truth입니다. Leaf reference에�
 | Read-only / tracking refresh | status, diff, show, log, remote 조회, 제한된 fetch | 요청 해결에 필요하면 실행 가능하며 fetch의 local tracking-ref update를 기록 |
 | Reversible local write | add, commit, switch, merge, stash, worktree 생성 | 사용자가 해당 Git 작업을 명시적으로 요청해야 함 |
 | Destructive local write | restore로 변경 폐기, reset --hard, clean, unmerged branch 강제 삭제 | exact target·손실·복구 지점을 보여주고 실행 직전 별도 확인 |
-| Remote write | commit/tag push, remote ref 생성·갱신·삭제·덮어쓰기 | 최초 요청과 별도로 fetch·OID preview 후 실행 직전 별도 확인 |
+| Remote branch fast path | exact branch의 일반 fast-forward push, 새 branch 생성 | 사용자가 exact remote·branch를 명시하고 fetch·OID·refspec preview 후 실행. 외부 side effect가 없다고 확인돼야 함 |
+| High-risk remote write | force, delete, overwrite, non-fast-forward, remote tag·notes·special ref, 외부 side effect가 있거나 확인 불가 | fetch·OID preview 후 실행 직전 별도 확인 |
 
 `--system` config, hook 관리, plumbing, object/ref 직접 조작과 repository administration은 지원하지 않습니다.
 
@@ -63,18 +64,31 @@ Recovery point가 없거나 손실 범위가 불명확하면 실행하지 않습
 
 ## Remote write
 
-모든 remote write 전에 대상 remote/ref를 fetch하고 다음을 보여줍니다.
+모든 remote write 전에 대상 remote/ref를 fetch하고 다음을 확인합니다.
 
 - remote와 ref
 - observed current OID와 target OID
 - 전송 commit range와 refspec
 - fast-forward 여부, 다른 사용자 영향과 복구 가능성
 
-그 뒤 실행 직전 별도 확인을 받습니다. 승인받은 remote/ref/refspec을 벗어나지 않습니다.
+Preview 후 다음 순서로 권한을 판정합니다.
+
+1. **IF** 사용자가 exact remote와 branch를 명시했고, 전송이 일반 fast-forward push 또는 새 branch 생성이며, 대상 branch에 CI/CD·Pages·package publish·release·배포 같은 외부 side effect가 없다고 확인되면 바로 실행할 수 있습니다.
+2. **IF** 외부 side effect가 연결됐거나 연결 여부를 확인할 수 없으면 high-risk remote write로 승격하고 실행 직전에 별도 확인을 받습니다.
+3. Force, delete, overwrite, non-fast-forward, remote tag, notes와 special ref는 항상 high-risk remote write입니다.
+4. Preview가 사용자 요청과 다른 remote·branch·refspec을 보여주면 실행하지 않고 차이를 설명한 뒤 확인받습니다.
+
+승인받은 remote/ref/refspec을 벗어나서는 안 됩니다.
 
 - Force-push는 `--force-with-lease=<ref>:<expected-oid>`만 사용합니다.
 - 여러 ref가 하나의 단위면 atomic push를 요구합니다. Server가 지원하지 않으면 sequential partial push로 우회하지 않습니다.
-- Fetch가 실패하면 ordinary fast-forward push는 server 검증에 맡길 수 있지만 force, delete, overwrite는 중단합니다.
+- Fetch가 실패해 current remote OID와 side effect 조건을 확인할 수 없으면 fast path를 사용하지 않습니다. Force, delete, overwrite와 ref target이 불명확한 write는 중단하고, ordinary branch push도 preview 계약을 충족할 때까지 실행하지 않습니다.
+
+### 예시
+
+- “`origin feature/login`을 push해줘”이고 fetch 결과 fast-forward이며 대상에 외부 side effect가 없다고 확인됨: OID·refspec preview 후 실행합니다.
+- “`v2.0.0` tag를 push해줘”: remote tag는 release trigger 여부와 관계없이 preview 뒤 두 번째 확인을 받습니다.
+- “`main`을 push해줘”인데 workflow·Pages·release 연결 여부를 확인할 수 없음: 일반 fast-forward여도 두 번째 확인을 받습니다.
 
 ## Config와 hooks
 

@@ -26,7 +26,7 @@
 
 ## Shared history publication
 
-History edit 완료는 push 권한을 포함하지 않습니다. Remote publication은 [Remote](remote.md)의 fetch, OID preview와 second confirmation을 별도로 거칩니다.
+History edit 완료는 push 권한을 포함하지 않습니다. Remote publication은 [공통 안전 계약](safety.md#remote-write)의 fetch·OID preview와 fast-path/high-risk 분류를 별도로 적용합니다. Rewrite 결과의 force·non-fast-forward push는 항상 high-risk이므로 실행 직전에 두 번째 확인을 받습니다.
 
 ## Observable success
 

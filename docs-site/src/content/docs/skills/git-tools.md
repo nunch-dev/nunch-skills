@@ -3,40 +3,28 @@ title: git-tools
 description: Git 상태와 이력을 조사하고 안전한 상태 전이를 수행하는 스킬
 ---
 
-Git 상태와 이력을 근거로 최소 상태 전이만 수행하는 primary Git 스킬입니다. 섞인 변경을 원자적으로 커밋하고 branch, rebase, merge, stash, worktree, remote, tag, submodule, bundle과 복구 작업을 다룹니다.
+Git 상태와 이력을 근거로 요청한 최소 상태 전이만 수행합니다. 섞인 변경의 원자적 커밋과 branch·rebase·merge·restore·stash·worktree·remote·tag·submodule·bundle·복구를 다룹니다.
 
-## 사용 시점
+## 커밋 계약
 
-- 변경을 작업별로 나눠 커밋할 때
-- log, blame, bisect, reflog로 변경 원인을 조사할 때
-- branch 통합, rebase, restore, stash 또는 worktree 작업이 필요할 때
-- push, pull, remote ref와 tag를 안전하게 관리할 때
-
-일반 코드 수정만 요청했고 Git 상태 변경이나 이력 조사가 필요하지 않으면 활성화하지 않습니다.
-
-## 사용 예
-
-```text
-$git-tools 현재 변경을 작업 단위로 나눠 커밋해줘
-```
-
-Git 실행 파일이 필요합니다.
-
-## 커밋 원칙
-
-- 전체 staged·unstaged·untracked 변경을 읽고 독립적으로 revert 가능한 단위로 분류합니다.
-- 기본 커밋 메시지는 이모지 없이 한글로 작성합니다.
-- 모노레포 제목은 `(서비스) [타입]: 한글 요약` 형식을 사용합니다.
-- 구현과 직접 연결된 테스트·생성 artifact는 같은 커밋에 둡니다.
+- 전체 staged·unstaged·untracked 변경을 읽고 독립적으로 되돌릴 수 있는 목적 단위로 분류합니다.
+- 단순 커밋 요청은 목적 기반 그룹화와 index 재구성을 허용합니다.
+- 요청 범위의 staged patch는 커밋이 소비하므로 커밋 뒤 다시 stage하지 않습니다. 요청과 무관한 staged hunk나 파일만 원래 index 상태로 복원합니다.
+- 같은 파일에서 요청 범위와 무관한 변경의 소유권을 안전하게 나눌 수 없으면 커밋 전에 질문합니다.
+- test·typecheck·lint·hook 실패 시 복구 가능한 상태를 보존하고 멈춥니다. 별도의 명확한 요청 없이 코드·테스트·설정·formatter를 고치지 않습니다.
 
 ## 원격 작업
 
-모든 push·remote tag·remote ref 변경은 최초 요청과 별도로 fetch와 OID preview 후 실행 직전 승인을 받습니다. Force push는 exact expected OID를 지정한 `--force-with-lease`만 허용합니다.
+정확히 지정한 일반 branch의 fast-forward push 또는 새 branch push는 다음 조건을 모두 만족하면 추가 확인 없이 실행할 수 있습니다.
 
-## 안전 경계
+- 실행 직전에 fetch하고 예상 local·remote OID와 exact refspec을 보여줍니다.
+- non-fast-forward·force·delete·overwrite가 아닙니다.
+- CI/CD, Pages, package publish, release, deploy 같은 외부 side effect가 없음을 확인했습니다.
 
-- destructive local 작업은 손실 범위와 복구 지점을 보여준 뒤 재확인합니다.
-- hook/test failure, conflict, non-fast-forward를 우회하지 않습니다.
-- 무관한 dirty work와 기존 index 상태를 보존합니다.
+외부 side effect가 있거나 알 수 없으면 두 번째 확인을 받습니다. Force·delete·overwrite·non-fast-forward와 remote tag·notes·special ref 변경도 항상 고위험 작업입니다. Force push는 exact expected OID를 지정한 `--force-with-lease`만 허용합니다.
+
+## 로컬 파괴 작업
+
+`reset --hard`, `clean`, 파괴적 restore는 처음부터 명시했더라도 손실 범위와 복구 지점을 보여주고 두 번째 확인을 받습니다. 복구 지점이 없거나 손실 범위가 불명확하면 실행하지 않습니다.
 
 Source: [`plugins/nunch-skills/skills/git-tools/SKILL.md`](https://github.com/nunch-dev/nunch-skills/blob/main/plugins/nunch-skills/skills/git-tools/SKILL.md)

@@ -30,7 +30,7 @@ staged 여부와 관계없이 요청 범위의 전체 diff와 untracked 파일 �
 기존 staged 변경도 실제 작업 단위에 맞게 분류합니다.
 
 - 요청 범위의 분류가 명확하면 index를 원자적 그룹에 맞게 재구성할 수 있습니다.
-- 요청과 무관한 staged 변경은 staged 상태를 포함해 보존합니다.
+- 요청과 무관한 기존 staged hunk와 file만 staged 상태로 보존합니다. 요청 범위의 staged 변경은 승인된 commit에 포함되면 index에서 정상적으로 소비하며, commit 뒤 같은 patch를 다시 stage하지 않습니다.
 - 사용자 의도나 소유가 모호한 staged 변경은 임의로 unstage하거나 다른 commit에 섞지 말고 질문합니다.
 - 한 파일 일부만 필요하면 hunk 단위로 stage합니다. 자동화 환경에서 대화형 stage가 불안정하면 patch를 먼저 검토한 뒤 index에 적용합니다.
 - 무관한 staged 변경과 commit 대상이 서로 다른 전체 file이면 named path만 commit하는 안전한 방법을 사용할 수 있습니다.
@@ -49,11 +49,11 @@ staged 여부와 관계없이 요청 범위의 전체 diff와 untracked 파일 �
 7. Commit 직전에 staged 또는 named-path candidate가 의도한 patch와 같은지 다시 확인합니다.
 8. commit 후 `git show --stat --oneline --decorate -1`과 `git log -1 --pretty=fuller`로 결과를 확인합니다.
 
-검사 또는 hook failure를 숨기기 위해 변경을 넓히거나 hook을 우회하지 않습니다. Commit 요청만 받은 경우 code fix 권한으로 확대하지 말고 staged candidate와 failure를 보존한 채 중단해 보고합니다. 요청과 무관한 기존 failure라면 근거와 함께 구분합니다.
+검사 또는 hook failure를 숨기기 위해 변경을 넓히거나 hook을 우회하지 않습니다. Commit 요청만 받은 경우 code·test·config 수정 권한으로 확대하지 말고 candidate와 user-owned state를 복구 가능한 상태로 보존한 채 중단해 보고합니다. Formatter나 명백한 lint 수정도 별도 요청 없이는 수행하지 않습니다. 요청과 무관한 기존 failure라면 근거와 함께 구분합니다.
 
 ## 5. 전체 검증과 보고
 
-모든 commit이 끝나면 프로젝트의 적절한 전체 검사 또는 가장 가까운 통합 검사를 한 번 실행합니다. Temporary index/worktree를 정리하고 original checkout과 user-owned staged state가 보존됐는지 확인한 뒤 status와 새 commit 범위를 확인합니다.
+모든 commit이 끝나면 프로젝트의 적절한 전체 검사 또는 가장 가까운 통합 검사를 한 번 실행합니다. Temporary index/worktree를 정리하고 요청과 무관한 user-owned staged state가 보존됐으며 요청 범위 staged patch는 commit에 소비됐는지 확인한 뒤 status와 새 commit 범위를 확인합니다.
 
 ```bash
 git status --short --branch

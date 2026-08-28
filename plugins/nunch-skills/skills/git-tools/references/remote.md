@@ -25,7 +25,8 @@
 
 ## Push와 upstream
 
-- 모든 push는 remote write입니다. 최초 요청이 있어도 fetch 후 exact remote/ref, current/target OID, refspec과 commit range를 보여주고 실행 직전 별도 확인받습니다.
+- Remote write 권한 분류는 [공통 안전 계약](safety.md#remote-write)만 소유합니다. 이 reference는 fetch 후 exact remote/ref, current/target OID, refspec과 commit range를 구성하고 fast-forward 여부를 판정합니다.
+- 일반 fast-forward push와 새 branch 생성은 공통 안전 계약의 fast path 조건을 모두 만족할 때만 preview 후 실행합니다. 조건 하나라도 불명확하면 high-risk로 처리합니다.
 - New upstream 설정과 commit push를 같은 승인 scope에 포함할지 명시합니다.
 - Non-fast-forward를 자동 rebase/merge/force로 우회하지 않습니다.
 - Force는 `--force-with-lease=<ref>:<expected-oid>`만 사용합니다.
@@ -33,7 +34,7 @@
 
 ## Remote branch와 tag mutation
 
-- Create, update, delete와 overwrite는 모두 remote write confirmation을 거칩니다.
+- 새 branch 생성과 일반 fast-forward branch update는 공통 안전 계약의 fast path를 만족할 수 있습니다. Branch delete·overwrite·non-fast-forward update와 remote tag·notes·special ref는 high-risk remote write입니다.
 - Delete/overwrite 전에 current OID, reachable unique commits, 다른 사용자 영향과 recovery ref를 보여줍니다.
 - 승인받은 refspec 외의 branch/tag를 함께 전송하지 않습니다.
 

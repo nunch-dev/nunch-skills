@@ -26,8 +26,9 @@ Supported Git porcelain의 owner, authority, postcondition과 recovery를 정의
 | remote add/rename/remove/set-url | `REMOTE` | repo-local config | explicit request, secret redact | exact remote config | old config restore |
 | fetch | `REMOTE` | remote-read/local tracking update | freshness에 필요 | observed remote OID 기록 | prior tracking OID는 report only |
 | pull | `REMOTE` + `INTEGRATE` | local graph/worktree | repository policy, fallback ff-only | fetched OID와 approved integration | merge/rebase abort |
-| push/upstream | `REMOTE` | remote write | fetch/OID preview + second confirm | server final OID 일치 | separate approved remote recovery |
-| remote branch/tag create/update/delete | `REMOTE` | remote write/destructive | every write second confirm | exact approved ref final OID | approved recovery ref push |
+| branch push/upstream | `REMOTE` | remote branch fast path 또는 high-risk remote | `safety.md`의 branch fast path 조건을 모두 만족하면 preview 후 실행, 아니면 second confirm | server final OID 일치 | separate approved remote recovery |
+| remote branch create/update/delete | `REMOTE` | remote branch fast path 또는 high-risk remote | 새 branch와 일반 fast-forward update는 fast path 가능, delete·overwrite·non-fast-forward는 second confirm | exact approved ref final OID | approved recovery ref push |
+| remote tag/notes/special ref | `REMOTE`/`PACKAGE` | high-risk remote | fetch/OID preview + second confirm | exact approved ref final OID | approved recovery ref push |
 | local tag | `PACKAGE` | local ref | overwrite/delete second confirm | tag target/type/message 일치 | saved tag OID |
 | clone, init | `PACKAGE` | repository lifecycle | exact safe target | repository root/HEAD/remote 일치 | remove only task-created empty target |
 | submodule add/init/update/sync/deinit | `PACKAGE` | multi-repository local/network | exact module list, destructive variant confirm | gitlink/config/module OID 일치 | prior gitlink/config/OID |
