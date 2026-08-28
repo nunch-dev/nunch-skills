@@ -16,7 +16,7 @@ The generated `release-manifest.json` binds that identity to the package file al
 
 ## Bootstrap trust boundary
 
-The first `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, or `bunx @nunch-dev/skills` invocation necessarily runs npm-delivered launcher and package code before dual-source verification can begin. This is distinct from ongoing SessionStart updates: the already-trusted installer downloads metadata and a tarball as data, verifies npm and Git sources, and does not execute candidate code before the verification succeeds.
+The first `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, or `bunx @nunch-dev/skills` invocation necessarily runs npm-delivered launcher and package code before dual-source verification can begin. This is distinct from ongoing Codex SessionStart updates: the already-trusted installer checks npm metadata first, downloads a tarball only for a newer stable release, verifies npm and Git sources, and does not execute candidate code before the verification succeeds. Claude Code does not launch this automatic updater.
 
 Treat initial npm publication as a security boundary. Before the first public release, confirm `@nunch-dev` scope authority, package ownership, npm account authentication controls, public access, provenance, and registry integrity handling. Keep the package allowlist narrow and never add lifecycle `postinstall` mutation. These controls reduce the first-run trust risk; they do not claim that first-run npm code was independently verified before it ran.
 
@@ -70,7 +70,7 @@ For the first npm publication, verify that the authenticated account has authori
 
 The npm trusted publisher is bound to repository `nunch-dev/nunch-skills`, workflow file `publish-npm.yml`, no GitHub Environment, and the `npm publish` permission. The workflow uses GitHub OIDC and must not receive a long-lived `NODE_AUTH_TOKEN`.
 
-Only attach a stable release to the npm `latest` dist-tag. SessionStart automatic update accepts a strictly newer stable SemVer only; it rejects prerelease, same-version, and downgrade candidates. Prerelease testing must use an explicitly selected non-`latest` version and must not silently replace a stable installed release.
+Only attach a stable release to the npm `latest` dist-tag. Codex SessionStart automatic update accepts a strictly newer stable SemVer only; it rejects prerelease, same-version, and downgrade candidates. Claude Code updates remain explicit through `npx @nunch-dev/skills update --platform=claude`. Prerelease testing must use an explicitly selected non-`latest` version and must not silently replace a stable installed release.
 
 ## Publish sequence after approval
 

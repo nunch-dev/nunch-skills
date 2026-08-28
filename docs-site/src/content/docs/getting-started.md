@@ -13,6 +13,14 @@ npx @nunch-dev/skills install
 
 설치 프로그램이 필요한 파일을 배치하고 각 에이전트의 플러그인 설정을 갱신합니다.
 
+같은 명령을 다시 실행하면 관리 중인 이전 버전은 업데이트되고, 같은 버전은 설치 상태만 검증합니다. 더 높은 버전이 설치되어 있거나 lifecycle 기록이 없는 설치는 자동으로 덮어쓰지 않습니다.
+
+Codex는 SessionStart에서 최신 안정 버전을 자동으로 확인합니다. Claude Code는 자동 updater를 실행하지 않으므로 필요할 때 직접 업데이트합니다.
+
+```bash
+npx @nunch-dev/skills update --platform=claude
+```
+
 ## 설치 상태 확인
 
 ```bash

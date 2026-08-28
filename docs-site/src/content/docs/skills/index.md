@@ -26,3 +26,5 @@ npx @nunch-dev/skills install
 ```
 
 설치 화면에서 플랫폼을 선택하면 전체 스킬 번들이 함께 설치됩니다. 상태 점검은 `npx @nunch-dev/skills doctor`를 사용합니다. `doctor`는 스킬별로 필요한 Git, Python 3.11 이상, uv와 Kaneo MCP 상태도 알려줍니다.
+
+설치 명령을 다시 실행하면 관리 중인 이전 버전은 업데이트되고, 같은 버전은 검증만 거칩니다. 더 높은 버전이나 lifecycle 기록이 없는 설치는 자동으로 덮어쓰지 않습니다. Codex는 SessionStart 자동 업데이트를 지원하며, Claude Code는 `npx @nunch-dev/skills update --platform=claude`로 직접 업데이트합니다.

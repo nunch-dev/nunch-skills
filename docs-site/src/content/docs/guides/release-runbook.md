@@ -19,7 +19,7 @@ vX.Y.Z
 
 ## 최초 실행의 신뢰 경계
 
-처음 `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, `bunx @nunch-dev/skills`를 실행하면 이중 출처 검증을 시작하기 전에 npm으로 받은 launcher와 패키지 코드가 먼저 실행됩니다. 이 과정은 이후 SessionStart 업데이트와 다릅니다. 이미 신뢰한 설치 프로그램은 metadata와 tarball을 데이터로 내려받아 npm과 Git 출처를 검증하고, 검증이 성공하기 전에는 후보 코드를 실행하지 않습니다.
+처음 `npx @nunch-dev/skills`, `pnpm dlx @nunch-dev/skills`, `bunx @nunch-dev/skills`를 실행하면 이중 출처 검증을 시작하기 전에 npm으로 받은 launcher와 패키지 코드가 먼저 실행됩니다. 이 과정은 이후 Codex SessionStart 업데이트와 다릅니다. 이미 신뢰한 설치 프로그램은 npm metadata를 먼저 확인합니다. 더 새로운 안정 버전이 있을 때만 tarball을 받아 npm과 Git 출처를 검증합니다. 검증이 성공하기 전에는 후보 코드를 실행하지 않습니다. Claude Code에서는 이 자동 updater를 실행하지 않습니다.
 
 초기 npm 게시는 보안 경계로 다뤄야 합니다. 첫 공개 릴리스 전에 `@nunch-dev` scope 권한, 패키지 소유권, npm 계정 인증 통제, 공개 접근 설정, provenance, registry 무결성 처리를 확인하세요. 패키지 허용 목록은 좁게 유지하고, 파일을 변경하는 lifecycle `postinstall`은 추가하지 않습니다. 이 통제는 최초 실행의 신뢰 위험을 줄이지만, 처음 실행된 npm 코드가 실행 전에 독립적으로 검증되었다는 뜻은 아닙니다.
 
@@ -73,7 +73,7 @@ scripts/qa-docs-fairy-smoke.sh
 
 npm trusted publisher는 `nunch-dev/nunch-skills` 저장소와 `publish-npm.yml` workflow 파일, GitHub Environment 없음, `npm publish` 권한에 묶입니다. workflow는 GitHub OIDC를 사용하며 장기 `NODE_AUTH_TOKEN`을 받으면 안 됩니다.
 
-npm `latest` dist-tag에는 안정 릴리스만 연결합니다. SessionStart 자동 업데이트는 현재보다 새로운 안정 SemVer만 받으며 prerelease, 같은 버전, downgrade 후보는 거부합니다. prerelease 검증에는 명시적으로 선택한 `latest`가 아닌 버전을 사용해야 하며, 설치된 안정 릴리스를 몰래 대체하면 안 됩니다.
+npm `latest` dist-tag에는 안정 릴리스만 연결합니다. Codex SessionStart 자동 업데이트는 현재보다 새로운 안정 SemVer만 받으며 prerelease, 같은 버전, downgrade 후보는 거부합니다. Claude Code는 `npx @nunch-dev/skills update --platform=claude`로 직접 업데이트합니다. prerelease 검증에는 `latest`가 아닌 버전을 명시적으로 선택해 사용해야 하며, 설치된 안정 릴리스를 몰래 대체하면 안 됩니다.
 
 ## 승인 후 게시 순서
 
