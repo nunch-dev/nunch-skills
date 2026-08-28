@@ -1,0 +1,6 @@
+interface:
+  display_name: "Docs Fairy"
+  short_description: "프로젝트 문서를 근거 기반으로 생성·동기화·개선"
+  default_prompt: "$docs-fairy를 사용해 이 프로젝트의 문서와 실제 동작을 동기화해줘."
+policy:
+  allow_implicit_invocation: true

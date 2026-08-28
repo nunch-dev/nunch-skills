@@ -1,0 +1,6 @@
+interface:
+  display_name: "Git Tools"
+  short_description: "Git 상태와 이력을 조사하고 안전하게 변경·복구 수행"
+  default_prompt: "$git-tools를 사용해 현재 Git 상태와 최근 변경 이력을 조사해줘."
+policy:
+  allow_implicit_invocation: true
