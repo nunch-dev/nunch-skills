@@ -57,6 +57,10 @@ test('docs-fairy router and local Markdown references resolve', async () => {
     assert.ok(skill.includes(`| \`${mode}\` |`), `router is missing ${mode}`);
   }
 
+  for (const reference of ['site-common.md', 'site-starlight.md', 'site-vitepress.md']) {
+    assert.ok(skill.includes(`references/${reference}`), `SITE router is missing ${reference}`);
+  }
+
   const linkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
   for (const sourcePath of markdownFiles) {
     const source = await readFile(sourcePath, 'utf8');
@@ -68,6 +72,27 @@ test('docs-fairy router and local Markdown references resolve', async () => {
       const resolved = resolve(dirname(sourcePath), target);
       assert.equal(await pathExists(resolved), true, `${sourcePath} links to missing ${target}`);
     }
+  }
+});
+
+test('docs-fairy SITE QA requires theme switching only when the site provides it', async () => {
+  const siteReference = await readFile(resolve(SKILL_ROOT, 'references/site-common.md'), 'utf8');
+
+  assert.match(siteReference, /사이트가 테마 전환 UI를 제공하면 해당 전환도 검증한다/);
+  assert.doesNotMatch(siteReference, /검색 결과 진입, 테마 전환이 실제로 동작한다/);
+});
+
+test('docs-fairy SITE framework guides share the common contract and deployment route', async () => {
+  for (const reference of ['site-starlight.md', 'site-vitepress.md']) {
+    const guide = await readFile(resolve(SKILL_ROOT, 'references', reference), 'utf8');
+    const localTargets = new Set(
+      [...guide.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)]
+        .map((match) => match[1].split('#', 1)[0])
+        .filter((target) => target !== '' && !/^[a-z][a-z0-9+.-]*:/i.test(target)),
+    );
+
+    assert.equal(localTargets.has('site-common.md'), true, `${reference} must load site-common.md`);
+    assert.equal(localTargets.has('site-deployment.md'), true, `${reference} must route deployment work`);
   }
 });
 

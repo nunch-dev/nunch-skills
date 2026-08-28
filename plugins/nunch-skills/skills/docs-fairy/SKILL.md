@@ -1,6 +1,6 @@
 ---
 name: docs-fairy
-description: "프로젝트 문서를 근거 기반으로 생성·기록·동기화·감사·개선·번역하고 Starlight 문서 사이트를 구축·배포 준비합니다. README, 설계·API·CLI 문서, CHANGELOG, 런북, ADR, 프로젝트 기록과 코드 변경 후 문서 갱신에 사용하세요. 코드 주석, 커밋·PR 텍스트, 외부 자료의 단순 검색·요약, 일반 코드 구현·디버깅에는 사용하지 않습니다."
+description: "프로젝트 문서를 근거 기반으로 생성·기록·동기화·감사·개선·번역하고 Starlight·VitePress 문서 사이트를 구축·배포 준비합니다. README, 설계·API·CLI 문서, CHANGELOG, 런북, ADR, 프로젝트 기록과 코드 변경 후 문서 갱신에 사용하세요. 코드 주석, 커밋·PR 텍스트, 외부 자료의 단순 검색·요약, 일반 코드 구현·디버깅에는 사용하지 않습니다."
 metadata:
   user-invocable: true
 ---
@@ -44,11 +44,18 @@ metadata:
 | `SYNC` | "문서가 코드랑 맞는지 확인", 코드 변경 후 문서 갱신 | [동기화와 감사](references/sync.md)의 `SYNC` |
 | `AUDIT` | "문서 전체 점검해줘", 주기적 문서 감사 | [동기화와 감사](references/sync.md)의 `AUDIT` |
 | `IMPROVE` | "문서 읽기 좋게 다듬어줘", 구조·명확성 개선 | [품질 개선](references/quality.md) |
-| `SITE` | 문서 사이트 구축, Starlight/VitePress, 기존 사이트에 문서 통합 | [문서 사이트](references/site-starlight.md) |
+| `SITE` | 문서 사이트 구축, Starlight/VitePress, 기존 사이트에 문서 통합 | [공통 SITE 계약](references/site-common.md) + 선택한 프레임워크 reference |
 
 작업이 여러 mode에 걸치면 primary 하나를 정하고 실제로 필요한 reference만 추가로 읽습니다. 예를 들어 "문서 사이트 만들고 API 레퍼런스도 채워줘"는 `SITE`가 primary, `GENERATE`가 보조입니다.
 
-`SITE`에서 배포·hosting·GitHub Pages·공개 URL·deployment-ready를 요청하면 [문서 사이트 배포](references/site-deployment.md)를 추가로 읽습니다. 배포 대상을 먼저 확인하고, provider의 변동 가능한 설정은 실행 시점의 공식 문서로 검증합니다. repository 설정·workflow 준비는 실제 원격 배포·secret 접근·domain/DNS 변경 권한을 포함하지 않습니다.
+`SITE`에서는 [공통 SITE 계약](references/site-common.md)을 항상 읽고, 프레임워크는 다음처럼 하나만 선택해 읽습니다.
+
+- 기존 사이트가 Starlight면 [Starlight](references/site-starlight.md)를 읽습니다.
+- 기존 사이트가 VitePress이거나 사용자가 VitePress를 지정했으면 [VitePress](references/site-vitepress.md)를 읽습니다.
+- 사이트가 없고 사용자가 프레임워크를 지정하지 않았으면 기본값인 [Starlight](references/site-starlight.md)를 읽습니다.
+- 다른 프레임워크를 지정했으면 해당 공식 문서를 조사하고 공통 SITE 계약을 적용합니다. Starlight나 VitePress reference를 대신 읽지 않습니다.
+
+배포·hosting·GitHub Pages·공개 URL·deployment-ready를 요청하면 [문서 사이트 배포](references/site-deployment.md)를 추가로 읽습니다. 배포 대상을 먼저 확인하고, provider의 변동 가능한 설정은 실행 시점의 공식 문서로 검증합니다. repository 설정·workflow 준비는 실제 원격 배포·secret 접근·domain/DNS 변경 권한을 포함하지 않습니다.
 
 ### 자동 한국어 윤문
 
@@ -70,7 +77,7 @@ metadata:
 
 **목적에 맞는 문서 구조.** 새 문서 세트·문서 사이트의 정보 구조를 설계하거나 서로 다른 독자 목적이 섞인 문서를 재구성할 때는 [Diátaxis](https://diataxis.fr/)로 주된 요구를 구분합니다: 따라 하며 배우는 **tutorial**, 특정 목표를 달성하는 **how-to guide**, 정확한 정보를 찾는 **reference**, 개념과 이유를 이해하는 **explanation**. 각 페이지는 주된 요구나 질문 하나에 답하고 독립적으로 이해할 만큼 맥락을 갖춥니다. 실제로 필요한 유형만 만들며 README 같은 진입 문서는 여러 유형으로 안내할 수 있지만 섹션의 목적은 분리합니다. 기존 문서의 국소 수정·번역에는 Diátaxis 재구성을 강요하지 않고, ADR·프로젝트 히스토리·사고 기록은 각각의 기록 형식을 우선합니다.
 
-**언어·파일명·번역.** 사용자가 지정한 언어, 프로젝트의 일관된 기존 관례, 한국어 순으로 우선합니다. 파일명은 기존 관례와 생태계 표준명을 보존하고, 일반 신규 문서에만 kebab-case를 fallback으로 사용합니다. 번역·번호형 기록·rename 또는 Starlight i18n을 다룰 때는 [언어와 파일명](references/naming-and-locales.md)을 읽습니다. 인코딩은 UTF-8을 사용하고 코드 식별자·명령어·기술 용어는 원문을 유지합니다.
+**언어·파일명·번역.** 사용자가 지정한 언어, 프로젝트의 일관된 기존 관례, 한국어 순으로 우선합니다. 파일명은 기존 관례와 생태계 표준명을 보존하고, 일반 신규 문서에만 kebab-case를 fallback으로 사용합니다. 번역·번호형 기록·rename 또는 문서 사이트 i18n을 다룰 때는 [언어와 파일명](references/naming-and-locales.md)을 읽습니다. 인코딩은 UTF-8을 사용하고 코드 식별자·명령어·기술 용어는 원문을 유지합니다.
 
 **간결함 우선.** 짧고 정확한 문서가 길고 그럴듯한 문서를 이깁니다. 문장 수를 늘리는 수식어를 걷어내고, 나열형 정보는 표·목록으로 구조화합니다. "이 섹션을 지우면 독자가 곤란해지는가?"에 아니오라면 지웁니다.
 
