@@ -34,7 +34,7 @@ docs/
 └── en/getting-started.md
 ```
 
-문서 사이트에서는 이 fallback을 바로 적용하지 않고 선택한 프레임워크의 공식 i18n 규칙을 따릅니다: [Starlight](site-starlight.md), [VitePress](site-vitepress.md).
+문서 사이트에서는 이 fallback을 바로 적용하지 않고 `docs-fairy-site`가 선택한 프레임워크의 공식 i18n 규칙을 따릅니다: [Starlight](../../docs-fairy-site/references/site-starlight.md), [VitePress](../../docs-fairy-site/references/site-vitepress.md).
 
 ## Rename
 

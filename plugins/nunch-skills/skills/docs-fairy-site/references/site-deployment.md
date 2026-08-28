@@ -1,12 +1,12 @@
 # 문서 사이트 배포
 
-먼저 docs-site의 프레임워크와 배포 대상을 확인한 다음, 선택한 provider의 공식 방식에 따라 `config-prepared`와 `deployment-ready`를 검증합니다. 사이트 구축과 `local-complete`는 [문서 사이트 공통 계약](site-common.md)이 소유합니다.
+먼저 문서 사이트의 프레임워크와 배포 대상을 확인한 다음, 선택한 provider의 공식 방식에 따라 `config-prepared`와 `deployment-ready`를 검증합니다. 사이트 구축과 `local-complete`는 [문서 사이트 공통 계약](site-common.md)이 소유합니다.
 
 provider의 action version, adapter, Node 요구사항, workflow syntax와 hosting 제한은 바뀔 수 있습니다. 이 reference의 예시를 최신 사실로 간주하지 말고 실행 시점의 공식 문서를 우선합니다.
 
 ## 먼저 확인할 것
 
-배포 설정에 앞서 사용자에게 다음 중 어떤 결과가 필요한지 확인합니다.
+이 reference는 사용자가 `deploy`·`publish`·공개 URL을 명시한 경우에만 읽습니다. 단순 사이트 생성 요청에서는 배포 여부를 다시 묻지 않고 `local-only`로 처리합니다. 배포 요청이 명시됐지만 provider가 정해지지 않았으면 다음 중 필요한 결과를 한 가지 질문으로 확인합니다.
 
 | 선택 | 진행 |
 |---|---|
@@ -138,4 +138,4 @@ SITE 결과에는 다음 상태를 각각 `충족`·`미충족`·`요청 안 됨
 | `config-prepared` | provider, 공식 출처·확인일, local config와 workflow, 남은 승인 |
 | `deployment-ready` | 원격 배포 결과, 공개 URL, public smoke 결과 |
 
-warning과 기술부채를 남길 때는 [기술부채 기록과 해소 가이드](technical-debt.md)를 따릅니다. provider 선택, 공식 문서 확인, 설정 준비, remote 실행과 smoke 중 어디에서 멈췄는지 명확히 적습니다.
+warning과 기술부채를 남길 때는 [기술부채 기록과 해소 가이드](../../docs-fairy/references/technical-debt.md)를 따릅니다. provider 선택, 공식 문서 확인, 설정 준비, remote 실행과 smoke 중 어디에서 멈췄는지 명확히 적습니다.

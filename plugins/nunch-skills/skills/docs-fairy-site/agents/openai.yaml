@@ -1,0 +1,6 @@
+interface:
+  display_name: "Docs Fairy Site"
+  short_description: "문서 사이트를 구축·검증하고 명시된 경우에만 배포"
+  default_prompt: "$docs-fairy-site를 사용해 기존 문서를 안전하게 이관한 문서 사이트를 만들어줘."
+policy:
+  allow_implicit_invocation: true

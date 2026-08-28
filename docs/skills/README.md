@@ -6,12 +6,15 @@
 | --- | --- | --- | --- |
 | `deep-interview` | 모호하거나 재작업 비용이 큰 요청의 요구사항을 확정할 때 | 출처와 승인 이력이 있는 실행 가능 스펙 | [보기](deep-interview.md) |
 | `docs-fairy` | 프로젝트 문서를 만들거나 코드·이력과 맞출 때 | 근거가 확인된 문서 또는 승인 가능한 진단 | [보기](docs-fairy.md) |
+| `docs-fairy-site` | 문서 사이트를 구축·통합·검증하거나 명시적으로 배포할 때 | 검증된 로컬 사이트 또는 승인된 배포 결과 | [보기](docs-fairy-site.md) |
 | `git-tools` | Git 상태·이력을 조사하거나 안전하게 변경할 때 | 요청한 최소 Git 상태 전이와 검증 결과 | [보기](git-tools.md) |
 | `humanize-korean` | AI가 쓴 한국어의 의미를 보존하며 문체를 다듬을 때 | 게이트를 통과한 윤문본과 변경 지표 | [보기](humanize-korean.md) |
 | `humanize` | 한국어 윤문을 짧은 명령으로 시작할 때 | `humanize-korean` 파이프라인의 새 실행 결과 | [보기](humanize.md) |
 | `humanize-redo` | 최근 윤문 결과의 범위나 강도를 다시 조정할 때 | 후속 윤문본을 목표로 하나 현재 본체와 동기화 필요 | [보기](humanize-redo.md) |
 | `i-have-adhd` | 답변을 바로 행동할 수 있는 형식으로 바꿀 때 | 세션 동안 유지되는 행동 우선 응답 | [보기](i-have-adhd.md) |
 | `kaneo-skills` | 자연어 작업을 실제 Kaneo Todo로 등록할 때 | 중복과 대상을 확인한 한국어 이슈 | [보기](kaneo-skills.md) |
+
+이번 first-party 스킬 개선의 assertion 분류와 로컬·라이브 시나리오 결과는 [2026-08-28 품질 검토 기록](../skill-quality-review-20260828.md)에 정리했습니다.
 
 ## 공통 설치
 

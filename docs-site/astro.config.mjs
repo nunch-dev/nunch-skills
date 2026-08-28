@@ -47,6 +47,7 @@ export default defineConfig({
 						{ label: '스킬 고르기', slug: 'skills' },
 						{ label: 'deep-interview', slug: 'skills/deep-interview' },
 						{ label: 'docs-fairy', slug: 'skills/docs-fairy' },
+						{ label: 'docs-fairy-site', slug: 'skills/docs-fairy-site' },
 						{ label: 'git-tools', slug: 'skills/git-tools' },
 						{ label: 'humanize-korean', slug: 'skills/humanize-korean' },
 						{ label: 'humanize', slug: 'skills/humanize' },

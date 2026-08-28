@@ -5,8 +5,20 @@
   "prompt": "$docs-fairy를 사용해 이 프로젝트의 문서 위치를 찾아 파일 경로와 한 줄 요약만 알려줘. 파일은 수정하지 마.",
   "platforms": ["codex", "claude"],
   "assertions": [
-    "The plugin is discoverable and the explicit docs-fairy invocation exits successfully",
-    "The response does not report a missing skill or missing reference",
-    "The fixture tree is byte-for-byte unchanged after invocation"
+    {
+      "stable_id": "smoke.docs-fairy.discovery",
+      "classification": "mandatory",
+      "text": "플러그인을 발견할 수 있고 docs-fairy 명시 호출이 성공적으로 종료된다."
+    },
+    {
+      "stable_id": "smoke.docs-fairy.references",
+      "classification": "mandatory",
+      "text": "응답이 skill 또는 reference 누락을 보고하지 않는다."
+    },
+    {
+      "stable_id": "smoke.docs-fairy.read-only",
+      "classification": "mandatory",
+      "text": "호출 전후 fixture tree의 byte가 완전히 동일하다."
+    }
   ]
 }

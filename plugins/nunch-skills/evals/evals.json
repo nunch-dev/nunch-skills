@@ -1,7 +1,7 @@
 {
   "skill_name": "docs-fairy",
   "release_blocking": false,
-  "purpose": "Non-blocking manual quality scenarios. Model wording and generated artifacts are not release gates.",
+  "purpose": "기존 docs-fairy 수동 품질 시나리오입니다. Legacy assertion의 의미를 stable ID와 함께 보존하며 새 workflow assertion은 별도 suite에 둡니다.",
   "evals": [
     {
       "id": 0,
@@ -9,12 +9,36 @@
       "prompt": "이 프로젝트에 README가 없네. 새로 온 사람이 바로 설치해서 써볼 수 있게 README 좀 작성해줘.",
       "expected_output": "코드에서 검증된 명령어·옵션만 담고 Diátaxis에 따라 빠른 시작과 레퍼런스를 분리한 간결한 한국어 README.md (설치/사용법/옵션 표)",
       "assertions": [
-        "README.md exists at the project root and its body is written in Korean",
-        "Every command and option documented in README actually exists in src/cli.js (add/list/done, --priority, --all, TASKLITE_HOME) — no fabricated commands or flags",
-        "README documents the three core commands (add, list, done) with at least one runnable usage example each or a combined example",
-        "README applies Diátaxis by keeping the guided quick-start flow separate from the command and option reference instead of mixing their purposes",
-        "Install/run instructions are consistent with package.json (bin name 'tasklite', node >=18) and contain no unverifiable claims (no invented npm registry install if unpublished is ambiguous — command must at least match manifest)",
-        "README is concise: no marketing filler sections (badges, 'powerful features' prose) that the user did not ask for"
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.01",
+          "classification": "baseline",
+          "text": "프로젝트 root에 README.md가 존재하고 본문이 한국어로 작성되어 있다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.02",
+          "classification": "mandatory",
+          "text": "README에 적은 모든 명령과 option이 src/cli.js에 실제로 존재하며 add/list/done, --priority, --all, TASKLITE_HOME 외의 명령이나 flag를 만들지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.03",
+          "classification": "mandatory",
+          "text": "README가 세 핵심 명령 add, list, done을 각각 또는 하나의 통합 실행 예로 문서화한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.04",
+          "classification": "baseline",
+          "text": "안내형 빠른 시작과 명령·option reference의 목적을 섞지 않고 Diátaxis에 따라 분리한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.05",
+          "classification": "mandatory",
+          "text": "설치·실행 안내가 package.json의 bin 이름 tasklite와 Node 18 이상 조건에 맞고, 공개 여부를 확인하지 않은 npm registry 설치 같은 주장을 만들지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.readme-generation.06",
+          "classification": "baseline",
+          "text": "사용자가 요청하지 않은 badge나 '강력한 기능' 식의 marketing filler 없이 간결하다."
+        }
       ]
     },
     {
@@ -23,31 +47,41 @@
       "prompt": "최근에 CLI 옵션을 좀 바꿨는데 문서를 안 건드렸어. 문서가 코드랑 맞는지 확인해줘.",
       "expected_output": "파일을 수정하지 않고, --format→--output 변경·--gzip 추가·env var 변경으로 낡은 README/docs 항목을 근거(파일:라인/커밋)와 함께 진단 표로 보고",
       "assertions": [
-        "No documentation files were modified: git status in the project shows README.md and docs/configuration.md unchanged",
-        "Response identifies the --format → --output rename",
-        "Response identifies the new --gzip flag as undocumented",
-        "Response identifies the env var rename LOGSHIP_ENDPOINT → LOGSHIP_COLLECTOR",
-        "Response identifies the default format change json → ndjson",
-        "Findings cite concrete evidence (file:line and/or commit hash) for each item",
-        "Response ends by asking the user which items to fix (approval gate) rather than claiming fixes were made"
-      ]
-    },
-    {
-      "id": 2,
-      "name": "starlight-site",
-      "prompt": "docs 폴더에 마크다운 문서들이 있는데, 이걸 Starlight 문서 사이트로 만들어줘. 기존 문서들 이관까지 부탁해.",
-      "expected_output": "Starlight 사이트 scaffold + Mermaid/내부 링크 검증 기본 설치 + Diátaxis 정보 구조 + 한국어 locale + 기존 docs 3개 이관(frontmatter, H1 제거) + 예제 콘텐츠 제거 + 빌드 검증",
-      "assertions": [
-        "An Astro config with the Starlight integration exists in the project",
-        "The docs package installs astro-mermaid, mermaid, and starlight-links-validator as dependencies",
-        "The Astro config registers the Mermaid integration before Starlight and registers starlight-links-validator as a Starlight plugin",
-        "The docs package does not install starlight-telescope, starlight-plugin-icons, starlight-image-zoom, or starlight-site-graph unless explicitly requested",
-        "The migrated site uses Diátaxis to separate getting-started tutorial content, goal-oriented guides, and API reference content without creating empty categories",
-        "All three docs (getting-started, api, accessibility) are migrated into the Starlight content directory with a frontmatter title",
-        "Migrated pages do not duplicate the title as a body H1",
-        "Starlight starter/example content (e.g. 'Example Guide' demo pages) is removed",
-        "Korean locale (lang ko) is configured in the Starlight config",
-        "The site actually builds: running the project's build command succeeds"
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.01",
+          "classification": "mandatory",
+          "text": "README.md와 docs/configuration.md를 포함한 문서 파일을 수정하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.02",
+          "classification": "mandatory",
+          "text": "--format이 --output으로 바뀐 사실을 식별한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.03",
+          "classification": "mandatory",
+          "text": "새 --gzip flag가 문서화되지 않은 사실을 식별한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.04",
+          "classification": "mandatory",
+          "text": "환경 변수 이름이 LOGSHIP_ENDPOINT에서 LOGSHIP_COLLECTOR로 바뀐 사실을 식별한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.05",
+          "classification": "mandatory",
+          "text": "기본 format이 json에서 ndjson으로 바뀐 사실을 식별한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.06",
+          "classification": "mandatory",
+          "text": "각 항목에 file:line 또는 commit hash 형태의 구체적인 근거를 붙인다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.stale-docs-diagnosis.07",
+          "classification": "mandatory",
+          "text": "수정했다고 주장하지 않고 사용자가 고를 항목을 묻는 approval gate로 끝낸다."
+        }
       ]
     },
     {
@@ -56,12 +90,36 @@
       "prompt": "Tasklite에서 할 일이 추가되고 목록에 나타난 뒤 완료되는 흐름을 코드를 모르는 사람도 한눈에 이해할 수 있게 그림 중심 문서로 만들어줘.",
       "expected_output": "코드로 검증한 add/list/done 흐름을 Mermaid 시각 요약과 짧은 쉬운 설명으로 먼저 보여주고 정확한 용어와 상세 동작을 뒤에 둔 Diátaxis explanation 문서",
       "assertions": [
-        "A new Markdown documentation page explains the task lifecycle for a beginner audience",
-        "The page starts with one Mermaid diagram and a concise 2-4 sentence overview before detailed implementation terminology",
-        "The diagram and explanation accurately reflect add, list, and done behavior from src/cli.js and do not invent databases, network services, or unsupported state transitions",
-        "Unfamiliar technical terms are introduced in plain language while retaining their accurate names, without childish phrasing or decorative filler",
-        "Verified details and relevant constraints appear after the visual summary, and reference-style details are kept distinct from the beginner explanation",
-        "The output remains Markdown rather than creating a standalone HTML artifact because the user did not request HTML"
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.01",
+          "classification": "baseline",
+          "text": "입문자 대상 task lifecycle을 설명하는 새 Markdown 문서가 존재한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.02",
+          "classification": "baseline",
+          "text": "상세 구현 용어보다 앞에 Mermaid diagram 하나와 2~4문장의 짧은 overview가 나온다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.03",
+          "classification": "mandatory",
+          "text": "Diagram과 설명이 src/cli.js의 add, list, done 동작과 일치하고 database·network service·지원하지 않는 state transition을 만들지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.04",
+          "classification": "baseline",
+          "text": "낯선 기술 용어를 정확한 이름과 함께 쉬운 말로 소개하며 유아적 표현이나 장식성 문구를 쓰지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.05",
+          "classification": "baseline",
+          "text": "시각 요약 뒤에 검증된 세부사항과 제약을 두고 reference 성격의 정보는 입문 설명과 구분한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.visual-beginner-explainer.06",
+          "classification": "baseline",
+          "text": "사용자가 HTML을 요청하지 않았으므로 독립 HTML artifact가 아닌 Markdown으로 작성한다."
+        }
       ]
     },
     {
@@ -70,11 +128,31 @@
       "prompt": "Tasklite의 데이터 저장 위치를 바꾸는 방법만 짧은 문서로 만들어줘.",
       "expected_output": "실제 TASKLITE_HOME 동작을 근거로 목표·전제 조건·번호 절차·기대 결과를 갖춘 간결한 Diátaxis how-to 문서",
       "assertions": [
-        "The document is a focused how-to for changing the data location rather than a broad tutorial or conceptual overview",
-        "The procedure uses the actual TASKLITE_HOME environment variable and does not invent configuration files or unsupported flags",
-        "The document states relevant prerequisites before a short numbered procedure and gives an observable expected result afterward",
-        "Reference-style details or background explanation do not interrupt the goal-oriented procedure",
-        "Every command, path behavior, and expected result is verified against src/cli.js"
+        {
+          "stable_id": "legacy.docs-fairy.goal-oriented-howto.01",
+          "classification": "baseline",
+          "text": "넓은 tutorial이나 개념 설명이 아니라 data location 변경 목표만 다루는 how-to다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.goal-oriented-howto.02",
+          "classification": "mandatory",
+          "text": "실제 TASKLITE_HOME 환경 변수를 사용하고 존재하지 않는 config file이나 flag를 만들지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.goal-oriented-howto.03",
+          "classification": "baseline",
+          "text": "짧은 번호 절차 앞에 필요한 prerequisite를 적고 뒤에 관찰 가능한 expected result를 제시한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.goal-oriented-howto.04",
+          "classification": "baseline",
+          "text": "Reference 세부사항이나 배경 설명이 목표 지향 절차를 방해하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.goal-oriented-howto.05",
+          "classification": "mandatory",
+          "text": "모든 명령, path 동작과 expected result를 src/cli.js와 대조한다."
+        }
       ]
     },
     {
@@ -83,11 +161,31 @@
       "prompt": "Tasklite가 JSON 파일에 저장하도록 설계된 이유를 ADR로 남겨줘.",
       "expected_output": "코드에서 확인되는 현재 JSON 저장 동작과 근거가 필요한 과거 결정 이유를 구분하고, 이유를 확인할 기록이 없으면 완성된 ADR을 지어내지 않는 진단",
       "assertions": [
-        "The response distinguishes the code-proven current JSON storage behavior from the historical rationale for choosing it",
-        "The response checks available git history and existing project records for decision evidence before drawing a conclusion",
-        "The response does not invent motivations such as simplicity, portability, or performance when no source supports them",
-        "If the rationale cannot be verified, no finalized ADR is created; the response reports the known facts and asks for the missing decision context",
-        "Any proposed ADR structure keeps context, decision, alternatives, consequences, and evidence distinct"
+        {
+          "stable_id": "legacy.docs-fairy.retrospective-adr-evidence-gate.01",
+          "classification": "mandatory",
+          "text": "코드로 입증된 현재 JSON 저장 동작과 과거에 그 방식을 선택한 이유를 구분한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.retrospective-adr-evidence-gate.02",
+          "classification": "mandatory",
+          "text": "결론 전에 사용할 수 있는 Git history와 project record에서 결정 근거를 확인한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.retrospective-adr-evidence-gate.03",
+          "classification": "mandatory",
+          "text": "근거가 없을 때 단순성·이식성·성능 같은 동기를 만들지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.retrospective-adr-evidence-gate.04",
+          "classification": "mandatory",
+          "text": "결정 이유를 검증할 수 없으면 완성된 ADR을 만들지 않고 확인된 사실과 필요한 결정 맥락을 묻는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.retrospective-adr-evidence-gate.05",
+          "classification": "baseline",
+          "text": "제안하는 ADR 구조에서 context, decision, alternatives, consequences, evidence를 구분한다."
+        }
       ]
     },
     {
@@ -96,11 +194,31 @@
       "prompt": "이 프로젝트가 지금까지 어떻게 바뀌었는지 git 기록을 근거로 프로젝트 히스토리 문서로 정리해줘.",
       "expected_output": "git 이력의 의미 있는 전환점을 날짜·변화·영향·근거로 묶고 확인되지 않은 이유를 추정하지 않는 프로젝트 히스토리 문서",
       "assertions": [
-        "A project history document is created in the repository's existing documentation convention or at docs/project-history.md when no convention exists",
-        "The history groups related commits into meaningful feature, structure, or operational milestones instead of listing every commit",
-        "Each milestone includes a verifiable date or period, the change, its observable impact, and supporting commit, tag, or document evidence",
-        "Decision reasons appear only when supported by an issue, ADR, commit context, or user-provided explanation; unsupported narrative is omitted",
-        "The document contains no fabricated early history, motivations, releases, or milestones"
+        {
+          "stable_id": "legacy.docs-fairy.project-history-from-git.01",
+          "classification": "baseline",
+          "text": "기존 문서 관례가 있으면 따르고 없으면 docs/project-history.md에 project history를 만든다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.project-history-from-git.02",
+          "classification": "baseline",
+          "text": "모든 commit을 나열하지 않고 관련 commit을 기능·구조·운영의 의미 있는 milestone로 묶는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.project-history-from-git.03",
+          "classification": "mandatory",
+          "text": "각 milestone에 검증 가능한 날짜 또는 기간, 변화, 관찰 가능한 영향과 commit·tag·document 근거를 포함한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.project-history-from-git.04",
+          "classification": "mandatory",
+          "text": "결정 이유는 issue·ADR·commit 맥락·사용자 설명이 뒷받침할 때만 적고 근거 없는 서사는 생략한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.project-history-from-git.05",
+          "classification": "mandatory",
+          "text": "초기 history, 동기, release, milestone을 만들어내지 않는다."
+        }
       ]
     },
     {
@@ -109,12 +227,36 @@
       "prompt": "현재 환경에는 humanize-korean 스킬이 설치되어 있어. Tasklite의 한국어 README를 새로 작성해줘.",
       "expected_output": "코드로 검증한 한국어 README 초안을 먼저 완성한 뒤 자연어 산문만 humanize-korean 강도 기본으로 윤문하고 정확값과 Markdown 구조를 보존한 결과",
       "assertions": [
-        "README.md is complete and factually verified before humanize-korean is used as the final prose-editing pass",
-        "The humanization input excludes or protects frontmatter, headings and anchors, code, tables, commands, options, TASKLITE_HOME, paths, URLs, numbers, names, and quotations",
-        "The final README preserves every documented command, option, environment variable, example, link target, and procedural order from the verified draft",
-        "The humanize-korean workflow runs outside the target repository so no _workspace directory or intermediate humanization artifact is left in the project",
-        "The target README does not contain a HUMANIZE-SUMMARY comment; the response reports the humanization route and final gate or grade separately",
-        "If humanize-korean reports hold, failure, or an unverifiable result, the verified pre-humanization draft is retained instead"
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.01",
+          "classification": "mandatory",
+          "text": "humanize-korean을 사용하기 전에 README.md 초안이 완성되고 사실 검증을 통과한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.02",
+          "classification": "mandatory",
+          "text": "윤문 입력에서 frontmatter, heading·anchor, code, table, command, option, TASKLITE_HOME, path, URL, number, name, quotation을 제외하거나 보호한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.03",
+          "classification": "mandatory",
+          "text": "최종 README가 검증된 초안의 모든 command, option, environment variable, example, link target, procedure order를 보존한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.04",
+          "classification": "mandatory",
+          "text": "humanize-korean workflow를 대상 repository 밖에서 실행해 _workspace나 중간 artifact를 project에 남기지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.05",
+          "classification": "mandatory",
+          "text": "README에 HUMANIZE-SUMMARY comment를 넣지 않고 응답에서 윤문 route와 최종 gate·grade를 별도로 보고한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.installed-humanize-korean-finishing-pass.06",
+          "classification": "mandatory",
+          "text": "humanize-korean이 hold·failure·검증 불가를 반환하면 윤문 전의 검증된 초안을 유지한다."
+        }
       ]
     },
     {
@@ -123,10 +265,26 @@
       "prompt": "humanize-korean 스킬이 설치되지 않은 환경에서 Tasklite의 한국어 README를 새로 작성해줘.",
       "expected_output": "선택적 윤문 도구가 없어도 중단하거나 설치를 요구하지 않고 코드로 검증된 한국어 README를 정상 생성",
       "assertions": [
-        "README.md is created successfully with the same evidence, structure, and example requirements as the normal generation flow",
-        "The response does not ask the user to install or connect humanize-korean and does not treat its absence as an error",
-        "No humanize-korean workspace, summary block, placeholder, or partial artifact appears in the repository or final README",
-        "All commands, options, paths, and environment variables remain verified against src/cli.js"
+        {
+          "stable_id": "legacy.docs-fairy.humanize-korean-unavailable-fallback.01",
+          "classification": "baseline",
+          "text": "일반 생성 흐름과 같은 근거·구조·예제 조건을 만족하는 README.md를 정상 생성한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.humanize-korean-unavailable-fallback.02",
+          "classification": "mandatory",
+          "text": "humanize-korean 설치·연결을 요구하지 않고 부재를 오류로 취급하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.humanize-korean-unavailable-fallback.03",
+          "classification": "mandatory",
+          "text": "repository나 최종 README에 humanize-korean workspace, summary block, placeholder, partial artifact를 남기지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.humanize-korean-unavailable-fallback.04",
+          "classification": "mandatory",
+          "text": "모든 command, option, path, environment variable을 src/cli.js와 대조한다."
+        }
       ]
     },
     {
@@ -135,12 +293,36 @@
       "prompt": "이 플러그인에 들어 있는 각 스킬이 무엇을 하고 언제 쓰는지 설명하는 사용자 문서를 만들어줘.",
       "expected_output": "배포 대상 스킬을 빠짐없이 확인하고 선택용 색인과 스킬별 사용자 관점 설명을 제공하며 wrapper·primary 관계와 확인된 제약을 숨기지 않는 한국어 문서",
       "assertions": [
-        "The documented skill inventory exactly matches the skills shipped by the plugin; no source-only or missing skill is presented as available",
-        "The index lets a user compare each skill's use case, observable result, and detailed documentation link",
-        "Each skill page explains when to use it, when not to use it, a supported invocation example, its user-visible flow, relevant safety or permission boundaries, dependencies, and a source link without copying the full SKILL.md",
-        "Wrapper commands such as humanize and humanize-redo are distinguished from the primary humanize-korean workflow",
-        "Contradictions between a wrapper and its underlying workflow are reported as verified documentation findings instead of silently choosing one behavior",
-        "Commands, paths, dependencies, and invocation forms are verified against manifests and skill sources"
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.01",
+          "classification": "mandatory",
+          "text": "문서화한 skill inventory가 plugin에 실제로 배포되는 skill과 정확히 일치하며 source-only 또는 누락 skill을 사용 가능하다고 쓰지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.02",
+          "classification": "baseline",
+          "text": "Index에서 각 skill의 사용 상황, 사용자에게 남는 결과와 상세 문서 link를 비교할 수 있다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.03",
+          "classification": "baseline",
+          "text": "각 skill page가 전체 SKILL.md를 복제하지 않고 사용·비사용 시점, 지원하는 호출 예, 사용자-visible flow, safety·permission boundary, dependency, source link를 설명한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.04",
+          "classification": "baseline",
+          "text": "humanize와 humanize-redo 같은 wrapper를 primary humanize-korean workflow와 구분한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.05",
+          "classification": "mandatory",
+          "text": "Wrapper와 underlying workflow가 충돌하면 하나를 임의로 선택하지 않고 확인된 문서 finding으로 보고한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.bundled-skill-catalog.06",
+          "classification": "mandatory",
+          "text": "Command, path, dependency, invocation form을 manifest와 skill source에서 검증한다."
+        }
       ]
     },
     {
@@ -149,26 +331,33 @@
       "prompt": "로컬 workspace와 설치된 플러그인에 humanize-korean이 각각 있어. 실행 가능한 쪽을 골라 이 한국어 README를 다듬어줘.",
       "expected_output": "허용된 로컬 후보를 먼저 확인하되 전처리기와 gate가 실제로 시작되는 후보만 선택하고, 실패 후보를 수정·설치하지 않은 채 다음 후보 또는 검증된 초안으로 안전하게 fallback",
       "assertions": [
-        "Candidate discovery is limited to the user-provided path, declared workspace roots, and current skill roots instead of recursively scanning the home directory",
-        "Each candidate is interpreted from its own SKILL.md and its preprocessor and final gate are tested with non-mutating startup or import checks before use",
-        "A candidate is not selected solely because its directory, version, or scripts exist",
-        "A failed candidate is reported concisely and left unchanged; the workflow tries the next authorized candidate without installing anything",
-        "If no candidate passes preflight, the verified pre-humanization README is retained and the documentation task still completes"
-      ]
-    },
-    {
-      "id": 11,
-      "name": "starlight-collision-ssot-and-preview",
-      "prompt": "이미 docs 폴더에 원본 마크다운이 있는 프로젝트에 Starlight 문서 사이트를 만들어줘. 검색까지 실제로 확인해줘.",
-      "expected_output": "원본 docs를 덮어쓰지 않는 경로에 사이트를 만들고 정본·동기화 정책과 저장소 gate 참여 여부를 확정한 뒤 프로덕션 preview에서 핵심 상호작용을 검수한 결과",
-      "assertions": [
-        "The existing non-empty docs directory is preserved and the site is scaffolded at a non-colliding path that follows repository conventions",
-        "The final state has an explicit canonical documentation source and either stubs, deterministic synchronization, or an accepted documented duplicate-owner workflow; unmanaged duplicate copies are not left behind",
-        "Edit links point to the canonical source",
-        "Production build succeeds and the production preview is manually exercised for home navigation, sidebar links, search results, and theme switching",
-        "Korean prose, tables, search excerpts, code, paths, and identifiers are checked for wrapping or clipping on the project-supported viewports",
-        "The completion report states whether the docs package participates in the root workspace, root check, and CI, and reports deployment URL or build warnings without inventing configuration"
+        {
+          "stable_id": "legacy.docs-fairy.local-humanize-preflight-fallback.01",
+          "classification": "mandatory",
+          "text": "Candidate 탐색을 user-provided path, 선언된 workspace root와 현재 skill root로 제한하고 home directory 전체를 재귀 탐색하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.local-humanize-preflight-fallback.02",
+          "classification": "mandatory",
+          "text": "각 candidate의 SKILL.md로 계약을 해석하고 사용 전에 preprocessor와 final gate를 non-mutating startup·import check로 확인한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.local-humanize-preflight-fallback.03",
+          "classification": "mandatory",
+          "text": "Directory·version·script가 존재한다는 이유만으로 candidate를 선택하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.local-humanize-preflight-fallback.04",
+          "classification": "mandatory",
+          "text": "실패한 candidate는 간결하게 보고하고 변경·설치하지 않으며 다음 authorized candidate를 시도한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.local-humanize-preflight-fallback.05",
+          "classification": "mandatory",
+          "text": "통과하는 candidate가 없으면 윤문 전 검증된 README를 유지하고 문서 작업은 완료한다."
+        }
       ]
     }
-  ]
+  ],
+  "schema_version": 1
 }

@@ -12,6 +12,7 @@ test('one nunch-skills plugin bundles every published skill', async () => {
   const expectedSkills = [
     'deep-interview',
     'docs-fairy',
+    'docs-fairy-site',
     'git-tools',
     'humanize',
     'humanize-korean',

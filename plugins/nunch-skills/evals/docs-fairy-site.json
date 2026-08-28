@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "skill_name": "docs-fairy-site",
+  "release_blocking": false,
+  "purpose": "docs-fairy에서 이관한 SITE baseline과 새 docs-fairy-site workflow 경계를 분리해 검증합니다.",
+  "migrated_legacy_scenarios": [
+    2,
+    11
+  ],
+  "evals": [
+    {
+      "id": 2,
+      "name": "starlight-site",
+      "prompt": "docs 폴더에 마크다운 문서들이 있는데, 이걸 Starlight 문서 사이트로 만들어줘. 기존 문서들 이관까지 부탁해.",
+      "expected_output": "Starlight 사이트 scaffold + Mermaid/내부 링크 검증 기본 설치 + Diátaxis 정보 구조 + 한국어 locale + 기존 docs 3개 이관(frontmatter, H1 제거) + 예제 콘텐츠 제거 + 빌드 검증",
+      "assertions": [
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.01",
+          "classification": "mandatory",
+          "text": "프로젝트에 Starlight integration을 사용하는 Astro config가 존재한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.02",
+          "classification": "mandatory",
+          "text": "문서 package가 astro-mermaid, mermaid, starlight-links-validator를 dependency로 설치한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.03",
+          "classification": "mandatory",
+          "text": "Astro config가 Mermaid integration을 Starlight보다 먼저 등록하고 starlight-links-validator를 Starlight plugin으로 등록한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.04",
+          "classification": "mandatory",
+          "text": "사용자가 요청하지 않았다면 starlight-telescope, starlight-plugin-icons, starlight-image-zoom, starlight-site-graph를 설치하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.05",
+          "classification": "baseline",
+          "text": "빈 category를 만들지 않고 getting-started tutorial, 목표 지향 guide, API reference를 Diátaxis로 구분한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.06",
+          "classification": "mandatory",
+          "text": "getting-started, api, accessibility 문서 세 개를 frontmatter title과 함께 Starlight content directory로 이관한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.07",
+          "classification": "mandatory",
+          "text": "이관한 page에서 frontmatter title과 본문 H1을 중복하지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.08",
+          "classification": "mandatory",
+          "text": "Example Guide 같은 Starlight starter·example content를 제거한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.09",
+          "classification": "mandatory",
+          "text": "Starlight config에 한국어 locale lang ko를 설정한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-site.10",
+          "classification": "mandatory",
+          "text": "프로젝트의 build command가 실제로 성공한다."
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "starlight-collision-ssot-and-preview",
+      "prompt": "이미 docs 폴더에 원본 마크다운이 있는 프로젝트에 Starlight 문서 사이트를 만들어줘. 검색까지 실제로 확인해줘.",
+      "expected_output": "원본 docs를 덮어쓰지 않는 경로에 사이트를 만들고 정본·동기화 정책과 저장소 gate 참여 여부를 확정한 뒤 프로덕션 preview에서 핵심 상호작용을 검수한 결과",
+      "assertions": [
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.01",
+          "classification": "mandatory",
+          "text": "비어 있지 않은 기존 docs directory를 보존하고 repository 관례에 맞는 충돌하지 않는 위치에 site를 scaffold한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.02",
+          "classification": "mandatory",
+          "text": "최종 상태에 canonical documentation source와 stub·deterministic sync·승인된 duplicate-owner workflow 중 하나가 명시되고 관리되지 않는 중복 copy를 남기지 않는다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.03",
+          "classification": "mandatory",
+          "text": "Edit link가 canonical source를 가리킨다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.04",
+          "classification": "mandatory",
+          "text": "Production build가 성공하고 production preview에서 home navigation, sidebar link, search result, 제공되는 theme switching을 실제로 확인한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.05",
+          "classification": "baseline",
+          "text": "프로젝트가 지원하는 viewport에서 한국어 산문, table, search excerpt, code, path, identifier의 wrapping·clipping을 확인한다."
+        },
+        {
+          "stable_id": "legacy.docs-fairy.starlight-collision-ssot-and-preview.06",
+          "classification": "mandatory",
+          "text": "완료 보고에 docs package의 root workspace·root check·CI 참여 여부를 적고 deployment URL이나 build warning을 만들어내지 않는다."
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "name": "three-entry-single-site-workflow",
+      "prompt": "docs site를 만들어줘.",
+      "expected_output": "자연어 요청이 docs-fairy-site를 자동 선택하고 SITE workflow를 한 번만 실행해 local-complete까지 검증",
+      "assertions": [
+        {
+          "stable_id": "workflow.docs-fairy-site.routing.implicit",
+          "classification": "mandatory",
+          "text": "자연어 SITE 요청이 docs-fairy-site workflow로 연결된다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.routing.single-run",
+          "classification": "mandatory",
+          "text": "같은 요청에서 docs-fairy와 docs-fairy-site가 SITE scaffold·build를 중복 실행하지 않는다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.routing.local-only",
+          "classification": "mandatory",
+          "text": "배포 요청이 없으면 production build·preview까지만 수행하고 remote deploy·publish를 실행하지 않는다."
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "name": "docs-first-verified-handoff",
+      "prompt": "$docs-fairy로 API 문서를 작성하고 문서 사이트에도 반영해줘.",
+      "expected_output": "일반 문서를 먼저 생성·검증하고 검증된 산출물만 같은 turn의 docs-fairy-site workflow로 전달",
+      "assertions": [
+        {
+          "stable_id": "workflow.docs-fairy-site.handoff.order",
+          "classification": "mandatory",
+          "text": "docs-fairy가 일반 문서 생성·검증을 완료하기 전에 SITE scaffold·integration을 시작하지 않는다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.handoff.verified-only",
+          "classification": "mandatory",
+          "text": "검증된 문서 산출물만 docs-fairy-site에 전달한다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.handoff.required-input-stop",
+          "classification": "mandatory",
+          "text": "SITE 필수 산출물이 미검증이면 SITE 전환을 중단하고 사용자에게 한 가지 선택을 묻는다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.handoff.no-entry-on-required-gap",
+          "classification": "mandatory",
+          "text": "SITE 필수 산출물이 누락됐거나 미검증이면 docs-fairy-site를 호출하거나 SITE workflow를 시작한 것으로 계산하지 않는다."
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "explicit-deploy-boundary",
+      "prompt": "$docs-fairy-site로 이 문서 사이트를 만들어줘.",
+      "expected_output": "로컬 build·preview를 검증하고 배포 요청이 없으므로 provider·secret·remote를 변경하지 않음",
+      "assertions": [
+        {
+          "stable_id": "workflow.docs-fairy-site.deploy.explicit-only",
+          "classification": "mandatory",
+          "text": "deploy·publish·공개 URL 요청이 없으면 site-deployment workflow를 실행하지 않는다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.deploy.secret-scope",
+          "classification": "mandatory",
+          "text": "Repository 준비를 secret 접근·provider project·domain·DNS 권한으로 확대하지 않는다."
+        },
+        {
+          "stable_id": "workflow.docs-fairy-site.deploy.status-honesty",
+          "classification": "mandatory",
+          "text": "공개 URL을 실제 검증하지 않았으면 deployment-ready라고 주장하지 않는다."
+        }
+      ]
+    }
+  ]
+}
