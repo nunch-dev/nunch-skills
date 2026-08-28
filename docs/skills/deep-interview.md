@@ -20,6 +20,8 @@ $deep-interview 이 설치 도구의 요구사항을 인터뷰하면서 정리�
 
 모드는 `quick`, `standard`, `deep`이며 각각 ambiguity 종료 기준과 질문 예산이 다릅니다. `--trace`는 brownfield runtime 계약을 더 깊게 조사하고, `--no-state`는 `.nunch/interviews/` 상태 기록을 생략합니다.
 
+상태 기록과 검증 스크립트에는 Python 3.11 이상과 uv가 필요합니다.
+
 ## 핵심 흐름
 
 1. 요청을 인터뷰가 필요한 문제인지 판정합니다.

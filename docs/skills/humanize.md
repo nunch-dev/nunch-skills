@@ -4,7 +4,7 @@
 
 ## 개요
 
-`humanize-korean` 파이프라인을 간단히 호출하는 사용자 진입 명령입니다. 기본은 빠른 경로를 사용하고 `--strict`로 정밀 경로를 강제할 수 있습니다.
+`humanize-korean` 파이프라인을 간단히 호출하는 사용자 진입 명령입니다. 사용자가 경로를 지정하지 않으면 입력 점수의 `route_hint`가 `light`, `standard`, `heavy` 중 하나를 고르고, `--strict`는 `heavy`를 강제합니다.
 
 ## 사용 예
 
@@ -14,6 +14,8 @@
 ```
 
 텍스트나 `.txt`·`.md` 파일을 입력으로 받습니다. 입력이 없으면 윤문할 텍스트를 요청하고 종료합니다.
+
+실행 환경과 Python 요구 사항은 [`humanize-korean`](humanize-korean.md)을 따릅니다.
 
 ## 옵션
 
