@@ -110,6 +110,16 @@ def main(argv: list[str] | None = None) -> int:
     human, ai = _load(args.human), _load(args.ai)
     h, a = _stats(human, "human"), _stats(ai, "ai")
 
+    # 모델별 분해. 종전 기준선의 caveat("생성 모델이 단일이라 모델별 편차 미반영")을
+    # 해소하려면 모델을 섞은 총계만으로는 부족하다 — 한 모델의 습관이 전체를 끌고 갈 수 있다.
+    # 규칙의 근거로 쓰려면 **모델을 가리지 않고 나타나는가**를 봐야 한다.
+    by_model: dict = {}
+    models = sorted({str(d.get("model", "unknown")) for d in ai})
+    if len(models) > 1:
+        for m in models:
+            docs = [d for d in ai if str(d.get("model", "unknown")) == m]
+            by_model[m] = _stats(docs, m)
+
     ratios = {}
     for pid, *_ in PATTERNS:
         hv = h["patterns"][pid]["per_1k_words"]
@@ -123,6 +133,11 @@ def main(argv: list[str] | None = None) -> int:
                 round(hv * 2, 2) if hv else (round(av / 2, 2) if av else None)
             ),
         }
+        if by_model:
+            per = {m: st["patterns"][pid]["per_1k_words"] for m, st in by_model.items()}
+            ratios[pid]["by_model_per_1k"] = per
+            # 모든 모델에서 사람보다 많으면 모델 계열과 무관한 신호로 본다.
+            ratios[pid]["all_models_exceed_human"] = all(v > hv for v in per.values())
 
     doc = {
         "label": "threshold-calibration (사람 vs AI 패턴 밀도)",
@@ -139,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "human": h,
         "ai": a,
+        "ai_by_model": by_model,
         "ratios": ratios,
     }
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
@@ -154,6 +170,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{pid:<7}{r['human_per_1k']:<10}{r['ai_per_1k']:<10}"
               f"{str(r['ratio_ai_over_human']):<8}{str(thr)+'회+':<10}"
               f"{str(need):<16}{r['suggested_density_threshold']}")
+    if by_model:
+        print(f"\n모델별 밀도(건/1k어절) — 사람 대비. 모든 모델에서 높아야 "
+              f"모델 계열과 무관한 신호다.")
+        head = f"{'규칙':<7}{'사람':<8}" + "".join(f"{m:<14}" for m in by_model)
+        print(head)
+        for pid, *_ in PATTERNS:
+            r = ratios[pid]
+            row = f"{pid:<7}{r['human_per_1k']:<8}"
+            row += "".join(f"{r['by_model_per_1k'][m]:<14}" for m in by_model)
+            print(row + ("  ← 전 모델 초과" if r.get("all_models_exceed_human") else ""))
     return 0
 
 

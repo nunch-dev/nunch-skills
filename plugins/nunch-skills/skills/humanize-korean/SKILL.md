@@ -60,9 +60,9 @@ SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
 
 `.claude-plugin/` 디렉터리를 만날 때까지 거슬러 올라간다. **고정된 횟수로 올라가지 않는 이유**는 스킬 위치가 배포 방식마다 다를 수 있어서다 — 고정 깊이는 레이아웃이 바뀌면 조용히 엉뚱한 곳을 가리킨다.
 
-**`cd -P` 가 핵심이다.** 심링크 설치(`install.sh` 기본)에서는 스킬 디렉터리가 저장소를 가리키는 심링크라, 그냥 `cd` 하면 셸이 논리 경로를 유지해 엉뚱한 곳(홈 디렉터리)으로 올라간다. `-P` 로 물리 경로를 먼저 푼 뒤 올라가야 심링크·플러그인 양쪽에서 같은 답이 나온다. 이후 모든 스크립트 호출에 `${SKILL_ROOT}/scripts/humanize-korean/...` 를 쓴다.
+**`cd -P` 가 핵심이다.** 심링크 설치(`install.sh` 기본)에서는 스킬 디렉터리가 저장소를 가리키는 심링크라, 그냥 `cd` 하면 셸이 논리 경로를 유지해 엉뚱한 곳(홈 디렉터리)으로 올라간다. `-P` 로 물리 경로를 먼저 푼 뒤 올라가야 심링크·플러그인 양쪽에서 같은 답이 나온다. 이후 모든 스크립트 호출에 `${SKILL_ROOT}/scripts/...` 를 쓴다.
 
-**확인**: `ls "${SKILL_ROOT}/scripts/humanize-korean/prepare_monolith_input.py"` 가 실패하면 경로 유도가 틀린 것이다. 이 경우 스크립트를 찾을 때까지 임의로 추측하지 말고, 정량 shim·게이트 없이 진행한다고 **사용자에게 알린 뒤** 계속한다. 조용히 건너뛰면 route_hint 와 철칙 #4 게이트가 사라진 것을 아무도 모른다.
+**확인**: `ls "${SKILL_ROOT}/scripts/prepare_monolith_input.py"` 가 실패하면 경로 유도가 틀린 것이다. 이 경우 스크립트를 찾을 때까지 임의로 추측하지 말고, 정량 shim·게이트 없이 진행한다고 **사용자에게 알린 뒤** 계속한다. 조용히 건너뛰면 route_hint 와 철칙 #4 게이트가 사라진 것을 아무도 모른다.
 
 > `CLAUDE_PLUGIN_ROOT` 는 Bash 도구 안에서 비어 있는 경우가 확인됐다(#84). 이 변수에 의존하지 않는다.
 
@@ -70,10 +70,11 @@ SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
 
 1. cwd 기준 `_workspace/{run_id}/` 생성
 2. 입력 텍스트를 `01_input.txt`에 저장
+   - **챗봇 잔재 위생 (v2.6)**: 저장 전에 챗봇 프레임 문장이 섞여 있으면 벗겨낸다 — 머리("물론입니다!", "다음은 ~입니다:", "요청하신 내용을 정리하면"), 꼬리("도움이 되셨길 바랍니다", "추가 질문이 있으시면"), 지식 한계 면책("제 지식은 ~까지입니다"). 실사용자는 챗봇 출력을 그대로 붙여넣는 일이 많고, 이 문장들은 본문이 아니므로 제거해도 의미 손실이 0이다. 본문 안에 자연스럽게 녹아 있는 유사 표현은 건드리지 않는다.
 3. 첫 300자로 장르 자동 추정 (사용자 명시 시 우선)
 4. 사전 처리 shim을 Bash로 1회 실행:
    ```
-   python3 ${SKILL_ROOT}/scripts/humanize-korean/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre}
+   python3 ${SKILL_ROOT}/scripts/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre}
    ```
    - `--genre` 값은 영문 키: `essay | column | report | blog | abstract` (생략 시 `essay`). 장르 힌트 매핑: 칼럼→`column`, 리포트→`report`, 블로그→`blog`, 공적/기타→`essay`.
    - `--run-dir`·`--diagnosis`의 상대 경로는 **cwd 기준**으로 해석된다(위 run_id 규칙과 동일 기준). 그 외 인자: `--text`(run-dir 없이 즉석 실행 시 새 run 디렉토리 자동 생성), `--baseline`(baseline JSON 경로 override, 평소 불필요), `--diagnosis`(진단 텍스트 파일을 점수 블록 앞에 prepend — standard·heavy의 진단 결합용).
@@ -104,7 +105,7 @@ SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
    - 진단은 span을 세지 않는다. "무엇이 이 글을 지배하는가"를 판단한다(안정적).
 2. shim으로 진단을 monolith 입력 앞에 결합 (Bash — LLM 콜 아님):
    ```
-   python3 ${SKILL_ROOT}/scripts/humanize-korean/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre} --diagnosis _workspace/{run_id}/02_diagnosis.md
+   python3 ${SKILL_ROOT}/scripts/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre} --diagnosis _workspace/{run_id}/02_diagnosis.md
    ```
    → `01_input_with_metrics.txt`가 [진단 → 정량 블록 → 원문] 순으로 재생성된다.
 3. **윤문 1콜**: `humanize-monolith` 1회 호출 — **청킹 없음. 1만자급도 단일 콜이다.** → `final.md`.
@@ -123,7 +124,7 @@ Standard의 1과 동일 — `humanize-diagnostician` 1콜 → `02_diagnosis.md`.
 ### Phase P2: 겨냥 윤문
 1. shim으로 진단 결합 (Bash). **heavy에서만** `--chunk`를 함께 줄 수 있다:
    ```
-   python3 ${SKILL_ROOT}/scripts/humanize-korean/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre} --diagnosis _workspace/{run_id}/02_diagnosis.md --chunk
+   python3 ${SKILL_ROOT}/scripts/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre} --diagnosis _workspace/{run_id}/02_diagnosis.md --chunk
    ```
    - 분할 여부·경계는 100% shim(Python)이 정한다(문단·문장 경계, 헤딩 승격, 말미 각주 passthrough — 청킹 임계는 shim 관리).
    - 산출: `01_chunk_{NN}_input_with_metrics.txt` N개 + `chunk_manifest.json`.
@@ -132,7 +133,7 @@ Standard의 1과 동일 — `humanize-diagnostician` 1콜 → `02_diagnosis.md`.
 4. **청크 병렬(shim이 실제로 쪼갠 경우만)**:
    - 각 body 청크를 monolith로 **병렬 호출**(동시 최대 4). 입력·출력 파일명은 manifest의 **`input_file`·`rewritten_file` 필드를 그대로** 사용한다 — 파일명을 직접 조립하지 않는다(인덱싱 불일치 사고 방지).
    - 각 청크 콜은 같은 `quick_rules_path`(파일 참조)와 같은 `02_diagnosis.md`를 공유한다. **룰북·진단 전문을 청크 프롬프트에 복붙하지 않는다** — 재로드 비용이 청킹 토큰 폭발의 주범이었다(§설계 노트).
-   - 재조립: `python3 ${SKILL_ROOT}/scripts/humanize-korean/reassemble_chunks.py --run-dir _workspace/{run_id}` → `03_reassembled.md`(passthrough 원문 삽입 + 문자수 대사). 이걸 `final.md`로 삼는다.
+   - 재조립: `python3 ${SKILL_ROOT}/scripts/reassemble_chunks.py --run-dir _workspace/{run_id}` → `03_reassembled.md`(passthrough 원문 삽입 + 문자수 대사). 이걸 `final.md`로 삼는다.
    - 청크 경계 문체 이음매가 어색하면 경계 전후 2문단만 monolith로 국소 패치(전역 재작성 금지 — 의미 드리프트 유발).
    - **재청킹 주의**: `--chunk` 재실행 시 경계가 바뀌므로 기존 `02_chunk_*_rewritten.txt`는 shim이 자동 삭제한다(`stale_removed`). 청킹 후 입력을 수정하면 재청킹부터 다시 한다.
 
@@ -162,6 +163,43 @@ finalize는 추가 LLM 콜이다. 다음 조건에서만 실행한다:
 
 **진단 파일이 없을 때(Light 승급).** Light 경로는 `02_diagnosis.md`를 만들지 않는다. Light에서 승급 조건에 걸리면 **`diagnosis_path` 없이** `humanize-finalizer`를 호출한다 — 진단을 만들려고 콜을 추가하지 않는다. finalize의 본체(의미 보존 15항 + 자연성)는 원문↔윤문본 직접 대조로 성립하므로 진단 없이도 온전히 동작하며, 이 경우 도구 호출은 3회로 줄어든다. (Light가 승급하는 상황은 애초에 "예상보다 많이 고쳤다"이므로, 겨냥 대상을 새로 진단하는 것보다 고친 결과를 검증하는 것이 맞다.)
 
+## Phase 2.4: 서법 국소 복원 (전 경로 공통, 게이트 **직전**)
+
+P5는 서법 위반을 **판정만** 한다. 판정 전에 고칠 수 있는 것은 고쳐 둔다 — 유보·요구가
+사라진 문장만 원문 문장으로 되돌리는 결정적 변형이다. LLM 콜 0회.
+
+```
+python3 ${SKILL_ROOT}/scripts/restore_modality.py \
+    --before _workspace/{run_id}/01_input.txt \
+    --after  _workspace/{run_id}/final.md \
+    --out    _workspace/{run_id}/final.md
+python3 ${SKILL_ROOT}/scripts/strip_injected_commas.py \
+    --before _workspace/{run_id}/01_input.txt \
+    --after  _workspace/{run_id}/final.md \
+    --out    _workspace/{run_id}/final.md
+```
+
+두 번째 명령은 **C-11 역주입 제거** — 윤문이 새로 쓴 문장에서만 연결어미 뒤
+쉼표를 걷어낸다(원문에 있던 문장은 불가침 — 필자 쉼표 보호). light 실측에서
+윤문 후 연결어미 쉼표가 원문보다 늘어난 문서가 16/28이었다. LLM 콜 0회.
+
+**`--all` 격상 (standard·heavy 한정)**: `02_diagnosis.md`가 C-11(연결어미 뒤
+쉼표)을 탐지 티로 지목한 경우에만 두 번째 명령에 `--all`을 붙인다 — 전 문장
+(따옴표 안 제외)에서 제거해 원문에 실려 온 주입 쉼표(잔존분)까지 걷어낸다.
+근거: 사람 532편 실측에서 연결어미 쉼표는 사람 중앙값이 문장의 15%라
+**밀도만으로는 사람/주입을 못 가른다** — 그래서 격상 조건은 밀도 임계가
+아니라 경로+진단 판정이다. 진단이 없는 light 경로에서는 절대 쓰지 않는다.
+
+- **왜 필요한가**: 규칙(A-10·G-1)을 보존 쪽으로 고쳐도 프롬프트는 확률적이라 계속 샌다.
+  스킬을 실제로 돌린 A/B에서 규칙 양쪽 버전 모두 "낮은 것으로 판단된다" → "낮은 수치다"
+  변환이 남았다. 복원기를 붙이면 그 문장만 되돌아온다.
+- **왜 게이트 직전인가**: 순서가 뒤바뀌면 게이트가 먼저 WARN을 띄우고 실행자가 윤문본을
+  통째로 롤백한다. 문장 단위로 되돌린 뒤 판정해야 서법은 지키면서 나머지 윤문이 산다.
+- **되돌린 문장의 AI 티도 함께 돌아온다.** 의미 보존이 티 제거보다 우선한다는 정책에 따른
+  트레이드오프다. 복원 건수는 결과 전달의 summary 블록에 적는다.
+- 애매하면 손대지 않고 보고만 한다(보류) — 짝 문장 유사도가 낮거나, 치환 대상이 결과에서
+  유일하지 않거나, 문장 병합이 의심될 때. 보류 건은 게이트가 P5로 잡는다.
+
 ## Phase 2.5: 구조 게이트 (철칙 #4 — 결정적 검증, 전 경로 공통)
 
 monolith가 자체 보고한 변경률은 **참고값**이다. 철칙 #4의 게이트 판정은 코드가 한다.
@@ -169,7 +207,7 @@ monolith가 자체 보고한 변경률은 **참고값**이다. 철칙 #4의 게�
 윤문본이 나온 직후 Bash로 1회 실행:
 
 ```
-python3 ${SKILL_ROOT}/scripts/humanize-korean/verify_gates.py \
+python3 ${SKILL_ROOT}/scripts/verify_gates.py \
     --before _workspace/{run_id}/01_input.txt \
     --after  _workspace/{run_id}/final.md \
     --genre {genre}
@@ -219,7 +257,7 @@ exit code로 분기한다 (0/1/2/3 의미는 기존 게이트와 동일):
 
 ```
 01_input.txt
-    ↓ [scripts/humanize-korean/prepare_monolith_input.py — 정량 점수 shim, Bash 1회]
+    ↓ [scripts/prepare_monolith_input.py — 정량 점수 shim, Bash 1회]
 00_metrics.json (route_hint 포함) + 01_input_with_metrics.txt
     ↓ route_hint (사용자 명시가 오버라이드)
     ├─ light ──→ [humanize-monolith ×1, 보수] ──→ final.md ──→ [verify_gates.py]
@@ -284,8 +322,8 @@ exit code로 분기한다 (0/1/2/3 의미는 기존 게이트와 동일):
 
 - 슬림 룰북 (monolith 전용): [`${CLAUDE_SKILL_DIR}/references/quick-rules.md`](references/quick-rules.md) — S1·S2 핵심 패턴 + 자체검증 체크리스트
 - 진단 인덱스 (diagnostician 전용): [`${CLAUDE_SKILL_DIR}/references/diagnosis-rules.md`](references/diagnosis-rules.md) — 71패턴 전수 ID·정의·시그니처. `build_diagnosis_rules.py`가 taxonomy에서 자동 생성(직접 편집 금지)
-- 정량 점수 shim: `${SKILL_ROOT}/scripts/humanize-korean/prepare_monolith_input.py` — `${CLAUDE_SKILL_DIR}/references/metrics_v2.py`(실패 시 `metrics.py` fallback) + `${CLAUDE_SKILL_DIR}/references/baseline.json` 기반 사전 점수 + `route_hint` 산출
-- 텍스트 위생: `${SKILL_ROOT}/scripts/humanize-korean/sanitize_text.py` — shim이 자동 호출(끄려면 `--no-sanitize`). 제로폭·bidi·특수공백 제거 + 한글 NFD→NFC 정규화를 `01_input.txt`에 반영해 이후 변경률 게이트·diff·글자수가 같은 기준을 쓰게 한다. 결정적 처리, LLM 0콜. 변경이 있으면 `00_sanitize.json` 기록. **AI 워터마크 제거 기능이 아니다** (CLAUDE.md 「AI 워터마킹에 대한 입장」 참조)
+- 정량 점수 shim: `${SKILL_ROOT}/scripts/prepare_monolith_input.py` — `${CLAUDE_SKILL_DIR}/references/metrics_v2.py`(실패 시 `metrics.py` fallback) + `${CLAUDE_SKILL_DIR}/references/baseline.json` 기반 사전 점수 + `route_hint` 산출
+- 텍스트 위생: `${SKILL_ROOT}/scripts/sanitize_text.py` — shim이 자동 호출(끄려면 `--no-sanitize`). 제로폭·bidi·특수공백 제거 + 한글 NFD→NFC 정규화를 `01_input.txt`에 반영해 이후 변경률 게이트·diff·글자수가 같은 기준을 쓰게 한다. 결정적 처리, LLM 0콜. 변경이 있으면 `00_sanitize.json` 기록. **AI 워터마크 제거 기능이 아니다** (CLAUDE.md 「AI 워터마킹에 대한 입장」 참조)
 - 분류 체계 본진 (SSOT — 유지보수·taxonomist 전용): [`${CLAUDE_SKILL_DIR}/references/ai-tell-taxonomy.md`](references/ai-tell-taxonomy.md) — 10대분류 × 활성 70 패턴 (+A-17 hold 1건) 전수. 런타임 콜은 이 파일을 직접 읽지 않는다
 - 윤문 처방 (진단 전용): [`${CLAUDE_SKILL_DIR}/references/rewriting-playbook.md`](references/rewriting-playbook.md) — 카테고리별 치환 레시피·장르별 허용 표
 - 학술 인용 외부 SSOT: [`${CLAUDE_SKILL_DIR}/references/scholarship.md`](references/scholarship.md) — v2.0 학자 인용·caveat verbatim 보존

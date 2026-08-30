@@ -7,7 +7,7 @@
 ## 버전 히스토리 (상세)
 
 - **v1.5 (2026-04-26)** — v1.1 5인 파이프라인 위에 단일 호출 `humanize-monolith` fast path 신설. voice profile·candidate pool·권한 위계 §1~§6은 핫패스 비용 문제로 삭제.
-- **v1.6 (2026-05-07)** — KatFish·LREAD 기반 정량 점수 레이어 도입. `scripts/humanize-korean/prepare_monolith_input.py`(입력 shim)가 monolith 호출 *전* 외부 사전 처리로 점수를 산출해 결합 입력 파일에 prepend.
+- **v1.6 (2026-05-07)** — KatFish·LREAD 기반 정량 점수 레이어 도입. `scripts/prepare_monolith_input.py`(입력 shim)가 monolith 호출 *전* 외부 사전 처리로 점수를 산출해 결합 입력 파일에 prepend.
 - **v1.6.1 (2026-05-07)** — fast 산출물을 `final.md` 1개로 통합(본문 끝 `<!-- HUMANIZE-SUMMARY -->` HTML 주석 블록). monolith 도구 호출 캡 4회 → **3회**.
 - **v2.0 (2026-05-07)** — 한국 번역학계 8유형 + post-editese metric 트랙(`metrics_v2.py`) 흡수. 분류 체계 본진 v2.0(활성 패턴 70건 + A-17 hold 1건).
 - **v2.0.1** — 패치 릴리스: shim 실행 절차 명문화, 실사용 백포트(격식 상향 금지·구조/각주 보존·과윤문 게이트 코드화), quick-rules 빌드 생성.
