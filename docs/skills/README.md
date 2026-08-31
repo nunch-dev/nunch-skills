@@ -13,6 +13,7 @@
 | `humanize-redo` | 최근 윤문 결과의 범위나 강도를 다시 조정할 때 | 후속 윤문본을 목표로 하나 현재 본체와 동기화 필요 | [보기](humanize-redo.md) |
 | `i-have-adhd` | 답변을 바로 행동할 수 있는 형식으로 바꿀 때 | 세션 동안 유지되는 행동 우선 응답 | [보기](i-have-adhd.md) |
 | `kaneo-skills` | 자연어 작업을 실제 Kaneo Todo로 등록할 때 | 중복과 대상을 확인한 한국어 이슈 | [보기](kaneo-skills.md) |
+| `ready-to-fight` | 업무 주장·계획·설계의 맹점을 상호 반론으로 검증할 때 | 근거·반대 근거·입장 변화·미결이 남는 대화 종합 | [보기](ready-to-fight.md) |
 
 이번 first-party 스킬 개선의 assertion 분류와 로컬·라이브 시나리오 결과는 [2026-08-28 품질 검토 기록](../skill-quality-review-20260828.md)에 정리했습니다.
 

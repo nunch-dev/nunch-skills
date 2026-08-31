@@ -23,6 +23,7 @@ npx @nunch-dev/skills install
 | `humanize-redo` | 최근 윤문 결과를 원하는 범위와 강도로 다시 다듬습니다. |
 | `i-have-adhd` | 답변을 행동 우선의 ADHD 친화적 형식으로 바꿉니다. |
 | `kaneo-skills` | 자연어 작업을 정리해 Kaneo Todo로 등록합니다. |
+| `ready-to-fight` | 주장·계획·설계의 맹점을 상호 반론과 근거 검증으로 찾습니다. |
 
 스킬별 사용법은 [스킬 문서](docs/skills/README.md)에서 확인할 수 있습니다. 개발에 참여하려면 [CONTRIBUTING.md](CONTRIBUTING.md), 로컬 실행은 [Local development and QA](docs/local-development.md), 배포는 [Release runbook](docs/release-runbook.md)을 참고하세요.
 
