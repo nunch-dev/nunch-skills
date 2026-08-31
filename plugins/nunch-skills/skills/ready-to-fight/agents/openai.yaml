@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ready to Fight"
+  short_description: "주장과 계획의 맹점을 근거 중심 토론으로 검증"
+  default_prompt: "$ready-to-fight를 사용해 이 주장이나 계획의 가장 강한 반론부터 한 번에 하나씩 검증해 주세요."
+policy:
+  allow_implicit_invocation: true
