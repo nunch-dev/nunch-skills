@@ -124,6 +124,7 @@ test('documentation eval suites preserve legacy assertions and classify every as
   const site = await readJson(resolve(PLUGIN_ROOT, 'evals/docs-fairy-site.json'));
   const gitTools = await readJson(resolve(PLUGIN_ROOT, 'evals/git-tools.json'));
   const kaneo = await readJson(resolve(PLUGIN_ROOT, 'evals/kaneo-skills.json'));
+  const readyToFight = await readJson(resolve(PLUGIN_ROOT, 'evals/ready-to-fight.json'));
   const fixtureRoot = resolve(PLUGIN_ROOT, 'evals', smoke.fixture);
 
   assert.equal(smoke.release_blocking, true);
@@ -138,7 +139,7 @@ test('documentation eval suites preserve legacy assertions and classify every as
   );
   assert.doesNotMatch(JSON.stringify(manual), /fixtures\/(tasklite|logship|palette)/);
 
-  const suites = [smoke, manual, site, gitTools, kaneo];
+  const suites = [smoke, manual, site, gitTools, kaneo, readyToFight];
   const assertions = suites.flatMap((suite) =>
     'evals' in suite ? suite.evals.flatMap((scenario) => scenario.assertions) : suite.assertions,
   );

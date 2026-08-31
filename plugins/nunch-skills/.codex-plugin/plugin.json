@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "Nunch Skills",
     "shortDescription": "The complete Nunch skill collection",
-    "longDescription": "Install every Nunch skill together, including structured interviews, documentation, Git workflows, Korean rewriting, ADHD-friendly output, Kaneo issue creation, and lifecycle management.",
+    "longDescription": "Install every Nunch skill together, including structured interviews, evidence-based red-team dialogue, documentation, Git workflows, Korean rewriting, ADHD-friendly output, Kaneo issue creation, and lifecycle management.",
     "developerName": "Nunch Dev",
     "category": "Developer Tools",
     "capabilities": ["Instructions", "Hooks", "Lifecycle Management"],

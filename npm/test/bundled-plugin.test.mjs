@@ -19,6 +19,7 @@ test('one nunch-skills plugin bundles every published skill', async () => {
     'humanize-redo',
     'i-have-adhd',
     'kaneo-skills',
+    'ready-to-fight',
   ];
 
   // When
