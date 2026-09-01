@@ -1,6 +1,6 @@
 {
   "name": "nunch-skills",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Install the complete Nunch skill collection as one plugin for Codex and Claude Code.",
   "author": {
     "name": "Nunch Dev",
