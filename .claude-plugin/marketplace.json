@@ -2,7 +2,7 @@
   "plugins": [
     {
       "name": "nunch-skills",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "source": "./plugins/nunch-skills",
       "description": "Install the complete Nunch skill collection as one plugin.",
       "category": "development"
