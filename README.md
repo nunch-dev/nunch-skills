@@ -7,7 +7,15 @@ Codex와 Claude Code에서 함께 사용할 수 있는 개인용 스킬 모음�
 Node.js 22 이상이 필요합니다.
 
 ```bash
-npx @nunch-dev/skills install
+npx @nunch-dev/skills@latest install
+```
+
+## Update
+
+설치 대상을 선택해 최신 릴리스로 업데이트합니다.
+
+```bash
+npx @nunch-dev/skills@latest update
 ```
 
 ## Skills
