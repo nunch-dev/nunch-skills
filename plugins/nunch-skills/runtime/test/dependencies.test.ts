@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+
+import { z } from 'zod';
 
 import { inspectDependencies } from '../src/dependencies.ts';
 
@@ -31,4 +33,39 @@ test('accepts command-only executable declarations', async () => {
 
   // Then
   assert.deepEqual(report.missing, []);
+});
+
+test('declares Kaneo MCP as a machine-checkable Codex dependency', async () => {
+  // Given
+  const manifestPath = join(import.meta.dirname, '../../dependencies.json');
+
+  // When
+  const manifest = z
+    .object({
+      executables: z.array(
+        z.object({
+          name: z.string(),
+          requirement: z.string(),
+          candidates: z.array(z.string()),
+          versionArgs: z.array(z.string()),
+        }),
+      ),
+      manual: z.array(z.object({ name: z.string() })),
+    })
+    .parse(JSON.parse(await readFile(manifestPath, 'utf8')));
+
+  // Then
+  assert.deepEqual(
+    manifest.executables.find((dependency) => dependency.name === 'kaneo-mcp'),
+    {
+      name: 'kaneo-mcp',
+      requirement: 'Kaneo MCP',
+      candidates: ['codex'],
+      versionArgs: ['mcp', 'get', 'kaneo', '--json'],
+    },
+  );
+  assert.equal(
+    manifest.manual.some((dependency) => dependency.name === 'Kaneo MCP'),
+    false,
+  );
 });
