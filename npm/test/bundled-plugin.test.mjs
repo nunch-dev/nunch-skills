@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 const REPOSITORY_ROOT = new URL('../../', import.meta.url);
@@ -45,4 +48,50 @@ test('one nunch-skills plugin bundles every published skill', async () => {
   assert.equal(claudeManifest.name, codexManifest.name);
   assert.equal(claudeManifest.version, codexManifest.version);
   assert.deepEqual(skills, expectedSkills);
+});
+
+test('humanize runtime scripts resolve bundled skill references from their installed directory', async () => {
+  // Given
+  const runDirectory = await mkdtemp(join(tmpdir(), 'humanize-runtime-'));
+  const inputPath = join(runDirectory, '01_input.txt');
+  const finalPath = join(runDirectory, 'final.md');
+  const input = '오늘 아침에는 창문을 열었다. 비가 그친 뒤라 공기가 맑았다.\n';
+  await writeFile(inputPath, input, 'utf8');
+  await writeFile(finalPath, input, 'utf8');
+
+  try {
+    // When
+    const prepare = spawnSync(
+      'python3',
+      [
+        new URL('scripts/prepare_monolith_input.py', PLUGIN_ROOT).pathname,
+        '--run-dir',
+        runDirectory,
+        '--genre',
+        'essay',
+      ],
+      { encoding: 'utf8' },
+    );
+    const gate = spawnSync(
+      'python3',
+      [
+        new URL('scripts/verify_gates.py', PLUGIN_ROOT).pathname,
+        '--before',
+        inputPath,
+        '--after',
+        finalPath,
+        '--genre',
+        'essay',
+      ],
+      { encoding: 'utf8' },
+    );
+    // Then
+    assert.equal(prepare.status, 0, prepare.stderr);
+    assert.match(prepare.stdout, /degraded=False/, 'prepare shim silently degraded');
+    const metrics = JSON.parse(await readFile(join(runDirectory, '00_metrics.json'), 'utf8'));
+    assert.ok(metrics.route_hint, 'prepare shim silently degraded without a route_hint');
+    assert.equal(gate.status, 0, gate.stderr || gate.stdout);
+  } finally {
+    await rm(runDirectory, { recursive: true, force: true });
+  }
 });

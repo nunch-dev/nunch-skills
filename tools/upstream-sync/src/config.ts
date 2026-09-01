@@ -9,6 +9,7 @@ const copySchema = z.strictObject({
   source: z.string(),
   destination: z.string(),
   removeFrontmatter: z.array(z.string().regex(frontmatterFieldPattern)).optional(),
+  preserve: z.array(z.string()).default([]),
 });
 
 const versionSchema = z.strictObject({
@@ -49,6 +50,15 @@ export function parseConfig(raw: unknown): UpstreamConfig {
     for (const copy of upstream.copies) {
       copy.source = parseRelativePath('source', copy.source);
       copy.destination = parseRelativePath('destination', copy.destination);
+      const preservedPaths: string[] = [];
+      for (let index = 0; index < copy.preserve.length; index += 1) {
+        const preserved = copy.preserve[index];
+        if (preserved === undefined) throw new ConfigError('preserved path is missing');
+        const parsed = parseRelativePath('preserved path', preserved);
+        ensureNoOverlap(parsed, preservedPaths, 'preserved path');
+        copy.preserve[index] = parsed;
+        preservedPaths.push(parsed);
+      }
       ensureNoOverlap(copy.destination, destinations, 'destination');
       ensureNoOverlap(copy.destination, versionTargets, 'copy/version target');
       ensureNoOverlap(copy.destination, marketplaceTargets, 'copy/marketplace target');

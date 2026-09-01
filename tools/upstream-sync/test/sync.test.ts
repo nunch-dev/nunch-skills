@@ -77,6 +77,40 @@ test('propagates a version into a copied manifest and the repository marketplace
   );
 });
 
+test('preserves declared local files while replacing an upstream-owned directory', async () => {
+  // Given
+  const root = await mkdtemp(join(tmpdir(), 'upstream-sync-test-'));
+  const remote = await createRemote();
+  await write(root, 'plugins/example/scripts/node-dispatch.ps1', 'local dispatcher\n');
+  await write(
+    root,
+    'upstreams.json',
+    JSON.stringify({
+      upstreams: [
+        {
+          name: 'example',
+          repository: remote,
+          ref: 'main',
+          copies: [
+            {
+              source: 'scripts',
+              destination: 'plugins/example/scripts',
+              preserve: ['node-dispatch.ps1'],
+            },
+          ],
+        },
+      ],
+    }),
+  );
+
+  // When
+  await syncConfigured({ root, configPath: join(root, 'upstreams.json'), lockPath: join(root, 'lock.json') });
+
+  // Then
+  assert.equal(await readFile(join(root, 'plugins/example/scripts/prepare.py'), 'utf8'), 'upstream script\n');
+  assert.equal(await readFile(join(root, 'plugins/example/scripts/node-dispatch.ps1'), 'utf8'), 'local dispatcher\n');
+});
+
 test('preserves the workspace when preflight fails', async () => {
   // Given
   const root = await mkdtemp(join(tmpdir(), 'upstream-sync-test-'));
@@ -126,6 +160,7 @@ async function createRemote(): Promise<string> {
   await execFileAsync('git', ['config', 'user.email', 'fixture@example.com'], { cwd: directory });
   await write(directory, 'content/SKILL.md', '---\nname: example\ndisable-model-invocation: true\n---\nupstream\n');
   await write(directory, 'manifest/plugin.json', '{"version":"2.4.0"}');
+  await write(directory, 'scripts/prepare.py', 'upstream script\n');
   await execFileAsync('git', ['add', '.'], { cwd: directory });
   await execFileAsync('git', ['commit', '-m', 'fixture'], { cwd: directory });
   return directory;

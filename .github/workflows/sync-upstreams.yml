@@ -43,6 +43,9 @@ jobs:
       - name: Sync configured upstreams
         run: node tools/upstream-sync/dist/upstream-sync.mjs -root .
 
+      - name: Validate synchronized humanize runtime
+        run: node --test --test-name-pattern='humanize runtime scripts' npm/test/bundled-plugin.test.mjs
+
       - name: Validate plugin manifests
         run: |
           jq -e '.name == "nunch-skills" and (.version | length > 0)' \

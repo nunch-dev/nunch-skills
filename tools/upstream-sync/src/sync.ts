@@ -89,6 +89,13 @@ async function prepareCopies(preparation: Preparation, upstream: Prepared): Prom
     const index = preparation.operations.length;
     const candidate = join(preparation.candidates, `candidate-${index}`);
     await copyEntry(resolveInside(upstream.checkout, copy.source), candidate);
+    for (const preserved of copy.preserve) {
+      const source = resolveInside(destination, preserved);
+      const target = resolveInside(candidate, preserved);
+      await ensureRealpathConfinement(preparation.root, source);
+      if (await destinationExists(target)) throw new SyncError(`preserved path conflicts with upstream: ${preserved}`);
+      await copyEntry(source, target);
+    }
     await sanitizeSkills(candidate, copy.removeFrontmatter ?? []);
     preparation.operations.push(await operationFor(destination, candidate, preparation.transactionRoot, index));
   }

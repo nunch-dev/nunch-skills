@@ -37,7 +37,10 @@
         },
         {
           "source": "scripts",
-          "destination": "plugins/nunch-skills/scripts/humanize-korean"
+          "destination": "plugins/nunch-skills/scripts",
+          "preserve": [
+            "node-dispatch.ps1"
+          ]
         },
         {
           "source": "skills/humanize",
