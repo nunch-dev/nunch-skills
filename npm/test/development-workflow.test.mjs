@@ -29,6 +29,8 @@ test('runs runtime and packaged launcher checks on Windows', async () => {
   assert.match(installSmoke, /runtime\/test\/command\.test\.ts/);
   assert.match(installSmoke, /runtime\/test\/doctor\.test\.ts/);
   assert.match(installSmoke, /runtime\/test\/release-tar\.test\.ts/);
+  assert.match(installSmoke, /runtime\/test\/store\.test\.ts/);
+  assert.match(installSmoke, /runtime\/test\/trust\.test\.ts/);
   assert.match(installSmoke, /node npm\/bin\/nunch-skills\.mjs doctor --help/);
 });
 

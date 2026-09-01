@@ -104,7 +104,12 @@ export async function writeAtomic(path: string, content: string): Promise<void> 
     await file.close();
   }
   await rename(temporary, path);
-  const directory = await open(parent, 'r');
+  await syncDirectory(parent);
+}
+
+export async function syncDirectory(path: string, platform: NodeJS.Platform = process.platform): Promise<void> {
+  if (platform === 'win32') return;
+  const directory = await open(path, 'r');
   try {
     await directory.sync();
   } finally {

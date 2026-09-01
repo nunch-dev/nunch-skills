@@ -117,6 +117,8 @@ jobs:
           plugins/nunch-skills/runtime/test/command.test.ts
           plugins/nunch-skills/runtime/test/doctor.test.ts
           plugins/nunch-skills/runtime/test/release-tar.test.ts
+          plugins/nunch-skills/runtime/test/store.test.ts
+          plugins/nunch-skills/runtime/test/trust.test.ts
       - name: Build package
         run: pnpm run build
       - name: Smoke test the packaged launcher

@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
 import { createLifecycleState } from '../src/state.ts';
-import { acquireLock, LifecycleStore } from '../src/store.ts';
+import { acquireLock, LifecycleStore, syncDirectory } from '../src/store.ts';
+
+test('skips directory fsync on Windows', async () => {
+  // Given
+  const missing = join(tmpdir(), `missing-${randomUUID()}`);
+
+  // When / Then
+  await syncDirectory(missing, 'win32');
+});
 
 test('persists and reloads a strict lifecycle state', async () => {
   // Given

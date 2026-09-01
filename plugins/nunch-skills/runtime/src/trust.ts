@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 
 import { z } from 'zod';
 import type { ReleaseManifest } from './release-manifest.ts';
-import { writeAtomic } from './store.ts';
+import { syncDirectory, writeAtomic } from './store.ts';
 
 const hookIdentitySchema = z.strictObject({
   event_name: z.literal('session_start'),
@@ -230,12 +230,7 @@ async function writeExclusive(path: string, content: string): Promise<void> {
   } finally {
     await rm(temporary, { force: true });
   }
-  const directory = await open(parent, 'r');
-  try {
-    await directory.sync();
-  } finally {
-    await directory.close();
-  }
+  await syncDirectory(parent);
 }
 
 function validate(id: string, hash: string): void {
