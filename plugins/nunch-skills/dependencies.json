@@ -24,12 +24,6 @@
       "versionArgs": ["--version"],
       "versionPrefix": "uv ",
       "minimumVersion": "0.0.0"
-    },
-    {
-      "name": "kaneo-mcp",
-      "requirement": "Kaneo MCP",
-      "candidates": ["codex"],
-      "versionArgs": ["mcp", "get", "kaneo", "--json"]
     }
   ],
   "manual": []

@@ -7,6 +7,14 @@ description: 자연어 작업을 적절한 Kaneo workspace와 project의 구체�
 
 사용자가 제공한 작업을 최소한의 질문으로 Kaneo 이슈에 등록합니다. 등록 요청은 아래의 명확한 경로에 있는 mutation만 승인합니다. 대상·중복·구조가 모호한데 추측해서 생성해서는 안 됩니다.
 
+## 연결 경로 선택
+
+1. 사용 가능한 Kaneo MCP 도구가 있으면 그 연결을 사용합니다.
+2. MCP가 없지만 승인된 secret 경로에 Bearer credential이 있고 Kaneo API 주소가 `https://<instance>/api`로 설정되어 있으면 REST API를 사용하고 [API 연결 지침](references/api.md)을 읽습니다. MCP 설치를 요구하지 않습니다.
+3. 두 경로 모두 사용할 수 없으면 필요한 연결 방법만 안내하고 mutation 전에 중단합니다. Raw API key나 token을 대화에 붙여 넣도록 요청해서는 안 됩니다.
+
+어느 경로를 사용하더라도 아래 destination·중복·부분 성공 계약은 같습니다. 한 작업 도중 MCP와 REST API를 오가며 동일한 mutation을 재시도해서는 안 됩니다.
+
 ## 우선순위와 자동 진행 조건
 
 다음 조건을 모두 충족할 때만 preview나 추가 승인 없이 생성합니다.
@@ -23,7 +31,7 @@ description: 자연어 작업을 적절한 Kaneo workspace와 project의 구체�
 
 ### 1. 인증과 destination 확인
 
-1. Kaneo 도구로 현재 인증 상태와 접근 가능한 workspace를 조회합니다.
+1. 선택한 Kaneo 연결로 현재 인증 상태와 접근 가능한 workspace를 조회합니다.
 2. **IF** workspace가 0개이면 연결·권한 문제를 보고하고 중단합니다.
 3. **IF** workspace가 여러 개이면 후보를 보여주고 하나를 선택하도록 요청합니다. 최근 사용이나 첫 번째 항목을 default로 선택해서는 안 됩니다.
 4. 선택한 workspace의 archive되지 않은 project를 조회하고 이름·설명·목적을 작업과 의미상 비교합니다. 단순 keyword 일치만으로 결정하지 않습니다.
@@ -39,7 +47,7 @@ description: 자연어 작업을 적절한 Kaneo workspace와 project의 구체�
 3. **IF** 일치 항목이 0개이면 첫 번째 non-final column을 임의로 사용하지 않고 사용자에게 묻습니다.
 4. **IF** 둘 이상이 일치하면 position이 빠른 항목을 임의로 고르지 않고 후보를 보여준 뒤 사용자에게 묻습니다.
 
-표시 이름을 `todo` 같은 추정 slug로 변환해서는 안 됩니다. API가 반환한 실제 `slug`만 사용합니다.
+표시 이름을 `todo` 같은 추정 slug로 변환해서는 안 됩니다. Kaneo가 반환한 실제 `slug`만 사용합니다.
 
 ### 3. 이슈 구조 작성
 
@@ -70,13 +78,13 @@ Project와 제안 구조가 정해진 뒤, mutation 전에 같은 project의 기
 1. Parent가 있으면 parent를 먼저 생성합니다.
 2. 각 child를 독립적인 시작 상태 task로 생성합니다.
 3. Parent의 실제 task `id`를 `sourceTaskId`, child의 실제 task `id`를 `targetTaskId`, `subtask`를 `relationType`으로 보내 relation을 생성합니다.
-4. 각 API 결과에서 성공 여부, task `id`와 `number`를 즉시 확인합니다. 응답에 완성된 identifier가 없으면 확인한 project `slug`와 반환된 `number`를 API 계약대로 결합한 `${project.slug}-${number}`만 identifier로 보고합니다.
+4. 각 호출 결과에서 성공 여부, task `id`와 `number`를 즉시 확인합니다. 응답에 완성된 identifier가 없으면 확인한 project `slug`와 반환된 `number`를 Kaneo 응답 계약대로 결합한 `${project.slug}-${number}`만 identifier로 보고합니다.
 
 **IF** 생성 또는 relation 호출 하나가 실패하면 그 지점에서 중단합니다. 같은 mutation을 추측한 payload로 재시도하거나 처음부터 다시 실행해서는 안 됩니다. 성공한 자산, 실패한 단계, 생성됐지만 relation이 없는 orphan candidate와 안전한 다음 행동을 정확히 보고합니다.
 
 ## 완료 조건과 보고
 
-Kaneo API가 성공 결과를 반환하고 실제 task `id`·`number`를 확인한 issue만 생성됐다고 보고합니다. 완료 보고에는 다음을 포함합니다.
+선택한 Kaneo 연결이 성공 결과를 반환하고 실제 task `id`·`number`를 확인한 issue만 생성됐다고 보고합니다. 완료 보고에는 다음을 포함합니다.
 
 - workspace와 project
 - 생성한 각 issue의 title과 Kaneo identifier

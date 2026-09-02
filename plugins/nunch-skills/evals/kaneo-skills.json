@@ -2,7 +2,7 @@
   "schema_version": 1,
   "skill_name": "kaneo-skills",
   "release_blocking": false,
-  "purpose": "실제 Kaneo 테스트 인스턴스에서 destination·시작 column·중복·subtask·partial success 계약을 검증합니다.",
+  "purpose": "실제 Kaneo 테스트 인스턴스에서 연결 경로·destination·시작 column·중복·subtask·partial success 계약을 검증합니다.",
   "evals": [
     {
       "id": 300,
@@ -67,6 +67,27 @@
         { "stable_id": "workflow.kaneo.partial.stop-on-failure", "classification": "mandatory", "text": "첫 실패 지점에서 mutation을 중단하고 같은 호출을 자동 재시도하지 않는다." },
         { "stable_id": "workflow.kaneo.partial.report-successes", "classification": "mandatory", "text": "성공한 issue identifier와 relation을 정확히 보고한다." },
         { "stable_id": "workflow.kaneo.partial.report-orphan", "classification": "mandatory", "text": "생성됐지만 relation이 없는 child와 안전한 다음 행동을 명시한다." }
+      ]
+    },
+    {
+      "id": 306,
+      "name": "rest-api-without-mcp",
+      "prompt": "Kaneo MCP는 없지만 Kaneo API 주소와 API credential은 안전하게 설정되어 있어. 이 작업을 Kaneo에 등록해줘.",
+      "expected_output": "MCP 설치를 요구하지 않고 REST API 계약을 확인한 뒤 동일한 destination·중복·생성 경계를 적용",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.transport.api-fallback", "classification": "mandatory", "text": "MCP가 없어도 승인된 base URL과 Bearer credential이 있으면 REST API를 사용한다." },
+        { "stable_id": "workflow.kaneo.transport.same-contract", "classification": "mandatory", "text": "REST API 경로에도 destination·중복·partial success 계약을 동일하게 적용한다." },
+        { "stable_id": "workflow.kaneo.transport.no-secret-output", "classification": "mandatory", "text": "API credential을 출력하거나 대화·파일·로그에 기록하지 않는다." }
+      ]
+    },
+    {
+      "id": 307,
+      "name": "no-kaneo-connection",
+      "prompt": "Kaneo MCP도 없고 API 연결 정보도 없는 환경에서 이 작업을 등록해줘.",
+      "expected_output": "credential을 대화에 요구하거나 mutation을 시도하지 않고 안전한 연결 방법만 안내",
+      "assertions": [
+        { "stable_id": "workflow.kaneo.transport.stop-without-connection", "classification": "mandatory", "text": "MCP와 승인된 REST API 연결이 모두 없으면 mutation 전에 중단한다." },
+        { "stable_id": "workflow.kaneo.transport.no-raw-token-request", "classification": "mandatory", "text": "raw API key나 token을 대화에 붙여 넣도록 요청하지 않는다." }
       ]
     }
   ]

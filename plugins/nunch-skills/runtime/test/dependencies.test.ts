@@ -35,7 +35,7 @@ test('accepts command-only executable declarations', async () => {
   assert.deepEqual(report.missing, []);
 });
 
-test('declares Kaneo MCP as a machine-checkable Codex dependency', async () => {
+test('does not require Kaneo MCP when the REST API can be used', async () => {
   // Given
   const manifestPath = join(import.meta.dirname, '../../dependencies.json');
 
@@ -55,14 +55,9 @@ test('declares Kaneo MCP as a machine-checkable Codex dependency', async () => {
     .parse(JSON.parse(await readFile(manifestPath, 'utf8')));
 
   // Then
-  assert.deepEqual(
-    manifest.executables.find((dependency) => dependency.name === 'kaneo-mcp'),
-    {
-      name: 'kaneo-mcp',
-      requirement: 'Kaneo MCP',
-      candidates: ['codex'],
-      versionArgs: ['mcp', 'get', 'kaneo', '--json'],
-    },
+  assert.equal(
+    manifest.executables.some((dependency) => dependency.name === 'kaneo-mcp'),
+    false,
   );
   assert.equal(
     manifest.manual.some((dependency) => dependency.name === 'Kaneo MCP'),

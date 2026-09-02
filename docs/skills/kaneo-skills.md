@@ -11,6 +11,10 @@
 
 단순 논의나 조회 요청에는 생성 권한을 추론하지 않습니다.
 
+## 연결 방식
+
+Kaneo MCP가 연결되어 있으면 MCP를 사용합니다. MCP가 없더라도 승인된 secret 경로에 Bearer credential이 있고 Kaneo API 주소가 `https://<instance>/api`로 설정되어 있으면 REST API를 사용할 수 있습니다. 어느 연결도 준비되지 않았다면 credential을 대화에 요구하거나 이슈 생성을 시도하지 않고 연결 방법을 안내합니다.
+
 ## 자동 진행 조건
 
 다음 조건을 모두 만족할 때만 추가 질문 없이 생성합니다.
@@ -19,7 +23,7 @@
 - project의 컬럼 이름 중 `Todo`, `To Do`, `할 일`과 정확히 일치하는 항목이 하나뿐입니다.
 - 중복 후보가 없고 작업 구조가 명확합니다.
 
-시작 컬럼을 찾으면 표시 이름을 임의로 slug로 변환하지 않고 API가 반환한 실제 slug를 사용합니다. 정확한 alias가 없거나 둘 이상이면 mutation 전에 사용자에게 시작 컬럼 하나를 선택해 달라고 요청합니다. 첫 번째 non-final 컬럼을 임의로 선택하지 않습니다.
+시작 컬럼을 찾으면 표시 이름을 임의로 slug로 변환하지 않고 Kaneo가 반환한 실제 slug를 사용합니다. 정확한 alias가 없거나 둘 이상이면 mutation 전에 사용자에게 시작 컬럼 하나를 선택해 달라고 요청합니다. 첫 번째 non-final 컬럼을 임의로 선택하지 않습니다.
 
 ## 작성과 부분 성공
 
@@ -29,6 +33,6 @@
 - parent를 먼저 만들고 child를 시작 컬럼에 생성한 뒤 parent `id`를 `sourceTaskId`, child `id`를 `targetTaskId`, `subtask`를 `relationType`으로 relation을 연결합니다.
 - issue 생성은 성공했지만 relation 연결이 실패하면 issue를 생성하지 않았다고 숨기거나 무작정 재시도하지 않습니다. 생성된 ID, 실패 단계, 재시도 안전성, 다음 선택을 `partial success`로 보고합니다.
 
-Kaneo MCP 연결이 필요합니다. 성공 응답을 받지 못한 항목을 생성됐다고 보고하지 않습니다.
+Kaneo MCP 또는 인증된 REST API 연결이 필요합니다. 선택한 연결에서 성공 응답을 받지 못한 항목을 생성됐다고 보고하지 않습니다.
 
 Source: [`plugins/nunch-skills/skills/kaneo-skills/SKILL.md`](../../plugins/nunch-skills/skills/kaneo-skills/SKILL.md)
