@@ -9,11 +9,13 @@ description: ADHD 독자가 바로 행동할 수 있는 응답 형식을 유지�
 
 ## 사용
 
-```text
-/i-have-adhd
-```
+Claude Code에서는 `/i-have-adhd`, Codex에서는 `$i-have-adhd`로 명시적으로 활성화할 수 있습니다. Codex는 요청의 맥락이 이 출력 형식에 적합하면 스킬을 암묵적으로 호출할 수도 있습니다.
 
 활성화 후 세션의 후속 응답에도 유지됩니다. “stop adhd mode” 또는 “normal mode”라고 말하면 종료됩니다.
+
+## 항상 켜기
+
+Claude Code에서 설치만으로 자동 활성화되지는 않습니다. 세션을 시작하거나 재개할 때 항상 적용하려면 `~/.claude/.i-have-adhd-always` 플래그 파일을 만듭니다. 파일을 삭제하면 다시 필요할 때만 켜지는 방식으로 돌아갑니다.
 
 ## 응답 원칙
 
