@@ -50,12 +50,12 @@ test('one nunch-skills plugin bundles every published skill', async () => {
   assert.deepEqual(skills, expectedSkills);
 });
 
-test('i-have-adhd allows Codex implicit invocation', async () => {
+test('i-have-adhd requires explicit Codex invocation', async () => {
   // Given / When
   const codexMetadata = await readFile(new URL('skills/i-have-adhd/agents/openai.yaml', PLUGIN_ROOT), 'utf8');
 
   // Then
-  assert.match(codexMetadata, /^ {2}allow_implicit_invocation: true$/m);
+  assert.match(codexMetadata, /^ {2}allow_implicit_invocation: false$/m);
 });
 
 test('humanize runtime scripts resolve bundled skill references from their installed directory', async () => {

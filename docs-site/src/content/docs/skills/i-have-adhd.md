@@ -9,7 +9,7 @@ description: ADHD 독자가 바로 행동할 수 있는 응답 형식을 유지�
 
 ## 사용
 
-Claude Code에서는 `/i-have-adhd`, Codex에서는 `$i-have-adhd`로 명시적으로 활성화할 수 있습니다. Codex는 요청의 맥락이 이 출력 형식에 적합하면 스킬을 암묵적으로 호출할 수도 있습니다.
+Claude Code에서는 `/i-have-adhd`, Codex에서는 `$i-have-adhd`로 명시적으로 활성화합니다.
 
 활성화 후 세션의 후속 응답에도 유지됩니다. “stop adhd mode” 또는 “normal mode”라고 말하면 종료됩니다.
 
