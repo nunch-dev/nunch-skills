@@ -48,6 +48,7 @@ export default defineConfig({
 						{ label: 'deep-interview', slug: 'skills/deep-interview' },
 						{ label: 'docs-fairy', slug: 'skills/docs-fairy' },
 						{ label: 'docs-fairy-site', slug: 'skills/docs-fairy-site' },
+						{ label: 'fuck-spam-mail', slug: 'skills/fuck-spam-mail' },
 						{ label: 'git-tools', slug: 'skills/git-tools' },
 						{ label: 'humanize-korean', slug: 'skills/humanize-korean' },
 						{ label: 'humanize', slug: 'skills/humanize' },
