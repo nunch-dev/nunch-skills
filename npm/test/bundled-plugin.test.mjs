@@ -16,6 +16,7 @@ test('one nunch-skills plugin bundles every published skill', async () => {
     'deep-interview',
     'docs-fairy',
     'docs-fairy-site',
+    'fuck-spam-mail',
     'git-tools',
     'humanize',
     'humanize-korean',
