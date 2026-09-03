@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fuck Spam Mail"
+  short_description: "피싱을 판별하고 연결된 경로까지 안전하게 신고"
+  default_prompt: "$fuck-spam-mail로 이 메일을 확인하고, 피싱이면 연결된 경로까지 자동으로 신고해줘."
