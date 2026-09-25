@@ -77,7 +77,18 @@ CLICHE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 # Sentence-final 요 (해요체/구어 종결). Counts "~인데요." "~거든요?" etc.
-YO_ENDING_RE = re.compile(r"요\s*(?:[.?!…]|$)", re.MULTILINE)
+# 해요체 종결은 용언 활용이다. 그런데 `요` 로 끝나는 한자 명사가 개조식 종결로
+# 쓰이면("보완 필요.", "추진 개요.") 같은 표면형이 된다. 그것을 구어 종결로 세면
+# `colloquial_erased` 가 발동해 **올바른 윤문 결과를 롤백시킨다**(PR #94 지적).
+#
+# `요` 직전 한 음절로 배제한다. 목록에 `고` 는 넣지 않는다 — "그렇게 하고요" 처럼
+# 진짜 해요체 연결형이 같은 음절을 쓰기 때문이다. 같은 이유로 `세`(주세요)·
+# `네`(그렇네요)·`죠` 계열도 건드리지 않는다. 아래 음절들은 해요체 활용으로
+# 나타나지 않는 한자 명사의 끝음절 앞자리다.
+_YO_NOUN_HEADS = "필중개수주소강동풍"
+YO_ENDING_RE = re.compile(
+    rf"(?<![{_YO_NOUN_HEADS}])요\s*(?:[.?!…]|$)", re.MULTILINE
+)
 
 # colloquial_erased fires only when the original is clearly colloquial
 # (>= MIN_YO endings) AND the output keeps less than KEEP_RATIO of them.
@@ -423,6 +434,14 @@ def check_quotes(original: str, output: str) -> list[Failure]:
 _SUMMARY_BLOCK_RE = re.compile(r"<!--\s*HUMANIZE-SUMMARY\b.*", re.DOTALL)
 
 
+def split_summary_block(text: str) -> tuple[str, str]:
+    """본문과 보존해야 할 ``HUMANIZE-SUMMARY`` 메타 블록을 나눈다."""
+    match = _SUMMARY_BLOCK_RE.search(text)
+    if match is None:
+        return text, ""
+    return text[:match.start()], text[match.start():]
+
+
 def strip_summary_block(text: str) -> str:
     """final.md 끝의 <!-- HUMANIZE-SUMMARY --> 메타 블록을 제거한다.
 
@@ -430,7 +449,8 @@ def strip_summary_block(text: str) -> str:
     같은 표현이 들어가 채점기가 본문 주입으로 오판하는 것을 막는다
     (verify_change_rate.py와 동일한 처리).
     """
-    return _SUMMARY_BLOCK_RE.sub("", text).strip()
+    body, _ = split_summary_block(text)
+    return body.strip()
 
 
 def run_checks(original: str, output: str) -> list[Failure]:
