@@ -1,10 +1,19 @@
 ---
 name: humanize-korean
-description: AI(ChatGPT·Claude·Gemini 등)가 쓴 한글 텍스트를 "사람이 쓴 글처럼" 윤문해주는 오케스트레이터 스킬. 번역투·영어 인용 과다·기계적 병렬·관용구·피동태 남용·접속사 남발·리듬 균일성·이모지/불릿 과다 등 10대 카테고리 70개 AI 티 패턴을 탐지·분류해 내용은 한 글자도 건드리지 않고 문체·리듬·표현만 자연스러운 한국어로 재작성한다. shim의 route_hint(light|standard|heavy)로 경로를 정해 잘 쓴 글은 1콜, 표준은 2콜, 중증·장문만 3+콜(진단→겨냥 윤문→finalize)로 처리한다. 트리거 — "AI 티 없애줘", "AI 같은 글 자연스럽게", "GPT/ChatGPT 문체", "AI 번역투 고쳐", "사람이 쓴 것처럼 윤문", "AI 윤문", "ChatGPT 티 제거", "한글 AI 탐지·윤문", "AI 글 사람처럼", "번역투 제거", "영어 인용 많은 글 윤문", "AI 글 티 안 나게", "휴머나이저", "humanize Korean", "AI detector bypass 한글". 후속 작업 — "특정 카테고리만 다시", "윤문 강도 조정", "장르 바꿔서", "이 문단만", "2차 윤문" 도 모두 이 스킬. 단순 맞춤법·오탈자 교정은 직접 처리, 번역은 번역 스킬, 내용 추가·삭제를 동반한 재작성은 별도 집필 스킬.
+description: AI(ChatGPT·Claude·Gemini 등)가 쓴 한글 텍스트를 "사람이 쓴 글처럼" 윤문해주는 오케스트레이터 스킬. 번역투·영어 인용 과다·기계적 병렬·관용구·피동태 남용·접속사 남발·리듬 균일성·이모지/불릿 과다 등 10대 카테고리 85개 AI 티 패턴을 탐지·분류해 내용은 한 글자도 건드리지 않고 문체·리듬·표현만 자연스러운 한국어로 재작성한다. shim의 route_hint(light|standard|heavy)로 경로를 정해 잘 쓴 글은 1콜, 표준은 2콜, 중증·장문만 3+콜(진단→겨냥 윤문→finalize)로 처리한다. 트리거 — "AI 티 없애줘", "AI 같은 글 자연스럽게", "GPT/ChatGPT 문체", "AI 번역투 고쳐", "사람이 쓴 것처럼 윤문", "AI 윤문", "ChatGPT 티 제거", "한글 AI 탐지·윤문", "AI 글 사람처럼", "번역투 제거", "영어 인용 많은 글 윤문", "AI 글 티 안 나게", "휴머나이저", "humanize Korean", "AI detector bypass 한글". 후속 작업 — "특정 카테고리만 다시", "윤문 강도 조정", "장르 바꿔서", "이 문단만", "2차 윤문" 도 모두 이 스킬. 단순 맞춤법·오탈자 교정은 직접 처리, 번역은 번역 스킬, 내용 추가·삭제를 동반한 재작성은 별도 집필 스킬.
 ---
 
-# Humanize Korean — AI 한글 티 제거 오케스트레이터 (v2.3)
+# Humanize Korean — AI 한글 티 제거 오케스트레이터 (v2.4)
 
+> **v2.4.8** — 읽기 어려워지는 처방 3곳 정정: F-5 '-적' 탈락은 굳은 두 낱말 합성어만(조사 없는 명사 3개+ 연쇄 금지), E-5 '관형절로 압축' 삭제, C-8 해체 예시 하나는 대조 표지를 남긴다.
+> **v2.4.7** — 순수 '하였'체 원문에서 문장을 나눌 때 생기는 '하였' 증가를 격식 상향으로 오판하지 않는다(새로 생긴 문장 수까지 허용, #184).
+> **v2.4.6** — 어휘 사전 1.3: 「짚다」(짚고 간다·짚어 보자) 바꿈 우선으로 올리고 일반 글 생략 해제, 「본질적으로」 조건부(논문 제외), 「~하는 편이 좋다」 조건부 추가.
+> **v2.4.5** — 어휘 사전 1.2: 「기둥」(세 기둥·핵심 기둥) 추가, 「버팀목·디딤돌」 조건부 추가, 「층위」 논문 장르 생략 해제(사람 논문에서도 0건).
+> **v2.4.4** — 어휘 복원도 문장 분할이 의심되면 보류(되돌리면 명제 중복 — 서법 복원과 같은 판정).
+> **v2.4.3** — 어휘 사전 1.1: 넓은 정규식이 사람 글의 실물 용법(실제 배의 항해·"세계에서 가장"·동물 무늬 등)을 짚던 10항목 정밀화. 사람 글 오탐 171→113건.
+> **v2.4.2** — 어휘 복원도 넓은 정규식으로 매칭(원문 부재 조건이 안전장치 — 활용형 주입을 놓치던 문제). 스크립트 사슬 통합 테스트 신설.
+> **v2.4.1** — 어휘 점검이 따옴표 안 직접 인용은 힌트에서 뺀다(Do-NOT list와 정합).
+> **v2.4.0** — 어휘 레이어. 한국어 독자가 읽다가 걸리는 낱말 111개(블라인드 평가)를 원문에서 찾아 `[어휘 점검]` 블록으로 실행자에게 넘긴다(문맥 판단, 일괄 치환 금지). 윤문이 새로 만든 '바꿈 우선' 낱말은 Phase 2.4에서 문장 단위로 되돌린다. `scripts/lexical_layer.py`·`references/lexicon.json`.
 > **v2.3.2** — 플러그인 스킬을 관례 위치(루트 `skills/`)로 이동. 마켓플레이스 설치에서 shim·진단이 조용히 누락되던 경로 문제 해소.
 > **v2.3.1** — 경로 해석·런타임 경계·계약 정합 수정 회차(외부 제보 반영). 기능 변경 없음.
 > **v2.3.0** — 구조 수렴 게이트(`verify_gates.py` 4축: 목표달성·대구 전멸·수치·golden) + 진단 슬림 인덱스(`diagnosis-rules.md`, taxonomy 83%↓). (v2.2: route_hint 3경로 + 단일 콜 우선)
@@ -15,7 +24,7 @@ description: AI(ChatGPT·Claude·Gemini 등)가 쓴 한글 텍스트를 "사람�
 작업 시작 시 가장 먼저 다음 한 줄을 사용자에게 출력한다.
 
 ```
-humanize-korean v2.3 — 경로: {light|standard|heavy} ({route_hint|사용자 지정}) / run_id: {YYYY-MM-DD-NNN}
+humanize-korean v2.4 — 경로: {light|standard|heavy} ({route_hint|사용자 지정}) / run_id: {YYYY-MM-DD-NNN-TAG}
 ```
 
 (경로는 Phase 1의 shim 실행 후에 확정되므로, 이 상태 줄은 shim 직후 출력한다.)
@@ -35,13 +44,27 @@ humanize-korean v2.3 — 경로: {light|standard|heavy} ({route_hint|사용자 �
 5. **입력 길이는 경로를 바꾸지 않는다.** 1만자급도 단일 콜로 처리한다(§설계 노트의 실측 근거 참조). 길이·중증도 판단은 shim의 route_hint에 위임한다.
 
 ### run_id 결정
-- 모든 경로는 **cwd 기준**. 새 폴더 생성도 cwd 기준 `_workspace/{YYYY-MM-DD-NNN}/`에 만든다.
+- 모든 경로는 **cwd 기준**. 새 폴더 생성도 cwd 기준 `_workspace/{YYYY-MM-DD-NNN-TAG}/`에 만든다.
+- **`TAG` 는 세션 구분자다. Phase 1 맨 처음에 한 번 만들어 그 run 내내 재사용한다.**
+
+  ```bash
+  TAG=$(python3 -c "import secrets;print(secrets.token_hex(2))")   # 예: a3f9
+  ```
+
+  이후 모든 명령의 `_workspace/{run_id}` 에 같은 TAG 를 쓴다. 중간에 새로 만들지 않는다.
 - 기존 시퀀스 확인은 **`Glob` 도구**로 표지 파일을 매칭해 간접 조회.
   올바른 사용법: `Glob(pattern="_workspace/YYYY-MM-DD-*/01_input.txt")` → 결과에서 폴더명 추출 후 NNN 최댓값 + 1.
+  (`-TAG` 가 뒤에 붙어도 접두어가 같아 이 패턴은 그대로 맞는다.)
   주의: Glob은 디렉토리 자체는 매칭하지 못한다. 반드시 그 안의 표지 파일(`01_input.txt`)을 매칭할 것.
   `Bash ls`는 OS·셸 환경에 따라 경로 해석이 달라지므로 사용 금지.
 - 당일 폴더가 없으면 NNN = 001. 있으면 마지막 NNN + 1.
-- 부분 재실행 신호("이 카테고리만 다시"·"2차 윤문")일 경우 기존 run_id 재사용 + heavy 경로로 자동 승급.
+- 부분 재실행 신호("이 카테고리만 다시"·"2차 윤문")일 경우 기존 run_id 재사용(TAG 포함) + heavy 경로로 자동 승급.
+
+> 🔴 **TAG 를 빼지 마라.** 한 머신에서 세션이 여러 개 동시에 도는 환경에서는 NNN 만으로
+> 겹친다. Glob 으로 자리를 확인하고 `mkdir` 하기까지 틈이 있어 다른 세션이 같은 번호를
+> 잡기 때문이다. 두 세션이 한 디렉터리를 쓰면 서로의 `01_input.txt` 를 덮어쓰고, 게이트가
+> *남의 원문과 내 윤문본*을 비교해 있지도 않은 제목·인용이 사라졌다며 ABORT 를 낸다.
+> 윤문본 자체는 멀쩡하므로 원인을 찾기가 특히 어렵다.
 
 ## 스크립트 경로 규칙 (`${SKILL_ROOT}`)
 
@@ -55,10 +78,11 @@ Phase 1 시작 전에 한 번 정한다.
 
 ```bash
 SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
-  while [ "$d" != / ] && [ ! -d "$d/.claude-plugin" ]; do d="$(dirname "$d")"; done; echo "$d")"
+  while [ "$d" != / ] && [ ! -d "$d/.claude-plugin" ] && [ ! -f "$d/scripts/prepare_monolith_input.py" ]; do d="$(dirname "$d")"; done; \
+  [ "$d" = / ] && s="$(dirname "$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)")/humanize-korean" && [ -f "$s/scripts/prepare_monolith_input.py" ] && d="$s"; echo "$d")"
 ```
 
-`.claude-plugin/` 디렉터리를 만날 때까지 거슬러 올라간다. **고정된 횟수로 올라가지 않는 이유**는 스킬 위치가 배포 방식마다 다를 수 있어서다 — 고정 깊이는 레이아웃이 바뀌면 조용히 엉뚱한 곳을 가리킨다.
+`.claude-plugin/` 디렉터리, 또는 `scripts/prepare_monolith_input.py` 를 품은 디렉터리를 만날 때까지 거슬러 올라간다. 뒤 조건은 `install.sh --copy` 설치용이다 — 복사 설치는 스킬 디렉터리만 떼어 오므로 조상에 마커가 없고, 대신 런타임 스크립트를 스킬 디렉터리 안 `scripts/` 에 함께 복사한다(#144). 둘째 줄은 `/humanize`·`/humanize-scan`·`/humanize-redo` 로 들어온 복사 설치용 폴백이다 — 이 래퍼 스킬에는 `scripts/` 가 없으므로, `/` 까지 올라가도 못 찾으면 형제 `humanize-korean/` 을 본다. **고정된 횟수로 올라가지 않는 이유**는 스킬 위치가 배포 방식마다 다를 수 있어서다 — 고정 깊이는 레이아웃이 바뀌면 조용히 엉뚱한 곳을 가리킨다.
 
 **`cd -P` 가 핵심이다.** 심링크 설치(`install.sh` 기본)에서는 스킬 디렉터리가 저장소를 가리키는 심링크라, 그냥 `cd` 하면 셸이 논리 경로를 유지해 엉뚱한 곳(홈 디렉터리)으로 올라간다. `-P` 로 물리 경로를 먼저 푼 뒤 올라가야 심링크·플러그인 양쪽에서 같은 답이 나온다. 이후 모든 스크립트 호출에 `${SKILL_ROOT}/scripts/...` 를 쓴다.
 
@@ -77,7 +101,7 @@ SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
    python3 ${SKILL_ROOT}/scripts/prepare_monolith_input.py --run-dir _workspace/{run_id} --genre {genre}
    ```
    - `--genre` 값은 영문 키: `essay | column | report | blog | abstract` (생략 시 `essay`). 장르 힌트 매핑: 칼럼→`column`, 리포트→`report`, 블로그→`blog`, 공적/기타→`essay`.
-   - `--run-dir`·`--diagnosis`의 상대 경로는 **cwd 기준**으로 해석된다(위 run_id 규칙과 동일 기준). 그 외 인자: `--text`(run-dir 없이 즉석 실행 시 새 run 디렉토리 자동 생성), `--baseline`(baseline JSON 경로 override, 평소 불필요), `--diagnosis`(진단 텍스트 파일을 점수 블록 앞에 prepend — standard·heavy의 진단 결합용).
+   - `--run-dir`·`--diagnosis`의 상대 경로는 **cwd 기준**으로 해석된다(위 run_id 규칙과 동일 기준). 그 외 인자: `--text`(run-dir 없이 즉석 실행 시 새 run 디렉토리 자동 생성 — 이때는 `--session-tag {TAG}` 를 같이 준다), `--baseline`(baseline JSON 경로 override, 평소 불필요), `--diagnosis`(진단 텍스트 파일을 점수 블록 앞에 prepend — standard·heavy의 진단 결합용).
    - 산출: `00_metrics.json`(정량 점수 + **`route_hint`**) + `01_input_with_metrics.txt`(점수 블록을 원문 앞에 붙인 결합 파일).
    - **graceful degrade 내장**: metrics 계산이 실패하면 shim이 점수 블록 없이 원문만 감싼 결합 파일을 쓰고 `00_metrics.error`를 남긴다. 이 경우 route_hint 없음 → standard 경로.
 5. `00_metrics.json`의 `route_hint`를 읽어 Phase 0 규칙대로 경로를 확정하고 상태 줄을 출력한다.
@@ -100,7 +124,7 @@ SKILL_ROOT="$(d="$(cd -P "${CLAUDE_SKILL_DIR}" && pwd)"; \
 ## Standard 경로 (2콜) — 보통의 AI 초안
 
 1. **진단 1콜**: `humanize-diagnostician`을 `Agent` 도구로 1회 호출.
-   - 입력: `input_path=01_input_with_metrics.txt`, `taxonomy_path=${CLAUDE_SKILL_DIR}/references/diagnosis-rules.md` (진단 전용 슬림 인덱스 — 71패턴 전수, taxonomy에서 자동 생성)
+   - 입력: `input_path=01_input_with_metrics.txt`, `taxonomy_path=${CLAUDE_SKILL_DIR}/references/diagnosis-rules.md` (진단 전용 슬림 인덱스 — 전 패턴 전수, taxonomy에서 자동 생성)
    - 출력: `02_diagnosis.md` — 글 전체의 **지배 패턴 3~6개**(본진 ID + 근거 + 처방) + 장르·격식 + 보존 지침.
    - 진단은 span을 세지 않는다. "무엇이 이 글을 지배하는가"를 판단한다(안정적).
 2. shim으로 진단을 monolith 입력 앞에 결합 (Bash — LLM 콜 아님):
@@ -177,7 +201,22 @@ python3 ${SKILL_ROOT}/scripts/strip_injected_commas.py \
     --before _workspace/{run_id}/01_input.txt \
     --after  _workspace/{run_id}/final.md \
     --out    _workspace/{run_id}/final.md
+python3 ${SKILL_ROOT}/scripts/lexical_layer.py restore \
+    --before _workspace/{run_id}/01_input.txt \
+    --after  _workspace/{run_id}/final.md \
+    --out    _workspace/{run_id}/final.md
 ```
+
+세 번째 명령은 **어휘 주입 복원** — 윤문이 원문 문서에 없던 '바꿈 우선' 낱말
+(`references/lexicon.json`의 `restore: true`, 블라인드 평가 2점 — 얹다·겹·붙들다·렌즈·
+"성공을 달성하다" 등)을 새로 만든 문장만 원문 문장으로 되돌린다. 프롬프트로 금지해도
+확률적으로 샌다(실측: 같은 설정 두 번 실행에 주입 문서 6편↔17편). 정렬·보류 원칙은
+서법 복원과 같다. LLM 콜 0회.
+
+> **입력 쪽 어휘 점검(자동)**: Phase 1 shim이 원문에서 사전 항목을 찾으면 결합 파일의
+> `[원문 시작]` 앞에 `[어휘 점검]` 블록을 싣는다. 발견된 항목만, 최대 15개, 항목마다
+> 바꿀 때/둘 때/방식. 실행자는 **일괄 치환하지 않고** 문맥으로 판단한다 — '둘 때'면 둔다.
+> 진단을 거치지 않는 light 경로에도 같은 블록이 실린다.
 
 두 번째 명령은 **C-11 역주입 제거** — 윤문이 새로 쓴 문장에서만 연결어미 뒤
 쉼표를 걷어낸다(원문에 있던 문장은 불가침 — 필자 쉼표 보호). light 실측에서
@@ -321,10 +360,10 @@ exit code로 분기한다 (0/1/2/3 의미는 기존 게이트와 동일):
 ## 참고 자료
 
 - 슬림 룰북 (monolith 전용): [`${CLAUDE_SKILL_DIR}/references/quick-rules.md`](references/quick-rules.md) — S1·S2 핵심 패턴 + 자체검증 체크리스트
-- 진단 인덱스 (diagnostician 전용): [`${CLAUDE_SKILL_DIR}/references/diagnosis-rules.md`](references/diagnosis-rules.md) — 71패턴 전수 ID·정의·시그니처. `build_diagnosis_rules.py`가 taxonomy에서 자동 생성(직접 편집 금지)
+- 진단 인덱스 (diagnostician 전용): [`${CLAUDE_SKILL_DIR}/references/diagnosis-rules.md`](references/diagnosis-rules.md) — 전 패턴 전수 ID·정의·시그니처. `build_diagnosis_rules.py`가 taxonomy에서 자동 생성(직접 편집 금지)
 - 정량 점수 shim: `${SKILL_ROOT}/scripts/prepare_monolith_input.py` — `${CLAUDE_SKILL_DIR}/references/metrics_v2.py`(실패 시 `metrics.py` fallback) + `${CLAUDE_SKILL_DIR}/references/baseline.json` 기반 사전 점수 + `route_hint` 산출
 - 텍스트 위생: `${SKILL_ROOT}/scripts/sanitize_text.py` — shim이 자동 호출(끄려면 `--no-sanitize`). 제로폭·bidi·특수공백 제거 + 한글 NFD→NFC 정규화를 `01_input.txt`에 반영해 이후 변경률 게이트·diff·글자수가 같은 기준을 쓰게 한다. 결정적 처리, LLM 0콜. 변경이 있으면 `00_sanitize.json` 기록. **AI 워터마크 제거 기능이 아니다** (CLAUDE.md 「AI 워터마킹에 대한 입장」 참조)
-- 분류 체계 본진 (SSOT — 유지보수·taxonomist 전용): [`${CLAUDE_SKILL_DIR}/references/ai-tell-taxonomy.md`](references/ai-tell-taxonomy.md) — 10대분류 × 활성 70 패턴 (+A-17 hold 1건) 전수. 런타임 콜은 이 파일을 직접 읽지 않는다
+- 분류 체계 본진 (SSOT — 유지보수·taxonomist 전용): [`${CLAUDE_SKILL_DIR}/references/ai-tell-taxonomy.md`](references/ai-tell-taxonomy.md) — 10대분류 × 85 패턴(활성 84 + A-17 hold) 전수. 런타임 콜은 이 파일을 직접 읽지 않는다
 - 윤문 처방 (진단 전용): [`${CLAUDE_SKILL_DIR}/references/rewriting-playbook.md`](references/rewriting-playbook.md) — 카테고리별 치환 레시피·장르별 허용 표
 - 학술 인용 외부 SSOT: [`${CLAUDE_SKILL_DIR}/references/scholarship.md`](references/scholarship.md) — v2.0 학자 인용·caveat verbatim 보존
 - 웹 서비스 스펙 (옵션): [`${CLAUDE_SKILL_DIR}/references/web-service-spec.md`](references/web-service-spec.md) — 웹 확장 시 로드
